@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { transformExam } from "@/lib/examTransform";
+import { transformExam, analyzeExam } from "@/lib/examTransform";
 import { usernameToEmail } from "@/lib/constants";
 
 async function assertTutor() {
@@ -23,7 +23,52 @@ async function assertTutor() {
 
 export type ActionResult = { ok: boolean; message: string };
 
+export type ValidateResult = {
+  ok: boolean;
+  filename: string;
+  title: string;
+  questionCount: number;
+  strippedCount: number;
+  katexOk: boolean;
+  errors: string[];
+  warnings: string[];
+};
+
 /* ---------------- ข้อสอบ ---------------- */
+
+/** ตรวจไฟล์ก่อนอัปจริง — ไม่บันทึกลง DB ใช้กับแถบสรุปผลในการ์ดอัปโหลด */
+export async function validateExamFile(formData: FormData): Promise<ValidateResult> {
+  const empty: ValidateResult = {
+    ok: false,
+    filename: "",
+    title: "",
+    questionCount: 0,
+    strippedCount: 0,
+    katexOk: false,
+    errors: [],
+    warnings: [],
+  };
+  try {
+    await assertTutor();
+    const file = formData.get("file") as File | null;
+    if (!file || file.size === 0)
+      return { ...empty, errors: ["กรุณาเลือกไฟล์ HTML"] };
+    const raw = await file.text();
+    const a = analyzeExam(raw);
+    return {
+      ok: a.ok,
+      filename: file.name,
+      title: a.title,
+      questionCount: a.questionCount,
+      strippedCount: a.strippedCount,
+      katexOk: a.katexOk,
+      errors: a.errors,
+      warnings: a.warnings,
+    };
+  } catch (err) {
+    return { ...empty, errors: [(err as Error).message] };
+  }
+}
 
 export async function createExam(formData: FormData): Promise<ActionResult> {
   try {
