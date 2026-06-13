@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CU-ATS Physics Mock — August 2027 (Interactive)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{ --ink:#141414; --green:#1c7c3c; --greenbg:#e7f5ec; --red:#b3261e; --redbg:#fdecea;
+         --sel:#1a56db; --soft:#f6f5f2; --line:#d8d6d0; }
+  *{box-sizing:border-box}
+  body{ margin:0; background:#d8d7d3; color:var(--ink);
+        font-family:"Times New Roman", Georgia, "Noto Serif", serif; }
+  .sheet{ max-width:880px; margin:34px auto 70px; background:#fff; padding:54px 66px 70px;
+          box-shadow:0 2px 4px rgba(0,0,0,.18), 0 14px 38px rgba(0,0,0,.22); }
+  /* header */
+  .head h1{ font-family:"Arial Narrow",Arial,Helvetica,sans-serif; font-weight:700;
+            font-size:27px; margin:0 0 2px; }
+  .head .sub{ font-family:"Arial Narrow",Arial,Helvetica,sans-serif; font-weight:700;
+              font-size:14.5px; margin-bottom:10px; }
+  .head hr{ border:none; border-top:2.4px solid var(--ink); margin:0 0 8px; }
+  .head .meta{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;
+               font-size:13px; color:#6b6b6b; font-family:Arial,Helvetica,sans-serif; letter-spacing:.4px; }
+  .marking{ margin-top:14px; font-size:14.5px; background:var(--soft); border:1px solid var(--line);
+            border-radius:8px; padding:10px 16px; }
+  .marking b{font-family:Arial,Helvetica,sans-serif; font-size:13px;}
+  /* score chip */
+  #score{ position:fixed; top:14px; right:16px; z-index:50; background:#141414; color:#fff;
+          font-family:Arial,Helvetica,sans-serif; font-size:13px; padding:8px 14px;
+          border-radius:999px; box-shadow:0 4px 14px rgba(0,0,0,.3); }
+  /* questions */
+  .q{ margin-top:46px; }
+  .q .stem{ display:flex; gap:13px; font-size:17.5px; line-height:1.62; }
+  .q .qn{ min-width:30px; text-align:right; }
+  .q .stem p{ margin:0; text-align:justify; }
+  .choices{ list-style:none; margin:14px 0 0 44px; padding:0; font-size:17px; }
+  .choices li{ padding:7px 12px; margin:4px 0; border-radius:8px; border:1.5px solid transparent;
+               cursor:pointer; display:flex; gap:10px; align-items:center; transition:background .12s; }
+  .choices li:hover{ background:#f3f2ee; }
+  .choices li .cl{ min-width:24px; }
+  .choices li.sel{ border-color:var(--sel); background:#eef3fe; }
+  .choices li.correct{ border-color:var(--green); background:var(--greenbg); }
+  .choices li.correct::after{ content:"✔ คำตอบที่ถูก"; margin-left:auto; color:var(--green);
+        font-family:Arial,sans-serif; font-size:12.5px; font-weight:700; }
+  .choices li.wrong{ border-color:var(--red); background:var(--redbg); }
+  .choices li.wrong::after{ content:"✘"; margin-left:auto; color:var(--red); font-weight:700; }
+  .ansBtn{ margin:14px 0 0 44px; font-family:Arial,Helvetica,sans-serif; font-weight:700;
+           font-size:13.5px; padding:8px 22px; border-radius:8px; border:1.5px solid #141414;
+           background:#141414; color:#fff; cursor:pointer; }
+  .ansBtn:hover{ background:#333; }
+  .ansBtn:disabled{ background:#aaa; border-color:#aaa; cursor:default; }
+  .sol{ margin:14px 0 0 44px; border-left:4px solid var(--green); background:var(--greenbg);
+        border-radius:0 10px 10px 0; padding:12px 18px; font-size:16px; line-height:1.65; }
+  .sol .tag{ font-family:Arial,sans-serif; font-weight:700; font-size:12.5px; color:var(--green);
+             letter-spacing:.6px; }
+  .hidden{ display:none; }
+  /* animation / figure box */
+  .anim{ margin:16px 0 4px 44px; border:1.5px solid var(--line); border-radius:12px;
+         background:#fcfbf9; padding:14px 16px 12px; }
+  .sol .anim{ margin:12px 0 4px; background:#fff; }   /* กล่องแอนิเมชันที่อยู่ "ในเฉลย" */
+  .anim .cap{ font-family:Arial,sans-serif; font-size:12px; color:#7a7a72; letter-spacing:.5px;
+              margin-bottom:8px; text-transform:uppercase; }
+  .anim svg{ max-width:100%; height:auto; display:block; margin:0 auto; }
+  .ctr{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;
+        font-family:Arial,sans-serif; font-size:13px; }
+  .ctr button{ font-family:Arial,sans-serif; font-size:12.5px; font-weight:700; padding:6px 14px;
+        border-radius:7px; border:1.5px solid #141414; background:#fff; cursor:pointer; }
+  .ctr button.on{ background:#141414; color:#fff; }
+  .ctr input[type=range]{ flex:1; min-width:120px; accent-color:#141414; }
+  .ro{ font-family:"Courier New",monospace; font-size:13.5px; background:#fff;
+       border:1px solid var(--line); border-radius:6px; padding:4px 10px; white-space:nowrap; }
+  .badge{ font-family:Arial,sans-serif; font-weight:700; font-size:12px; color:var(--red); }
+  .note{ margin:30px 0 0; font-size:13.5px; color:#7a7a72; font-family:Arial,sans-serif;
+         border-top:1px solid var(--line); padding-top:14px; }
+  /* svg helpers */
+  .ground{stroke:#141414;stroke-width:2}
+  .hatch{stroke:#b9b7ae;stroke-width:1}
+  text.lbl{font-family:"Times New Roman",serif;font-size:14px;fill:#141414}
+  text.lbl.i{font-style:italic}
+  text.small{font-family:Arial,sans-serif;font-size:11px;fill:#7a7a72}
+  text.mono{font-family:"Courier New",monospace;font-size:12px;fill:#141414}
+  @media (max-width:640px){ .sheet{padding:30px 16px 50px} .choices{margin-left:8px}
+        .anim{margin-left:8px} .ansBtn,.sol{margin-left:8px} }
+</style>
+</head>
+<body>
+<div id="score">เฉลยแล้ว 0/30 • เลือกถูก 0</div>
+<div class="sheet">
+
+  <div class="head">
+    <h1>CU-ATS: Physics Section</h1>
+    <div class="sub">60 Minutes, 30 Questions</div>
+    <hr>
+    <div class="meta">
+      <span><b>Mock Exam</b> | August 2027 — Interactive Edition</span>
+      <span>คลิกเลือกคำตอบ แล้วกดปุ่ม "เฉลย" เพื่อตรวจและดูวิธีทำ</span>
+    </div>
+    <div class="marking">
+      <b>MARKING SCHEME</b> &nbsp; +1 point for questions you get correct · 0 point subtracted for
+      incorrect answers · 0 point subtracted for questions you do not answer
+      <br><b style="color:#9a6a00">INTERACTIVE</b> &nbsp; ลองทำโจทย์และวาดรูปด้วยตัวเองให้เต็มที่ก่อน แล้วจึงกดเฉลย —
+      เฉลยละเอียดของบางข้อจะมีกล่อง "Interactive" ให้ลองเล่นเพื่อช่วยให้เข้าใจภาพของโจทย์มากขึ้น
+    </div>
+  </div>
+
+  <!-- ================================================== Q1 -->
+  <div class="q" data-n="1">
+    <div class="stem"><div class="qn">1.</div>
+      <p>A stone is released from rest from the top of a cliff and falls freely for 3.0 s. How far does it fall during this time? (Given \(g\) = 9.8 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 14.7 m</li>
+      <li data-v="2"><span class="cl">2)</span> 29.4 m</li>
+      <li data-v="3"><span class="cl">3)</span> 44.1 m</li>
+      <li data-v="4"><span class="cl">4)</span> 88.2 m</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ปล่อยจากนิ่ง (\(u = 0\)) ตกอิสระ ใช้สมการระยะ:
+      $$h = \frac{1}{2}gt^2 = \frac{1}{2}(9.8)(3.0)^2 = \frac{1}{2}(9.8)(9) = \mathbf{44.1\ m}$$
+      (ลวง 29.4 = ใช้ \(v = gt = 29.4\) m/s ซึ่งเป็นความเร็วไม่ใช่ระยะ,
+      ลวง 88.2 = ลืมหารสอง ใช้ \(gt^2\) ตรง ๆ — สูตรตกอิสระมีตัวประกอบ \(\tfrac{1}{2}\) เสมอ)</div>
+  </div>
+
+  <!-- ================================================== Q2 -->
+  <div class="q" data-n="2">
+    <div class="stem"><div class="qn">2.</div>
+      <p>A tour bus covers the first half of the distance of its trip at a constant speed of 20 m/s and the second half of the distance at a constant speed of 30 m/s. What is the average speed of the bus for the whole trip?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 24 m/s</li>
+      <li data-v="2"><span class="cl">2)</span> 25 m/s</li>
+      <li data-v="3"><span class="cl">3)</span> 26 m/s</li>
+      <li data-v="4"><span class="cl">4)</span> 50 m/s</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> อัตราเร็วเฉลี่ย = ระยะทางรวม ÷ เวลารวม — เมื่อแบ่งเป็น "ครึ่งระยะทาง" เท่ากัน
+      ต้องใช้ค่าเฉลี่ยฮาร์มอนิก (ไม่ใช่เฉลี่ยเลขคณิต)<br>
+      ให้ระยะรวม \(2d\): เวลาครึ่งแรก \(\dfrac{d}{20}\) ครึ่งหลัง \(\dfrac{d}{30}\)
+      $$\bar{v} = \frac{2d}{\dfrac{d}{20} + \dfrac{d}{30}} = \frac{2}{\dfrac{1}{20} + \dfrac{1}{30}}
+      = \frac{2}{\dfrac{3 + 2}{60}} = \frac{2 \times 60}{5} = \mathbf{24\ m/s}$$
+      (ลวง 25 = ค่าเฉลี่ยเลขคณิต \(\dfrac{20+30}{2}\) ซึ่งใช้ได้เฉพาะเมื่อ "เวลา" สองช่วงเท่ากัน
+      — แต่ที่นี่ "ระยะ" เท่ากัน รถวิ่งช้าจึงใช้เวลานานกว่า ค่าเฉลี่ยเลยเอนไปทางเลขน้อย)</div>
+  </div>
+
+  <!-- ================================================== Q3 (anim ในเฉลย) -->
+  <div class="q" data-n="3">
+    <div class="stem"><div class="qn">3.</div>
+      <p>A ball rolls off the edge of a horizontal table 1.25 m high with a speed of 4.0 m/s. How far from the base of the table does the ball land? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 1.0 m</li>
+      <li data-v="2"><span class="cl">2)</span> 2.0 m</li>
+      <li data-v="3"><span class="cl">3)</span> 2.5 m</li>
+      <li data-v="4"><span class="cl">4)</span> 4.0 m</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> โพรเจกไทล์ยิงแนวราบ — แยกแนวดิ่งกับแนวนอนเป็นอิสระ
+      "เวลาตก" ขึ้นกับความสูงอย่างเดียว ไม่เกี่ยวกับความเร็วแนวนอน<br>
+      <u>ขั้นที่ 1 — เวลาตก (แนวดิ่ง):</u> \(h = \tfrac{1}{2}gt^2\):
+      $$t = \sqrt{\frac{2h}{g}} = \sqrt{\frac{2(1.25)}{10}} = \sqrt{0.25} = 0.50\ \mathrm{s}$$
+      <u>ขั้นที่ 2 — ระยะแนวนอน:</u> ความเร็วแนวนอนคงที่:
+      $$x = v_x\,t = (4.0)(0.50) = \mathbf{2.0\ m}$$
+      (ลวง 4.0 = ใช้ \(t = 1\) s ลืมถอดราก, ลวง 1.0 = ลืมรากที่สองไปอีกแบบ —
+      ความเร็วแนวนอนไม่มีผลต่อเวลาตก แต่กำหนดว่าไปได้ไกลแค่ไหนในเวลานั้น)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนเวลา t — แนวนอนเคลื่อนสม่ำเสมอ แนวดิ่งตก ½gt² พร้อมกัน ตกถึงพื้นที่ t = 0.50 s</div>
+        <svg id="a3" viewBox="0 0 420 200" width="420">
+          <line x1="20" y1="176" x2="404" y2="176" class="ground"/>
+          <rect x="20" y="60" width="90" height="116" fill="#f3f2ee" stroke="#141414" stroke-width="2"/>
+          <text x="65" y="120" class="lbl i" text-anchor="middle">โต๊ะ</text>
+          <line x1="110" y1="56" x2="110" y2="176" stroke="#9a988f" stroke-width="1"/>
+          <text x="120" y="50" class="small">1.25 m</text>
+          <path id="a3path" d="" fill="none" stroke="#cfcdc5" stroke-width="1.4" stroke-dasharray="4 4"/>
+          <circle id="a3b" cx="110" cy="60" r="8" fill="#fff" stroke="#141414" stroke-width="2"/>
+          <line id="a3vx" x1="110" y1="60" x2="140" y2="60" stroke="#1a56db" stroke-width="2.4"/>
+          <path id="a3vxh" d="M140,55 L150,60 L140,65 Z" fill="#1a56db"/>
+          <text id="a3st" x="24" y="28" font-family="Arial" font-size="13" font-weight="bold" fill="#141414">t = 0 — กลิ้งพ้นขอบด้วย 4.0 m/s</text>
+        </svg>
+        <div class="ctr">
+          <button id="a3p">▶ Play</button>
+          <input type="range" id="a3t" min="0" max="0.5" step="0.01" value="0">
+          <span class="ro" id="a3tr">t = 0.00 s</span>
+          <span class="ro" id="a3xr">x = 0 m</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q4 -->
+  <div class="q" data-n="4">
+    <div class="stem"><div class="qn">4.</div>
+      <p>A horse pulls a cart along a level road and the system accelerates forward. Consider the following statements.</p></div>
+    <div style="margin:8px 0 0 58px; font-size:16.5px; line-height:1.7">
+      I.&nbsp;&nbsp;The force of the horse on the cart and the force of the cart on the horse are equal in magnitude.<br>
+      II.&nbsp;&nbsp;These two forces cancel each other, so the system cannot accelerate.<br>
+      III.&nbsp;The system accelerates because the net <b>external</b> force acting on it is not zero.
+    </div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> I only</li>
+      <li data-v="2"><span class="cl">2)</span> I and III only</li>
+      <li data-v="3"><span class="cl">3)</span> II only</li>
+      <li data-v="4"><span class="cl">4)</span> II and III only</li>
+      <li data-v="5"><span class="cl">5)</span> I, II and III</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> ปริศนาคลาสสิก "ม้าลากเกวียน" — กุญแจคือคู่แรงกฎข้อ 3 กระทำต่อ "คนละวัตถุ" จึงหักล้างกันไม่ได้<br>
+      <b>I. จริง ✓</b> แรงม้าดันเกวียน = แรงเกวียนดันม้า (ขนาดเท่ากัน ทิศตรงข้าม) ตามกฎข้อ 3<br>
+      <b>II. เท็จ ✗</b> สองแรงนี้กระทำต่อ "คนละวัตถุ" (อันหนึ่งบนเกวียน อีกอันบนม้า)
+      จึงไม่มีทางหักล้างกันบนวัตถุเดียว — แรงที่หักล้างกันต้องอยู่บนวัตถุเดียวกัน<br>
+      <b>III. จริง ✓</b> มองทั้งระบบ (ม้า+เกวียน): แรงภายนอกสุทธิคือ "แรงเสียดทานพื้นดันเท้าม้าไปข้างหน้า"
+      มากกว่าแรงต้าน → ระบบเร่งได้<br>
+      → <b>I and III only</b></div>
+  </div>
+
+  <!-- ================================================== Q5 (anim ในเฉลย) -->
+  <div class="q" data-n="5">
+    <div class="stem"><div class="qn">5.</div>
+      <p>A 3.0 kg block rests on top of a 5.0 kg block, which rests on a frictionless horizontal floor. The coefficient of static friction between the two blocks is 0.40. What is the maximum horizontal force that can be applied to the <b>lower</b> block so that the blocks move together without slipping? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 12 N</li>
+      <li data-v="2"><span class="cl">2)</span> 20 N</li>
+      <li data-v="3"><span class="cl">3)</span> 24 N</li>
+      <li data-v="4"><span class="cl">4)</span> 32 N</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> ก้อนบนถูกพาไปด้วย "แรงเสียดทาน" จากก้อนล่างเท่านั้น แรงนี้มีเพดาน
+      จึงจำกัดความเร่งสูงสุดที่ก้อนบนตามทัน<br>
+      <u>ขั้นที่ 1 — ความเร่งสูงสุดของก้อนบน:</u> \(f_{max} = \mu_s\,m_{top}\,g = (0.40)(3.0)(10) = 12\) N
+      $$a_{max} = \frac{f_{max}}{m_{top}} = \mu_s\,g = 4.0\ \mathrm{m/s^2}$$
+      <u>ขั้นที่ 2 — แรงผลักทั้งระบบที่ความเร่งนี้:</u>
+      $$F_{max} = (m_{top} + m_{bottom})\,a_{max} = (3.0 + 5.0)(4.0) = \mathbf{32\ N}$$
+      (ลวง 12 = ตอบ \(f_{max}\) เอง, ลวง 20 = ใช้เฉพาะมวลก้อนล่าง \(5.0 \times 4.0\) —
+      แรง \(F\) ต้องเร่งมวล "ทั้งสองก้อน" ไม่ใช่ก้อนเดียว)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนแรง F — เกิน 32 N เมื่อไหร่ ก้อนบนเริ่มไถลรั้งท้าย</div>
+        <svg id="a5" viewBox="0 0 420 150" width="420">
+          <line x1="14" y1="120" x2="406" y2="120" class="ground"/>
+          <g class="hatch">
+            <line x1="34" y1="120" x2="24" y2="132"/><line x1="86" y1="120" x2="76" y2="132"/>
+            <line x1="138" y1="120" x2="128" y2="132"/><line x1="190" y1="120" x2="180" y2="132"/>
+            <line x1="242" y1="120" x2="232" y2="132"/><line x1="294" y1="120" x2="284" y2="132"/>
+            <line x1="346" y1="120" x2="336" y2="132"/>
+          </g>
+          <g id="a5low">
+            <rect x="-58" y="-40" width="116" height="40" fill="#fff" stroke="#141414" stroke-width="2"/>
+            <text x="0" y="-15" class="lbl i" text-anchor="middle">5 kg</text>
+            <line x1="-62" y1="-20" x2="-96" y2="-20" stroke="#b3261e" stroke-width="4"/>
+            <path d="M-96,-26 L-108,-20 L-96,-14 Z" fill="#b3261e"/>
+            <text x="-100" y="-30" font-family="Arial" font-size="11" fill="#b3261e" font-style="italic" text-anchor="end">F</text>
+          </g>
+          <g id="a5top">
+            <rect x="-38" y="-70" width="76" height="30" fill="#f3f2ee" stroke="#141414" stroke-width="2"/>
+            <text x="0" y="-50" class="lbl i" text-anchor="middle" font-size="12">3 kg</text>
+          </g>
+          <text id="a5st" x="24" y="26" font-family="Arial" font-size="13" font-weight="bold" fill="#1c7c3c">เคลื่อนที่ไปด้วยกัน ✓</text>
+        </svg>
+        <div class="ctr">
+          <span style="font-family:Arial">F:</span>
+          <input type="range" id="a5sl" min="0" max="48" step="2" value="20">
+          <span class="ro" id="a5Fr">F = 20 N</span>
+          <span class="ro" id="a5ar">a = 2.5 m/s²</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q6 -->
+  <div class="q" data-n="6">
+    <div class="stem"><div class="qn">6.</div>
+      <p>A pickup truck of mass 800 kg climbs a straight hill road in Chiang Mai inclined at 37° to the horizontal at a constant speed of 10 m/s. The total resistive force on the truck is 600 N. What is the power delivered by the engine? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 48 kW</li>
+      <li data-v="2"><span class="cl">2)</span> 54 kW</li>
+      <li data-v="3"><span class="cl">3)</span> 70 kW</li>
+      <li data-v="4"><span class="cl">4)</span> 108 kW</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> ความเร็วคงที่ → แรงลัพธ์เป็นศูนย์ → แรงเครื่องยนต์ต้องสู้ "องค์ประกอบน้ำหนักตามทางลาด" บวก "แรงต้าน"<br>
+      <u>ขั้นที่ 1 — แรงเครื่องยนต์:</u>
+      $$F = mg\sin 37° + f = (800)(10)(0.6) + 600 = 4{,}800 + 600 = 5{,}400\ \mathrm{N}$$
+      <u>ขั้นที่ 2 — กำลัง:</u>
+      $$P = Fv = (5{,}400)(10) = 54{,}000\ \mathrm{W} = \mathbf{54\ kW}$$
+      (ลวง 48 = ลืมแรงต้าน 600 N คิดแค่ \(mg\sin\theta\), ลวง 70 = สลับเป็น \(\cos 37° = 0.8\)
+      ได้ \(6{,}400 + 600\) → 70 kW)</div>
+  </div>
+
+  <!-- ================================================== Q7 -->
+  <div class="q" data-n="7">
+    <div class="stem"><div class="qn">7.</div>
+      <p>A 4,000 kg freight car moving at 3.0 m/s along a level track couples with a stationary 2,000 kg freight car. What is the speed of the two cars immediately after coupling?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 1.0 m/s</li>
+      <li data-v="2"><span class="cl">2)</span> 1.2 m/s</li>
+      <li data-v="3"><span class="cl">3)</span> 1.5 m/s</li>
+      <li data-v="4"><span class="cl">4)</span> 2.0 m/s</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> ชนแล้วติดกัน (perfectly inelastic) — โมเมนตัมรวมอนุรักษ์ มวลรวมเป็นก้อนเดียว<br>
+      $$m_1 u_1 = (m_1 + m_2)\,v$$
+      $$v = \frac{m_1 u_1}{m_1 + m_2} = \frac{(4{,}000)(3.0)}{4{,}000 + 2{,}000} = \frac{12{,}000}{6{,}000} = \mathbf{2.0\ m/s}$$
+      (ลวง 1.5 = หารด้วยมวลรวมแล้วจับเลขพลาด, ลวง 1.0 = หารสามตรง ๆ —
+      มวลรวมเพิ่มขึ้น 1.5 เท่า ความเร็วจึงลดเหลือ \(3.0/1.5 = 2.0\) m/s)</div>
+  </div>
+
+  <!-- ================================================== Q8 (anim ในเฉลย) -->
+  <div class="q" data-n="8">
+    <div class="stem"><div class="qn">8.</div>
+      <p>The work required to compress a spring by a distance \(x\) from its natural length is \(W\). How much <b>additional</b> work is required to compress the spring further, from \(x\) to \(2x\)?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(W\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(2W\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(3W\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(4W\)</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> พลังงานสปริงโตแบบ "กำลังสอง" ของระยะกด: \(U = \tfrac{1}{2}kx^2\)
+      — งานที่ทำคือผลต่างของพลังงานสองจุด ไม่ใช่พลังงานที่จุดใหม่ทั้งก้อน<br>
+      กดถึง \(x\): \(U_1 = \tfrac{1}{2}kx^2 = W\)<br>
+      กดถึง \(2x\): \(U_2 = \tfrac{1}{2}k(2x)^2 = 4 \cdot \tfrac{1}{2}kx^2 = 4W\)<br>
+      งาน "เพิ่ม" จาก \(x\) ถึง \(2x\):
+      $$W_{add} = U_2 - U_1 = 4W - W = \mathbf{3W}$$
+      (ลวง 4W = ตอบพลังงานที่จุด \(2x\) ทั้งก้อน ลืมหักงานช่วงแรกที่ทำไปแล้ว,
+      ลวง W = คิดว่าระยะเท่ากันงานเท่ากัน — แต่ช่วงหลังสปริงตึงกว่า ต้านมากกว่า งานจึงมากกว่า)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนระยะกด — พื้นที่ใต้กราฟ F = kx (สามเหลี่ยม) คืองาน ช่วง x→2x ใหญ่กว่าช่วงแรก 3 เท่า</div>
+        <svg id="a8" viewBox="0 0 420 190" width="420">
+          <line x1="50" y1="160" x2="390" y2="160" stroke="#141414" stroke-width="2"/>
+          <line x1="50" y1="160" x2="50" y2="30" stroke="#141414" stroke-width="2"/>
+          <text x="396" y="164" class="small">x</text>
+          <text x="34" y="36" class="small">F = kx</text>
+          <line x1="180" y1="160" x2="180" y2="164" stroke="#141414" stroke-width="1.5"/>
+          <text x="180" y="176" class="small" text-anchor="middle">x</text>
+          <line x1="310" y1="160" x2="310" y2="164" stroke="#141414" stroke-width="1.5"/>
+          <text x="310" y="176" class="small" text-anchor="middle">2x</text>
+          <polygon id="a8area1" points="50,160 180,160 180,95" fill="#1c7c3c" opacity="0"/>
+          <polygon id="a8area2" points="180,160 310,160 310,30 180,95" fill="#b3261e" opacity="0"/>
+          <line x1="50" y1="160" x2="310" y2="30" stroke="#1a56db" stroke-width="2.4"/>
+          <line id="a8cur" x1="50" y1="30" x2="50" y2="160" stroke="#7a7a72" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text id="a8ro" x="64" y="50" font-family="Courier New" font-size="12">งาน = 0</text>
+        </svg>
+        <div class="ctr">
+          <button id="a8b1">กดถึง x (งาน = W)</button>
+          <button id="a8b2">กดต่อถึง 2x (เพิ่ม 3W)</button>
+          <span class="ro" id="a8st">พื้นที่สามเหลี่ยม = งานที่ทำ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q9 (anim ในเฉลย) -->
+  <div class="q" data-n="9">
+    <div class="stem"><div class="qn">9.</div>
+      <p>A curve of radius 120 m on a highway is banked at 37° to the horizontal. At what speed can a car travel around the curve without relying on friction at all? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 15 m/s</li>
+      <li data-v="2"><span class="cl">2)</span> 30 m/s</li>
+      <li data-v="3"><span class="cl">3)</span> 45 m/s</li>
+      <li data-v="4"><span class="cl">4)</span> 900 m/s</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> ถนนเอียง (banked) ไร้เสียดทาน — มีแค่น้ำหนักกับแรงตั้งฉากผิวถนน \(N\)
+      องค์ประกอบแนวนอนของ \(N\) ต้องทำหน้าที่เป็นแรงสู่ศูนย์กลางพอดี<br>
+      แนวดิ่ง: \(N\cos\theta = mg\) · แนวนอน: \(N\sin\theta = \dfrac{mv^2}{R}\) — หารกัน:
+      $$\tan\theta = \frac{v^2}{gR} \;\Rightarrow\; v = \sqrt{gR\tan\theta}$$
+      แทนค่า (\(\tan 37° = 0.75\)): \(v = \sqrt{(10)(120)(0.75)} = \sqrt{900} = \mathbf{30\ m/s}\)<br>
+      (ลวง 900 = ลืมถอดราก ตอบ \(gR\tan\theta\) ดิบ ๆ, ลวง 15 = ใช้ค่า \(\tan\) ผิด —
+      ที่ความเร็วพอดีนี้ ถนนเอียงเองช่วยเลี้ยวได้โดยไม่ต้องพึ่งเสียดทานเลย)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนความเร็ว — ที่ v = 30 m/s องค์ประกอบ N พอดีเป็นแรงสู่ศูนย์กลาง (ไม่ต้องใช้เสียดทาน)</div>
+        <svg id="a9" viewBox="0 0 420 190" width="420">
+          <line x1="40" y1="160" x2="240" y2="160" class="ground"/>
+          <polygon points="60,160 230,160 230,32" fill="#f6f5f2" stroke="#141414" stroke-width="2"/>
+          <text x="100" y="152" class="lbl">37°</text>
+          <g transform="translate(165,108) rotate(-37)">
+            <rect x="-24" y="-16" width="48" height="16" fill="#fff" stroke="#141414" stroke-width="2"/>
+            <text x="0" y="-3" class="lbl i" text-anchor="middle" font-size="10">car</text>
+            <line x1="0" y1="-16" x2="0" y2="-56" stroke="#1a56db" stroke-width="3"/>
+            <path d="M-6,-48 L0,-60 L6,-48 Z" fill="#1a56db"/>
+            <text x="6" y="-46" font-family="Arial" font-size="10" fill="#1a56db">N</text>
+          </g>
+          <line x1="165" y1="92" x2="165" y2="128" stroke="#b3261e" stroke-width="3"/>
+          <path d="M159,120 L165,134 L171,120 Z" fill="#b3261e"/>
+          <text x="172" y="116" font-family="Arial" font-size="10" fill="#b3261e">mg</text>
+          <line id="a9fc" x1="165" y1="108" x2="220" y2="108" stroke="#1c7c3c" stroke-width="2.4"/>
+          <path id="a9fch" d="M220,103 L230,108 L220,113 Z" fill="#1c7c3c"/>
+          <text x="232" y="112" font-family="Arial" font-size="9" fill="#1c7c3c">F สู่ศูนย์กลางที่ต้องการ</text>
+          <text id="a9st" x="248" y="60" font-family="Courier New" font-size="12" fill="#141414">v = 30 m/s</text>
+          <text id="a9st2" x="248" y="80" font-family="Arial" font-size="12" font-weight="bold" fill="#1c7c3c">พอดี ✓</text>
+        </svg>
+        <div class="ctr">
+          <span style="font-family:Arial">v:</span>
+          <input type="range" id="a9v" min="15" max="45" step="3" value="30">
+          <span class="ro" id="a9ro">tanθ = v²/gR → ต้องการ v = 30</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q10 -->
+  <div class="q" data-n="10">
+    <div class="stem"><div class="qn">10.</div>
+      <p>A 0.50 kg mass attached to a spring of spring constant 200 N/m oscillates on a frictionless horizontal surface with an amplitude of 0.10 m. What is the maximum speed of the mass?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 0.50 m/s</li>
+      <li data-v="2"><span class="cl">2)</span> 1.0 m/s</li>
+      <li data-v="3"><span class="cl">3)</span> 4.0 m/s</li>
+      <li data-v="4"><span class="cl">4)</span> 20 m/s</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> ความเร็วสูงสุดใน SHM (ที่จุดสมดุล) = \(v_{max} = \omega A\) โดย \(\omega = \sqrt{\dfrac{k}{m}}\)<br>
+      <u>ขั้นที่ 1:</u> \(\omega = \sqrt{\dfrac{200}{0.50}} = \sqrt{400} = 20\) rad/s<br>
+      <u>ขั้นที่ 2:</u>
+      $$v_{max} = \omega A = (20)(0.10) = 2.0\ \mathrm{m/s}$$
+      ไม่มีในตัวเลือก → <b>None of the above</b><br>
+      (ลวง 20 = ตอบ \(\omega\) ลืมคูณแอมพลิจูด, ลวง 4.0 = ใช้ \(\dfrac{k}{m}\) ไม่ถอดราก,
+      วิธีตรวจด้วยพลังงาน: \(\tfrac{1}{2}mv_{max}^2 = \tfrac{1}{2}kA^2 \Rightarrow v_{max} = A\sqrt{k/m} = 2.0\) ✓)</div>
+  </div>
+  <!-- ================================================== Q11 -->
+  <div class="q" data-n="11">
+    <div class="stem"><div class="qn">11.</div>
+      <p>Two objects attract each other gravitationally. If the distance between their centres is tripled, the gravitational force between them becomes:</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 9 times larger</li>
+      <li data-v="2"><span class="cl">2)</span> 3 times smaller</li>
+      <li data-v="3"><span class="cl">3)</span> unchanged</li>
+      <li data-v="4"><span class="cl">4)</span> 9 times smaller</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> แรงโน้มถ่วง \(F = \dfrac{Gm_1 m_2}{r^2} \propto \dfrac{1}{r^2}\) (กฎกำลังสองผกผัน)<br>
+      ระยะเพิ่ม 3 เท่า → แรงลดลง \(3^2 = 9\) เท่า:
+      $$F' = \frac{F}{3^2} = \frac{F}{9} \;\Rightarrow\; \textbf{9 times smaller}$$
+      (ลวง "3 times smaller" = ลืมยกกำลังสอง — จุดพลาดอันดับหนึ่งของกฎกำลังสองผกผัน
+      ทั้งโน้มถ่วงและคูลอมบ์ ระยะอยู่ "ในกำลังสอง" เสมอ)</div>
+  </div>
+
+  <!-- ================================================== Q12 -->
+  <div class="q" data-n="12">
+    <div class="stem"><div class="qn">12.</div>
+      <p>A pipe closed at one end is 0.25 m long. What is the fundamental frequency of the air column in the pipe? (Given speed of sound = 340 m/s)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 170 Hz</li>
+      <li data-v="2"><span class="cl">2)</span> 340 Hz</li>
+      <li data-v="3"><span class="cl">3)</span> 680 Hz</li>
+      <li data-v="4"><span class="cl">4)</span> 1,360 Hz</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> ท่อปลายปิดหนึ่งด้าน — ปลายปิดเป็น node ปลายเปิดเป็น antinode
+      โหมดพื้นฐานบรรจุหนึ่งในสี่ลูกคลื่น: \(L = \dfrac{\lambda}{4}\) → \(\lambda = 4L\)
+      $$f_1 = \frac{v}{4L} = \frac{340}{4(0.25)} = \frac{340}{1.0} = \mathbf{340\ Hz}$$
+      (ลวง 680 = ใช้สูตรท่อเปิดสองด้าน \(v/2L\), ลวง 170 = หาร \(8L\) เกินไปหนึ่งชั้น —
+      ท่อปลายปิดยาว \(L\) เท่ากันจะให้ความถี่ "ต่ำกว่า" ท่อเปิดเสมอ เพราะบรรจุคลื่นได้น้อยกว่า)</div>
+  </div>
+
+  <!-- ================================================== Q13 -->
+  <div class="q" data-n="13">
+    <div class="stem"><div class="qn">13.</div>
+      <p>A long-tail boat moves directly away from a stationary person standing on a pier at 20 m/s while sounding its horn at 540 Hz. What frequency does the person hear? (Given speed of sound = 340 m/s)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 510 Hz</li>
+      <li data-v="2"><span class="cl">2)</span> 540 Hz</li>
+      <li data-v="3"><span class="cl">3)</span> 570 Hz</li>
+      <li data-v="4"><span class="cl">4)</span> 574 Hz</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> แหล่งกำเนิด (เรือ) "วิ่งหนี" ผู้ฟังนิ่ง — คลื่นด้านหลังถูกยืดออก ความถี่ลดลง
+      สูตรแหล่งวิ่งปรับที่ "ตัวส่วน" วิ่งหนีใช้บวก:
+      $$f' = f\,\frac{v}{v + v_s} = 540 \times \frac{340}{340 + 20} = 540 \times \frac{340}{360}$$
+      คิด: \(\dfrac{340}{360} = \dfrac{17}{18}\) → \(f' = 540 \times \dfrac{17}{18} = 30 \times 17 = \mathbf{510\ Hz}\)<br>
+      (เช็คทิศก่อน: วิ่งหนี → เสียงทุ้มลง → ต่ำกว่า 540 ตัดช้อยส์ 3, 4 ทันที —
+      ลวง 574 ≈ ใช้ตัวส่วน \(340 - 20\) ซึ่งเป็นสูตรวิ่งเข้า)</div>
+  </div>
+
+  <!-- ================================================== Q14 -->
+  <div class="q" data-n="14">
+    <div class="stem"><div class="qn">14.</div>
+      <p>A small siren radiates sound uniformly in all directions. At a distance of 10 m from the siren, the sound intensity is \(8.0\times10^{-3}\) W/m\(^2\). What is the intensity at a distance of 20 m?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(5.0\times10^{-4}\) W/m\(^2\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(1.0\times10^{-3}\) W/m\(^2\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(2.0\times10^{-3}\) W/m\(^2\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(4.0\times10^{-3}\) W/m\(^2\)</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> กำลังเท่าเดิมเกลี่ยบนผิวทรงกลมที่โตขึ้น → \(I \propto \dfrac{1}{r^2}\)<br>
+      ระยะเพิ่มจาก 10 เป็น 20 m คือ 2 เท่า → ความเข้มลดลง \(2^2 = 4\) เท่า:
+      $$I' = \frac{I}{4} = \frac{8.0\times10^{-3}}{4} = \mathbf{2.0\times10^{-3}\ W/m^2}$$
+      (ลวง \(4.0\times10^{-3}\) = หารด้วย 2 ครั้งเดียวลืมยกกำลังสอง —
+      เทคนิคลัด: ความเข้มที่ระยะคูณสอง = หนึ่งในสี่เสมอ)</div>
+  </div>
+
+  <!-- ================================================== Q15 (anim ในเฉลย) -->
+  <div class="q" data-n="15">
+    <div class="stem"><div class="qn">15.</div>
+      <p>A transverse wave on a string is described by \(y(x, t) = 0.02\sin(4\pi x - 200\pi t)\), where \(x\) and \(y\) are in metres and \(t\) is in seconds. What are the speed <b>and</b> the direction of travel of the wave?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 50 m/s, in the \(+x\) direction</li>
+      <li data-v="2"><span class="cl">2)</span> 50 m/s, in the \(-x\) direction</li>
+      <li data-v="3"><span class="cl">3)</span> 0.02 m/s, in the \(+x\) direction</li>
+      <li data-v="4"><span class="cl">4)</span> 800 m/s, in the \(-x\) direction</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> เทียบกับรูปมาตรฐาน \(y = A\sin(kx - \omega t)\) — อ่านค่าออกมาตรง ๆ:<br>
+      \(k = 4\pi\) rad/m, \(\omega = 200\pi\) rad/s
+      $$v = \frac{\omega}{k} = \frac{200\pi}{4\pi} = \mathbf{50\ m/s}$$
+      <u>ทิศทาง:</u> เครื่องหมาย "ลบ" ในวงเล็บ \((kx - \omega t)\) บอกว่าคลื่นวิ่งไปทาง <b>\(+x\)</b>
+      (ถ้าเป็น \(kx + \omega t\) จึงจะวิ่งทาง \(-x\))<br>
+      → <b>50 m/s, +x</b><br>
+      (ลวง 800 = เผลอ "คูณ" \(\omega \times k\), ลวง 0.02 = ตอบแอมพลิจูดแทนความเร็ว,
+      ลวง \(-x\) = จำเครื่องหมายกลับด้าน)
+      <div class="anim">
+        <div class="cap">Interactive · กด Play — คลื่นทั้งรูปเลื่อนไปทาง +x ด้วย v = 50 m/s; จุดแดงบนเชือกแค่สั่นขึ้นลง</div>
+        <svg id="a15" viewBox="0 0 420 150" width="420">
+          <line x1="40" y1="75" x2="395" y2="75" stroke="#d8d6d0" stroke-width="1" stroke-dasharray="4 4"/>
+          <path id="a15w" d="" fill="none" stroke="#1a56db" stroke-width="2.4"/>
+          <circle id="a15dot" cx="210" cy="75" r="6" fill="#b3261e"/>
+          <line x1="210" y1="118" x2="210" y2="132" stroke="#7a7a72" stroke-width="1.2"/>
+          <text x="210" y="144" class="small" text-anchor="middle">จุดบนเชือกที่ x = 1.0 m</text>
+          <line x1="40" y1="30" x2="124" y2="30" stroke="#9a988f" stroke-width="1"/>
+          <line x1="40" y1="25" x2="40" y2="35" stroke="#9a988f" stroke-width="1"/>
+          <line x1="124" y1="25" x2="124" y2="35" stroke="#9a988f" stroke-width="1"/>
+          <text x="82" y="22" class="small" text-anchor="middle">λ = 2π/k = 0.50 m</text>
+          <line x1="350" y1="58" x2="378" y2="58" stroke="#1c7c3c" stroke-width="2.4"/>
+          <path d="M378,53 L388,58 L378,63 Z" fill="#1c7c3c"/>
+          <text x="356" y="50" class="small" fill="#1c7c3c">+x</text>
+        </svg>
+        <div class="ctr">
+          <button id="a15p">▶ Play</button>
+          <span class="ro">λ = 0.50 m · f = 100 Hz · v = fλ = 50 m/s</span>
+          <span class="small" style="font-family:Arial;color:#7a7a72">(ภาพช้ากว่าจริง)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q16 -->
+  <div class="q" data-n="16">
+    <div class="stem"><div class="qn">16.</div>
+      <p>An object is placed 10 cm from a converging lens of focal length 15 cm. Which of the following best describes the image?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> Real, 30 cm from the lens on the far side</li>
+      <li data-v="2"><span class="cl">2)</span> Real, 6.0 cm from the lens on the far side</li>
+      <li data-v="3"><span class="cl">3)</span> Virtual, 6.0 cm from the lens on the same side as the object</li>
+      <li data-v="4"><span class="cl">4)</span> Virtual, 30 cm from the lens on the same side as the object, upright</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> วัตถุอยู่ "ภายในระยะโฟกัส" (\(s = 10 < f = 15\)) → เลนส์นูนให้ภาพเสมือนขยาย หัวตั้ง
+      (หลักการแว่นขยาย) ลองคำนวณยืนยัน:
+      $$\frac{1}{v} = \frac{1}{f} - \frac{1}{s} = \frac{1}{15} - \frac{1}{10} = \frac{2 - 3}{30} = -\frac{1}{30}$$
+      \(v = -30\) cm — เครื่องหมายลบ = <b>ภาพเสมือน อยู่ฝั่งเดียวกับวัตถุ ห่างเลนส์ 30 cm</b><br>
+      กำลังขยาย \(m = -\dfrac{v}{s} = -\dfrac{-30}{10} = +3\) → ขยาย 3 เท่า หัวตั้ง ✓<br>
+      → <b>Virtual, 30 cm, same side, upright</b><br>
+      (ลวงช้อยส์ 1 = ลืมเครื่องหมายลบ คิดว่าภาพจริง — วัตถุในระยะโฟกัสให้ภาพเสมือนเสมอ)</div>
+  </div>
+
+  <!-- ================================================== Q17 -->
+  <div class="q" data-n="17">
+    <div class="stem"><div class="qn">17.</div>
+      <p>In a single-slit diffraction experiment, the width of the slit is decreased while everything else is kept the same. What happens to the central bright band on the screen?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> It becomes narrower</li>
+      <li data-v="2"><span class="cl">2)</span> It becomes wider</li>
+      <li data-v="3"><span class="cl">3)</span> It is unchanged</li>
+      <li data-v="4"><span class="cl">4)</span> It splits into two separate bands</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> ความกว้างของแถบสว่างกลางในการเลี้ยวเบนช่องเดี่ยวแปรผกผันกับความกว้างช่อง:
+      ตำแหน่งมืดแรกอยู่ที่ \(\sin\theta = \dfrac{\lambda}{a}\) → ความกว้างแถบกลาง \(\propto \dfrac{\lambda}{a}\)<br>
+      ช่อง \(a\) "แคบลง" → \(\dfrac{\lambda}{a}\) มากขึ้น → แถบกลาง <b>กว้างขึ้น</b><br>
+      (สามัญสำนึกมักหลอกว่า "ช่องแคบ แสงควรแคบ" — แต่กลับกัน คลื่นยิ่งถูกบีบผ่านช่องแคบ ยิ่งกระจายออกมาก
+      ลวง "narrower" คือกับดักนี้พอดี — นึกถึงน้ำพุ่งผ่านรูเล็ก ยิ่งกระจายเป็นวง)</div>
+  </div>
+
+  <!-- ================================================== Q18 (anim ในเฉลย) -->
+  <div class="q" data-n="18">
+    <div class="stem"><div class="qn">18.</div>
+      <p>A point charge \(+Q\) is placed at the centre of an imaginary spherical surface of radius \(R\). If the radius of the surface is doubled (the charge remains at the centre), the total electric flux through the surface:</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> becomes four times larger</li>
+      <li data-v="2"><span class="cl">2)</span> doubles</li>
+      <li data-v="3"><span class="cl">3)</span> is reduced to one half</li>
+      <li data-v="4"><span class="cl">4)</span> is unchanged</li>
+      <li data-v="5"><span class="cl">5)</span> becomes zero</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> กฎของเกาส์ — ฟลักซ์ไฟฟ้ารวมผ่านผิวปิดขึ้นกับ "ประจุภายใน" เท่านั้น ไม่ขึ้นกับขนาดหรือรูปร่างผิว:
+      $$\Phi = \frac{Q_{enclosed}}{\varepsilon_0}$$
+      ประจุที่ล้อมยังเป็น \(+Q\) เท่าเดิม → ฟลักซ์ <b>ไม่เปลี่ยน</b><br>
+      <b>ทำไม?</b> ที่ผิวใหญ่ขึ้น สนาม \(E\) อ่อนลง \(\dfrac{1}{r^2}\) (เป็น 1/4) แต่พื้นที่ผิวโตขึ้น \(r^2\) (เป็น 4 เท่า)
+      — สองผลหักล้างกันพอดี ฟลักซ์ \(E \times A\) จึงคงที่<br>
+      (ลวง "one quarter" = มองแต่ \(E \propto 1/r^2\) ลืมว่าพื้นที่โตชดเชย —
+      จำนวนเส้นสนามที่ทะลุผิวเท่าเดิมเสมอ ไม่ว่าวาดผิวใหญ่แค่ไหน)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนรัศมีผิว — เส้นสนาม (จำนวนเท่าเดิม) ทะลุผิวครบทุกเส้น ฟลักซ์จึงไม่เปลี่ยน</div>
+        <svg id="a18" viewBox="0 0 420 200" width="420">
+          <g id="a18lines" stroke="#9fb6ee" stroke-width="1.4"></g>
+          <circle id="a18surf" cx="210" cy="100" r="50" fill="none" stroke="#b3261e" stroke-width="2" stroke-dasharray="6 4"/>
+          <circle cx="210" cy="100" r="9" fill="#fdecea" stroke="#b3261e" stroke-width="2"/>
+          <text x="210" y="105" font-family="Arial" font-size="13" fill="#b3261e" font-weight="bold" text-anchor="middle">+Q</text>
+          <text id="a18ro" x="24" y="26" font-family="Courier New" font-size="12">Φ = Q/ε₀ (เส้นทะลุ 16 เส้น)</text>
+        </svg>
+        <div class="ctr">
+          <span style="font-family:Arial">รัศมีผิว R:</span>
+          <input type="range" id="a18r" min="40" max="90" step="5" value="50">
+          <span class="ro" id="a18st">Φ คงที่ — ไม่ขึ้นกับ R</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q19 -->
+  <div class="q" data-n="19">
+    <div class="stem"><div class="qn">19.</div>
+      <p>Two large parallel plates are separated by 2.0 mm and connected to a potential difference of 100 V. What is the magnitude of the uniform electric field between the plates?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 50 V/m</li>
+      <li data-v="2"><span class="cl">2)</span> 200 V/m</li>
+      <li data-v="3"><span class="cl">3)</span> \(2.0\times10^{5}\) V/m</li>
+      <li data-v="4"><span class="cl">4)</span> \(5.0\times10^{5}\) V/m</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> สนามสม่ำเสมอระหว่างแผ่นขนาน \(E = \dfrac{V}{d}\) — กับดักคือหน่วย mm<br>
+      แปลงก่อน: \(d = 2.0\ \mathrm{mm} = 2.0\times10^{-3}\ \mathrm{m}\)
+      $$E = \frac{V}{d} = \frac{100}{2.0\times10^{-3}} = 50 \times 10^{3} = 5.0\times10^{4}\ \mathrm{V/m}$$
+      ไม่มีในตัวเลือก → <b>None of the above</b><br>
+      (ลวง 50 = ลืมแปลง mm ใช้ \(d = 2\) ตรง ๆ, ลวง \(2.0\times10^{5}\) = แปลงพลาดหนึ่งหลัก,
+      คำตอบจริง \(5.0\times10^{4}\) อยู่ระหว่างช้อยส์ 3 กับ 4 พอดี — จงใจไม่ใส่)</div>
+  </div>
+
+  <!-- ================================================== Q20 (รูปนิ่ง + เฉลย) -->
+  <div class="q" data-n="20">
+    <div class="stem"><div class="qn">20.</div>
+      <p>Four identical positive point charges \(+q\) are fixed at the four corners of a square. At the centre of the square, which of the following correctly describes the electric field <b>and</b> the electric potential?</p></div>
+    <div class="anim">
+      <div class="cap">Figure</div>
+      <svg viewBox="0 0 380 150" width="380">
+        <rect x="130" y="20" width="120" height="120" fill="none" stroke="#cfcdc5" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <circle cx="130" cy="20" r="11" fill="#fdecea" stroke="#b3261e" stroke-width="2"/>
+        <text x="130" y="25" font-family="Arial" font-size="12" fill="#b3261e" font-weight="bold" text-anchor="middle">+q</text>
+        <circle cx="250" cy="20" r="11" fill="#fdecea" stroke="#b3261e" stroke-width="2"/>
+        <text x="250" y="25" font-family="Arial" font-size="12" fill="#b3261e" font-weight="bold" text-anchor="middle">+q</text>
+        <circle cx="130" cy="140" r="11" fill="#fdecea" stroke="#b3261e" stroke-width="2"/>
+        <text x="130" y="145" font-family="Arial" font-size="12" fill="#b3261e" font-weight="bold" text-anchor="middle">+q</text>
+        <circle cx="250" cy="140" r="11" fill="#fdecea" stroke="#b3261e" stroke-width="2"/>
+        <text x="250" y="145" font-family="Arial" font-size="12" fill="#b3261e" font-weight="bold" text-anchor="middle">+q</text>
+        <circle cx="190" cy="80" r="3" fill="#141414"/>
+        <text x="190" y="98" class="small" text-anchor="middle">centre</text>
+        <line x1="190" y1="80" x2="148" y2="38" stroke="#1a56db" stroke-width="1.5" opacity="0.5"/>
+        <line x1="190" y1="80" x2="232" y2="38" stroke="#1a56db" stroke-width="1.5" opacity="0.5"/>
+        <line x1="190" y1="80" x2="148" y2="122" stroke="#1a56db" stroke-width="1.5" opacity="0.5"/>
+        <line x1="190" y1="80" x2="232" y2="122" stroke="#1a56db" stroke-width="1.5" opacity="0.5"/>
+      </svg>
+    </div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> Both the field and the potential are zero</li>
+      <li data-v="2"><span class="cl">2)</span> The field is zero, but the potential is not zero</li>
+      <li data-v="3"><span class="cl">3)</span> The field is not zero, but the potential is zero</li>
+      <li data-v="4"><span class="cl">4)</span> Neither the field nor the potential is zero</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> หัวใจคือ "สนามเป็นเวกเตอร์ ศักย์เป็นสเกลาร์" — สองอย่างนี้บวกกันคนละแบบ<br>
+      <u>สนามไฟฟ้า \(\vec{E}\) (เวกเตอร์):</u> ประจุบวกสี่มุมเหมือนกัน ตรงข้ามกันเป็นคู่
+      → สนามจากมุมตรงข้ามชี้สวนทางหักล้างกันหมด → <b>\(E = 0\)</b><br>
+      <u>ศักย์ไฟฟ้า \(V\) (สเกลาร์):</u> ศักย์จากประจุบวกเป็นบวกเสมอ ไม่มีทิศให้หักล้าง บวกกันสี่ก้อน:
+      \(V = 4 \times \dfrac{kq}{r} \neq 0\) → <b>\(V \neq 0\)</b><br>
+      → <b>สนามเป็นศูนย์ แต่ศักย์ไม่เป็นศูนย์</b><br>
+      (ลวง "both zero" = เหมารวมว่า \(E\) กับ \(V\) เป็นศูนย์พร้อมกัน — จุดที่สนามเป็นศูนย์
+      ไม่จำเป็นต้องศักย์เป็นศูนย์ และกลับกันด้วย)</div>
+  </div>
+  <!-- ================================================== Q21 -->
+  <div class="q" data-n="21">
+    <div class="stem"><div class="qn">21.</div>
+      <p>Two 12 Ω resistors are connected in parallel across a 6.0 V battery. What is the total current drawn from the battery?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 0.125 A</li>
+      <li data-v="2"><span class="cl">2)</span> 0.25 A</li>
+      <li data-v="3"><span class="cl">3)</span> 0.50 A</li>
+      <li data-v="4"><span class="cl">4)</span> 1.0 A</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> ตัวต้านทานเท่ากันสองตัวขนานกัน = ครึ่งหนึ่งของค่าเดียว แล้วใช้กฎของโอห์มทั้งวงจร<br>
+      <u>ขั้นที่ 1 — ความต้านทานรวม:</u>
+      $$R_{eq} = \frac{12}{2} = 6.0\ \Omega$$
+      <u>ขั้นที่ 2 — กระแสรวม:</u>
+      $$I = \frac{V}{R_{eq}} = \frac{6.0}{6.0} = \mathbf{1.0\ A}$$
+      (ลวง 0.25 = คิดแบบอนุกรม \(24\ \Omega\) → \(6/24\), ลวง 0.50 = ตอบกระแสที่ไหลผ่าน "ตัวเดียว"
+      \(6/12\) ลืมว่ามีสองตัวรวมกัน)</div>
+  </div>
+
+  <!-- ================================================== Q22 -->
+  <div class="q" data-n="22">
+    <div class="stem"><div class="qn">22.</div>
+      <p>A battery has emf \(\varepsilon\) and internal resistance \(r\). It is connected to a single external resistor \(R\). For the power delivered to the external resistor to be a <b>maximum</b>, the value of \(R\) should be:</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(R = 0\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(R = r/2\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(R = r\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(R = 2r\)</li>
+      <li data-v="5"><span class="cl">5)</span> \(R\) as large as possible</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ทฤษฎีบทการถ่ายโอนกำลังสูงสุด (maximum power transfer) — กำลังที่ \(R\) คือ
+      $$P = I^2 R = \left(\frac{\varepsilon}{R + r}\right)^2 R = \frac{\varepsilon^2 R}{(R + r)^2}$$
+      หาค่าสูงสุดโดย \(\dfrac{dP}{dR} = 0\) → ได้เงื่อนไข \(\mathbf{R = r}\) (ตัวต้านทานนอกเท่ากับความต้านทานภายใน)<br>
+      <b>เหตุผลเชิงสัญชาตญาณ:</b> ถ้า \(R\) เล็กไป (\(R \to 0\)) กระแสมากแต่แรงดันคร่อม \(R\) เกือบศูนย์;
+      ถ้า \(R\) ใหญ่ไป แรงดันเต็มแต่กระแสน้อย — จุดสมดุลที่ได้กำลังสูงสุดคือตรงกลางพอดี \(R = r\)<br>
+      (ลวง \(R\) มากสุด = เห็นว่าแรงดันคร่อมมากแต่ลืมว่ากระแสตกลง, ลวง \(R = 0\) = เห็นกระแสมากสุดแต่ลืมว่าไม่มีแรงดัน)</div>
+  </div>
+
+  <!-- ================================================== Q23 -->
+  <div class="q" data-n="23">
+    <div class="stem"><div class="qn">23.</div>
+      <p>A heater coil dissipates power \(P\) when connected to a fixed voltage supply. The coil is cut into two equal halves and only <b>one half</b> is connected to the same supply. What power does it now dissipate?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(P/4\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(P/2\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(P\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(2P\)</li>
+      <li data-v="5"><span class="cl">5)</span> \(4P\)</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> แรงดันคงที่ → เลือกสูตร \(P = \dfrac{V^2}{R}\) (กำลังแปรผกผันกับความต้านทาน)<br>
+      ตัดลวดครึ่งหนึ่ง → ความยาวเหลือครึ่ง → ความต้านทานเหลือครึ่ง \(R' = \dfrac{R}{2}\)
+      (ความต้านทานแปรตามความยาว \(R = \rho L/A\))
+      $$P' = \frac{V^2}{R'} = \frac{V^2}{R/2} = 2 \cdot \frac{V^2}{R} = \mathbf{2P}$$
+      (ลวง \(P/2\) = คิดว่าลวดสั้นลงให้กำลังน้อยลงตามสามัญสำนึก — กลับกัน: ความต้านทานน้อยลง
+      กระแสไหลมากขึ้น กำลังจึง "เพิ่ม", ลวง \(4P\) = ยกกำลังสองความสัมพันธ์พลาด)</div>
+  </div>
+
+  <!-- ================================================== Q24 (anim ในเฉลย) -->
+  <div class="q" data-n="24">
+    <div class="stem"><div class="qn">24.</div>
+      <p>A proton moves horizontally toward the <b>north</b> in a region where a uniform magnetic field points vertically <b>downward</b>. What is the direction of the magnetic force on the proton?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> East</li>
+      <li data-v="2"><span class="cl">2)</span> West</li>
+      <li data-v="3"><span class="cl">3)</span> North</li>
+      <li data-v="4"><span class="cl">4)</span> Vertically upward</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> แรงแม่เหล็กบนประจุ \(\vec{F} = q\vec{v}\times\vec{B}\) — ใช้กฎมือขวา (ประจุบวก)<br>
+      วางแกน: เหนือ = \(+\hat{y}\), ตะวันออก = \(+\hat{x}\), ขึ้น = \(+\hat{z}\)<br>
+      \(\vec{v} = +\hat{y}\) (เหนือ), \(\vec{B} = -\hat{z}\) (ลง)
+      $$\vec{v}\times\vec{B} = \hat{y}\times(-\hat{z}) = -(\hat{y}\times\hat{z}) = -\hat{x}$$
+      \(-\hat{x}\) = ทิศ <b>ตะวันตก (West)</b><br>
+      <b>กฎมือขวาแบบจับต้องได้:</b> นิ้วชี้ไปเหนือ (\(v\)) งอนิ้วลงล่าง (\(B\)) นิ้วโป้งชี้ไป "ตะวันตก"<br>
+      (ลวง East = สลับลำดับ cross product \(\vec{B}\times\vec{v}\) ได้ทิศกลับ, ลวง Upward = สับสนเอาทิศ \(B\) มาตอบ)
+      <div class="anim">
+        <div class="cap">Interactive · กดหมุนดูแกน 3 มิติ — v (เหนือ) × B (ลง) = F (ตะวันตก) ตามกฎมือขวา</div>
+        <svg id="a24" viewBox="0 0 420 200" width="420">
+          <circle cx="200" cy="105" r="4" fill="#141414"/>
+          <text x="200" y="92" font-family="Arial" font-size="10" fill="#7a7a72" text-anchor="middle">proton (+)</text>
+          <!-- v: เหนือ (ทแยงขึ้นขวาตามมุมมอง iso) -->
+          <line id="a24v" x1="200" y1="105" x2="268" y2="65" stroke="#1a56db" stroke-width="3.5"/>
+          <path id="a24vh" d="M268,65 L256,64 L264,75 Z" fill="#1a56db"/>
+          <text x="276" y="62" font-family="Arial" font-size="12" fill="#1a56db" font-weight="bold">v (เหนือ)</text>
+          <!-- B: ลง -->
+          <line id="a24b" x1="200" y1="105" x2="200" y2="178" stroke="#1c7c3c" stroke-width="3.5"/>
+          <path id="a24bh" d="M200,178 L194,166 L206,166 Z" fill="#1c7c3c"/>
+          <text x="208" y="172" font-family="Arial" font-size="12" fill="#1c7c3c" font-weight="bold">B (ลง)</text>
+          <!-- F: ตะวันตก -->
+          <line id="a24f" x1="200" y1="105" x2="118" y2="120" stroke="#b3261e" stroke-width="3.5"/>
+          <path id="a24fh" d="M118,120 L130,116 L128,128 Z" fill="#b3261e"/>
+          <text x="40" y="120" font-family="Arial" font-size="12" fill="#b3261e" font-weight="bold">F (ตะวันตก)</text>
+          <text id="a24st" x="24" y="28" font-family="Courier New" font-size="12" fill="#141414">v × B = ŷ × (−ẑ) = −x̂ = ตะวันตก</text>
+          <!-- เข็มทิศเล็ก -->
+          <g transform="translate(360,160)">
+            <circle r="22" fill="none" stroke="#cfcdc5" stroke-width="1"/>
+            <text x="0" y="-12" font-family="Arial" font-size="9" fill="#7a7a72" text-anchor="middle">N</text>
+            <text x="0" y="20" font-family="Arial" font-size="9" fill="#7a7a72" text-anchor="middle">S</text>
+            <text x="15" y="3" font-family="Arial" font-size="9" fill="#7a7a72" text-anchor="middle">E</text>
+            <text x="-15" y="3" font-family="Arial" font-size="9" fill="#b3261e" text-anchor="middle" font-weight="bold">W</text>
+          </g>
+        </svg>
+        <div class="ctr">
+          <button id="a24step">▶ แสดงทีละขั้น (มือขวา)</button>
+          <span class="ro" id="a24ro">ขั้น 1: ชี้นิ้วตามทิศ v (เหนือ)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q25 -->
+  <div class="q" data-n="25">
+    <div class="stem"><div class="qn">25.</div>
+      <p>A flat circular coil of area 0.20 m\(^2\) lies with its <b>plane</b> at 30° to a uniform magnetic field of 0.40 T. What is the magnetic flux through the coil?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 0.040 Wb</li>
+      <li data-v="2"><span class="cl">2)</span> 0.069 Wb</li>
+      <li data-v="3"><span class="cl">3)</span> 0.080 Wb</li>
+      <li data-v="4"><span class="cl">4)</span> 0.16 Wb</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> ฟลักซ์ \(\Phi = BA\cos\theta\) โดย \(\theta\) คือมุมระหว่างสนามกับ <b>เส้นแนวฉาก (normal)</b> ของระนาบ
+      — ไม่ใช่มุมกับระนาบ! นี่คือกับดักหลัก<br>
+      <u>ขั้นที่ 1 — แปลงมุม:</u> โจทย์ให้มุมกับ "ระนาบ" = 30° → มุมกับ normal = \(90° - 30° = 60°\)<br>
+      <u>ขั้นที่ 2 — แทนค่า:</u>
+      $$\Phi = BA\cos 60° = (0.40)(0.20)(0.5) = \mathbf{0.040\ Wb}$$
+      (ลวง 0.069 = ใช้ \(\cos 30° = 0.866\) ลืมแปลงมุม — กับดักโปรดของค่าย!,
+      ลวง 0.080 = ลืมมุมไปเลยคิด \(BA\) ตรง ๆ — เมื่อโจทย์พูดถึง "มุมกับระนาบ" ต้องเปลี่ยนเป็นมุมกับ normal ก่อนเสมอ)</div>
+  </div>
+
+  <!-- ================================================== Q26 -->
+  <div class="q" data-n="26">
+    <div class="stem"><div class="qn">26.</div>
+      <p>Arrange the following electromagnetic waves in order of <b>increasing</b> frequency.</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> Radio waves, microwaves, visible light, X-rays</li>
+      <li data-v="2"><span class="cl">2)</span> Microwaves, radio waves, visible light, X-rays</li>
+      <li data-v="3"><span class="cl">3)</span> X-rays, visible light, microwaves, radio waves</li>
+      <li data-v="4"><span class="cl">4)</span> Radio waves, visible light, microwaves, X-rays</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> สเปกตรัมคลื่นแม่เหล็กไฟฟ้าเรียงตามความถี่จากน้อยไปมาก
+      (ความยาวคลื่นยาวไปสั้น เพราะ \(c = f\lambda\) คงที่):
+      $$\text{Radio} < \text{Microwave} < \text{IR} < \text{Visible} < \text{UV} < \text{X-ray} < \text{Gamma}$$
+      ดังนั้น เพิ่มความถี่: <b>radio < microwaves < visible < X-rays</b> = ช้อยส์ 1<br>
+      (จำลำดับ: คลื่นวิทยุพลังงานต่ำสุด (ความถี่น้อย) ไล่ขึ้นไปจนรังสีแกมมาพลังงานสูงสุด —
+      ลวงช้อยส์ 3 = เรียงตามความยาวคลื่นแล้วลืมว่าโจทย์ถาม "ความถี่" ซึ่งกลับลำดับกัน)</div>
+  </div>
+
+  <!-- ================================================== Q27 -->
+  <div class="q" data-n="27">
+    <div class="stem"><div class="qn">27.</div>
+      <p>In a certain nuclear reaction, 2.0 g of mass is converted entirely into energy. How much energy is released? (Given \(c = 3.0\times10^{8}\) m/s)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(6.0\times10^{5}\) J</li>
+      <li data-v="2"><span class="cl">2)</span> \(1.8\times10^{11}\) J</li>
+      <li data-v="3"><span class="cl">3)</span> \(1.8\times10^{14}\) J</li>
+      <li data-v="4"><span class="cl">4)</span> \(9.0\times10^{16}\) J</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> สมการสมมูลมวล-พลังงานของไอน์สไตน์ \(E = mc^2\) — กับดักคือต้องแปลงกรัมเป็นกิโลกรัมก่อน<br>
+      <u>ขั้นที่ 1 — แปลงมวล:</u> \(m = 2.0\ \mathrm{g} = 2.0\times10^{-3}\ \mathrm{kg}\)<br>
+      <u>ขั้นที่ 2 — แทนค่า:</u>
+      $$E = mc^2 = (2.0\times10^{-3})(3.0\times10^{8})^2 = (2.0\times10^{-3})(9.0\times10^{16}) = \mathbf{1.8\times10^{14}\ J}$$
+      (ลวง \(1.8\times10^{11}\) = ใช้มวลเป็นกรัมไม่แปลงหน่วย (คลาด \(10^3\)),
+      ลวง \(9.0\times10^{16}\) = ตอบ \(c^2\) เฉย ๆ ลืมคูณมวล, ลวง \(6.0\times10^{5}\) = คูณ \(c\) ครั้งเดียวไม่ยกกำลังสอง)</div>
+  </div>
+
+  <!-- ================================================== Q28 (anim ในเฉลย) -->
+  <div class="q" data-n="28">
+    <div class="stem"><div class="qn">28.</div>
+      <p>A radioactive sample has a half-life of 10 minutes. What percentage of the original nuclei has <b>decayed</b> after 30 minutes?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 12.5%</li>
+      <li data-v="2"><span class="cl">2)</span> 25%</li>
+      <li data-v="3"><span class="cl">3)</span> 50%</li>
+      <li data-v="4"><span class="cl">4)</span> 75%</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> โจทย์พลิกขั้ว — ถาม "ส่วนที่สลายไปแล้ว" ไม่ใช่ "ส่วนที่เหลือ" ต้องเอา 100% ลบส่วนที่เหลือ<br>
+      <u>ขั้นที่ 1 — จำนวนครึ่งชีวิต:</u> \(n = \dfrac{30}{10} = 3\)<br>
+      <u>ขั้นที่ 2 — ส่วนที่เหลือ:</u> \(\left(\dfrac{1}{2}\right)^3 = \dfrac{1}{8} = 12.5\%\)<br>
+      <u>ขั้นที่ 3 — ส่วนที่สลายไป:</u>
+      $$100\% - 12.5\% = \mathbf{87.5\%}$$
+      ไม่มีในตัวเลือก → <b>None of the above</b><br>
+      (ลวง 12.5% = ตอบ "ส่วนที่เหลือ" ติดกับดักพลิกคำถาม, ลวง 75% = นับแค่ 2 ครึ่งชีวิต —
+      อ่านโจทย์ให้ขาด: "decayed" คือสลายไปแล้ว ตรงข้ามกับ "remains")
+      <div class="anim">
+        <div class="cap">Interactive · กด +10 นาที — แถบสีเขียว (เหลือ) หดครึ่ง แถบแดง (สลายแล้ว) โตขึ้น ครบ 3 ครั้ง = สลาย 87.5%</div>
+        <svg id="a28" viewBox="0 0 420 130" width="420">
+          <rect x="50" y="44" width="320" height="36" fill="none" stroke="#141414" stroke-width="2"/>
+          <rect id="a28rem" x="50" y="44" width="320" height="36" fill="#1c7c3c" opacity="0.8"/>
+          <rect id="a28dec" x="370" y="44" width="0" height="36" fill="#b3261e" opacity="0.55"/>
+          <text x="50" y="34" class="small">เขียว = เหลือ · แดง = สลายไปแล้ว</text>
+          <text id="a28rl" x="60" y="68" font-family="Courier New" font-size="12" fill="#fff">เหลือ 100%</text>
+          <text id="a28dl" x="360" y="100" font-family="Courier New" font-size="12" fill="#b3261e" text-anchor="end">สลาย 0%</text>
+          <text id="a28t" x="50" y="112" font-family="Courier New" font-size="12">t = 0 นาที</text>
+        </svg>
+        <div class="ctr">
+          <button id="a28s">+10 นาที (ครึ่งชีวิต)</button>
+          <button id="a28r">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q29 -->
+  <div class="q" data-n="29">
+    <div class="stem"><div class="qn">29.</div>
+      <p>In the process of electron capture, a nucleus absorbs one of its own inner-shell electrons. What happens to the atomic number \(Z\) and the mass number \(A\) of the nucleus?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(Z\) decreases by 1; \(A\) is unchanged</li>
+      <li data-v="2"><span class="cl">2)</span> \(Z\) increases by 1; \(A\) is unchanged</li>
+      <li data-v="3"><span class="cl">3)</span> \(Z\) decreases by 1; \(A\) decreases by 1</li>
+      <li data-v="4"><span class="cl">4)</span> \(Z\) is unchanged; \(A\) decreases by 1</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> electron capture — โปรตอนในนิวเคลียสจับอิเล็กตรอนกลายเป็นนิวตรอน:
+      $$p + e^- \rightarrow n + \nu$$
+      โปรตอนหายไป 1 ตัว กลายเป็นนิวตรอน 1 ตัว:<br>
+      • \(Z\) (จำนวนโปรตอน) <b>ลดลง 1</b><br>
+      • \(A\) (โปรตอน + นิวตรอน) <b>คงเดิม</b> — เพราะแค่เปลี่ยนชนิด p↔n จำนวนนิวคลีออนรวมเท่าเดิม<br>
+      → <b>\(Z\) ลด 1, \(A\) คงเดิม</b> (ผลลัพธ์เหมือนการสลาย \(\beta^+\) — เลื่อนธาตุถอยหลังหนึ่งช่อง)<br>
+      (ลวง \(Z+1\) = สับสนกับ \(\beta^-\) ที่นิวตรอน→โปรตอน, ลวง \(A-1\) = คิดว่ามวลหายไปเพราะดูดอิเล็กตรอน
+      — แต่อิเล็กตรอนรวมเข้ากับโปรตอนกลายเป็นนิวตรอนที่ยังนับเป็นนิวคลีออน \(A\) ไม่เปลี่ยน)</div>
+  </div>
+
+  <!-- ================================================== Q30 -->
+  <div class="q" data-n="30">
+    <div class="stem"><div class="qn">30.</div>
+      <p>The electron in a hydrogen atom has an orbital angular momentum of exactly \(\dfrac{2h}{2\pi}\) (that is, \(2\hbar\)). What is the total energy of the electron in this state? (Given \(E_1 = -13.6\) eV)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> −13.6 eV</li>
+      <li data-v="2"><span class="cl">2)</span> −6.8 eV</li>
+      <li data-v="3"><span class="cl">3)</span> −3.4 eV</li>
+      <li data-v="4"><span class="cl">4)</span> −1.5 eV</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> โมเมนตัมเชิงมุมในแบบจำลองโบร์ถูก quantize เป็น \(L = n\hbar\) — อ่านค่า \(n\) จากตรงนี้ก่อน<br>
+      <u>ขั้นที่ 1 — หาเลขควอนตัม:</u> \(L = n\hbar = 2\hbar \Rightarrow n = 2\)<br>
+      <u>ขั้นที่ 2 — พลังงานชั้น \(n = 2\):</u>
+      $$E_n = \frac{E_1}{n^2} = \frac{-13.6}{2^2} = \frac{-13.6}{4} = \mathbf{-3.4\ eV}$$
+      (ลวง −6.8 = หารด้วย \(n\) ไม่ยกกำลังสอง \(-13.6/2\), ลวง −1.5 = ใช้ \(n = 3\) ผิด,
+      ลวง −13.6 = ตอบชั้นพื้น \(n = 1\) — ต้องอ่าน \(L = 2\hbar\) ให้ออกว่าคือ \(n = 2\) ก่อน)</div>
+  </div>
+
+  <div class="note">CU-ATS Physics Mock Exam — August 2027 · Interactive Edition ·
+    ใช้คู่กับไฟล์ PDF สำหรับการสอบบนกระดาษ · ต้องต่ออินเทอร์เน็ตครั้งแรกเพื่อโหลดฟอนต์คณิตศาสตร์ (KaTeX)</div>
+</div><!-- /sheet -->
+<script>
+'use strict';
+const ANS=[3,1,2,2,4,2,4,3,2,5,4,2,1,3,1,4,2,4,5,2,4,3,4,2,1,1,3,5,1,3];
+const REV={}; let answered=0, correctCnt=0;
+const HOOKS=[];
+
+function setupQuestions(){
+  document.querySelectorAll('.q').forEach(q=>{
+    const n=+q.dataset.n;
+    q.querySelectorAll('.choices li').forEach(li=>li.addEventListener('click',()=>{
+      if(REV[n])return;
+      q.querySelectorAll('.choices li').forEach(x=>x.classList.remove('sel'));
+      li.classList.add('sel');
+    }));
+    q.querySelector('.ansBtn').addEventListener('click',()=>reveal(q,n));
+  });
+}
+function reveal(q,n){
+  if(REV[n])return; REV[n]=true;
+  const ans=ANS[n-1];
+  const sel=q.querySelector('.choices li.sel');
+  q.querySelectorAll('.choices li').forEach(li=>{
+    const v=+li.dataset.v;
+    if(v===ans)li.classList.add('correct');
+    else if(li.classList.contains('sel'))li.classList.add('wrong');
+  });
+  q.querySelector('.sol').classList.remove('hidden');
+  const b=q.querySelector('.ansBtn'); b.disabled=true; b.textContent='เฉลยแล้ว ✓';
+  answered++; if(sel&&+sel.dataset.v===ans)correctCnt++;
+  document.getElementById('score').textContent=`เฉลยแล้ว ${answered}/30 • เลือกถูก ${correctCnt}`;
+  HOOKS.forEach(f=>f());
+}
+
+/* ---------- Q3 : horizontal projectile — x = 4t, y = 5t², lands t = 0.50 s, x = 2.0 m ---------- */
+(function(){
+  const b=document.getElementById('a3b'); if(!b)return;
+  const tl=document.getElementById('a3t'), tr=document.getElementById('a3tr'),
+        xr=document.getElementById('a3xr'), st=document.getElementById('a3st'),
+        vx=document.getElementById('a3vx'), vxh=document.getElementById('a3vxh'),
+        path=document.getElementById('a3path'), pb=document.getElementById('a3p');
+  const X0=110, Y0=60, SCX=120, SCY=93.6;     // x: 1m→120px (ตก 2m เต็มที่), y: 1.25m→117px
+  let t=0, playing=false, last=0;
+  function setT(x){
+    t=x; tl.value=t.toFixed(2);
+    const px=X0+4.0*t*SCX, py=Y0+5*t*t*SCY;
+    b.setAttribute('cx',px.toFixed(1)); b.setAttribute('cy',py.toFixed(1));
+    vx.setAttribute('x1',px.toFixed(1)); vx.setAttribute('y1',py.toFixed(1));
+    vx.setAttribute('x2',(px+30).toFixed(1)); vx.setAttribute('y2',py.toFixed(1));
+    vxh.setAttribute('d',`M${(px+30).toFixed(1)},${(py-5).toFixed(1)} L${(px+40).toFixed(1)},${py.toFixed(1)} L${(px+30).toFixed(1)},${(py+5).toFixed(1)} Z`);
+    // เส้นทางพาราโบลา
+    let d='M '+X0+' '+Y0;
+    for(let i=1;i<=30;i++){ const tt=0.5*i/30; d+=' L '+(X0+4*tt*SCX).toFixed(1)+' '+(Y0+5*tt*tt*SCY).toFixed(1); }
+    path.setAttribute('d',d);
+    tr.textContent='t = '+t.toFixed(2)+' s';
+    xr.textContent='x = '+(4.0*t).toFixed(1)+' m';
+    if(t<0.01){ st.textContent='t = 0 — กลิ้งพ้นขอบด้วย 4.0 m/s'; st.setAttribute('fill','#141414'); }
+    else if(t>=0.49){ st.textContent='t = 0.50 s: ตกถึงพื้น ไกล x = 2.0 m ✓'; st.setAttribute('fill','#1c7c3c'); }
+    else { st.textContent='vₓ คงที่ 4 m/s · แนวดิ่งเร่งลงด้วย g'; st.setAttribute('fill','#141414'); }
+  }
+  tl.addEventListener('input',()=>{playing=false;pb.textContent='▶ Play';setT(+tl.value);});
+  pb.addEventListener('click',()=>{
+    playing=!playing; pb.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ if(t>=0.5)t=0; last=performance.now(); requestAnimationFrame(step); }
+  });
+  function step(now){
+    if(!playing)return;
+    t+=Math.min((now-last)/1000,0.05)*0.18; last=now;
+    if(t>=0.5){t=0.5;playing=false;pb.textContent='▶ Play';}
+    setT(t);
+    if(playing)requestAnimationFrame(step);
+  }
+  setT(0);
+})();
+
+/* ---------- Q5 : stacked blocks — slip when F > 32 N (3+5 kg, μs 0.4) ---------- */
+(function(){
+  const low=document.getElementById('a5low'); if(!low)return;
+  const top=document.getElementById('a5top'), sl=document.getElementById('a5sl'),
+        Fr=document.getElementById('a5Fr'), ar=document.getElementById('a5ar'),
+        st=document.getElementById('a5st');
+  let F=20, x=0, slip=0, last=performance.now();
+  function setF(v){
+    F=v;
+    const slipping=F>32;
+    const aTogether=F/8;
+    Fr.textContent='F = '+F+' N';
+    ar.textContent = slipping ? 'ก้อนล่างเร่งเร็วกว่า — บนตามไม่ทัน' : 'a = '+aTogether.toFixed(1)+' m/s²';
+    if(F===0){ st.textContent='ยังไม่ผลัก'; st.setAttribute('fill','#141414'); }
+    else if(!slipping){ st.textContent='เคลื่อนที่ไปด้วยกัน ✓ (friction ≤ 12 N พาก้อนบนทัน)'; st.setAttribute('fill','#1c7c3c'); }
+    else { st.textContent='F > 32 N → ก้อนบนไถลรั้งท้าย! ✗'; st.setAttribute('fill','#b3261e'); }
+  }
+  sl.addEventListener('input',()=>setF(+sl.value));
+  function step(now){
+    const dt=Math.min((now-last)/1000,0.05); last=now;
+    if(F>0){ x+=dt*F*1.0; if(x>150){x=0;slip=0;} } else { x=0; slip=0; }
+    if(F>32){ slip+=dt*(F-32)*1.4; slip=Math.min(slip,40); } else slip=Math.max(0,slip-dt*120);
+    low.setAttribute('transform',`translate(${(150+x).toFixed(1)},120)`);
+    top.setAttribute('transform',`translate(${(150+x-slip).toFixed(1)},120)`);
+    requestAnimationFrame(step);
+  }
+  setF(20); requestAnimationFrame(step);
+})();
+
+/* ---------- Q8 : spring work increments — area under F=kx; x→2x adds 3W ---------- */
+(function(){
+  const a1=document.getElementById('a8area1'); if(!a1)return;
+  const a2=document.getElementById('a8area2'), cur=document.getElementById('a8cur'),
+        ro=document.getElementById('a8ro'), st=document.getElementById('a8st'),
+        b1=document.getElementById('a8b1'), b2=document.getElementById('a8b2');
+  let phase=0;                                  // 0 ว่าง, 1 ถึง x, 2 ถึง 2x
+  function refresh(){
+    if(phase>=1){ a1.setAttribute('opacity','0.7'); cur.setAttribute('x1','180'); cur.setAttribute('x2','180');
+      cur.setAttribute('y1','95'); cur.setAttribute('y2','160'); }
+    else { a1.setAttribute('opacity','0'); cur.setAttribute('x1','50'); cur.setAttribute('x2','50');
+      cur.setAttribute('y1','30'); cur.setAttribute('y2','160'); }
+    a2.setAttribute('opacity', phase>=2 ? '0.7' : '0');
+    if(phase===2){ cur.setAttribute('x1','310'); cur.setAttribute('x2','310'); cur.setAttribute('y1','30'); cur.setAttribute('y2','160'); }
+    if(phase===0){ ro.textContent='งาน = 0'; st.textContent='พื้นที่สามเหลี่ยม = งานที่ทำ'; st.setAttribute('fill','#7a7a72'); }
+    else if(phase===1){ ro.textContent='งานช่วง 0→x = W'; st.textContent='สามเหลี่ยมเล็ก (เขียว) = W'; st.setAttribute('fill','#1c7c3c'); }
+    else { ro.textContent='งานเพิ่ม x→2x = 3W'; st.textContent='แถบแดง = 4W − W = 3W (ใหญ่กว่าเขียว 3 เท่า)'; st.setAttribute('fill','#b3261e'); }
+    b1.classList.toggle('on',phase>=1); b2.classList.toggle('on',phase>=2);
+  }
+  b1.addEventListener('click',()=>{phase=1;refresh();});
+  b2.addEventListener('click',()=>{phase=2;refresh();});
+  refresh();
+})();
+
+/* ---------- Q9 : banked curve — N horizontal component vs needed centripetal; match at v=30 ---------- */
+(function(){
+  const fc=document.getElementById('a9fc'); if(!fc)return;
+  const fch=document.getElementById('a9fch'), sl=document.getElementById('a9v'),
+        ro=document.getElementById('a9ro'), st=document.getElementById('a9st'),
+        st2=document.getElementById('a9st2');
+  function upd(){
+    const v=+sl.value;
+    // ความยาวลูกศร "แรงสู่ศูนย์กลางที่ต้องการ" = mv²/R (สเกลภาพ)
+    const need=v*v/120;                          // = tan ที่ต้องการ; ที่ v=30 → 7.5... normalize
+    const len=Math.min(70,need*7.3);
+    fc.setAttribute('x2',(165+len).toFixed(1));
+    fch.setAttribute('d',`M${(165+len).toFixed(1)},103 L${(175+len).toFixed(1)},108 L${(165+len).toFixed(1)},113 Z`);
+    st.textContent='v = '+v+' m/s';
+    if(v===30){ st2.textContent='พอดี ✓ (ไม่ต้องใช้เสียดทาน)'; st2.setAttribute('fill','#1c7c3c');
+      ro.textContent='v² = gR tanθ = 900 → v = 30 ✓'; }
+    else if(v<30){ st2.textContent='ช้าไป — ไถลลงใน (ต้องมีเสียดทานช่วย)'; st2.setAttribute('fill','#b3261e');
+      ro.textContent='v < 30: องค์ประกอบ N เกินที่ต้องการ'; }
+    else { st2.textContent='เร็วไป — เหวี่ยงออกนอก'; st2.setAttribute('fill','#b3261e');
+      ro.textContent='v > 30: ต้องการแรงเข้าศูนย์กลางมากกว่า N ให้ได้'; }
+  }
+  sl.addEventListener('input',upd);
+  upd();
+})();
+
+/* ---------- Q15 : traveling wave y=0.02 sin(4πx − 200πt), moves +x, v=50 ---------- */
+(function(){
+  const w=document.getElementById('a15w'); if(!w)return;
+  const dot=document.getElementById('a15dot'), pb=document.getElementById('a15p');
+  const X0=40, X1=395, Y=75, A=34;
+  const k=4*Math.PI, om=200*Math.PI, SCX=(X1-X0)/2;   // จอครอบ x = 0..2 m
+  let t=0, playing=false, last=0;
+  function draw(){
+    let d='';
+    for(let i=0;i<=120;i++){
+      const xm=2*i/120, px=X0+xm*SCX;
+      const y=Y-A*Math.sin(k*xm-om*t);
+      d+=(i?' L ':'M ')+px.toFixed(1)+' '+y.toFixed(1);
+    }
+    w.setAttribute('d',d);
+    const xd=1.0;                                 // จุดที่ x = 1.0 m
+    dot.setAttribute('cx',(X0+xd*SCX).toFixed(1));
+    dot.setAttribute('cy',(Y-A*Math.sin(k*xd-om*t)).toFixed(1));
+  }
+  pb.addEventListener('click',()=>{
+    playing=!playing; pb.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ last=performance.now(); requestAnimationFrame(step); }
+  });
+  function step(now){
+    if(!playing)return;
+    t+=Math.min((now-last)/1000,0.05)*0.0016; last=now;   // ช้าลงมากให้เห็นการเลื่อน
+    draw();
+    requestAnimationFrame(step);
+  }
+  draw();
+})();
+
+/* ---------- Q18 : Gauss flux — same number of field lines pierce any radius ---------- */
+(function(){
+  const surf=document.getElementById('a18surf'); if(!surf)return;
+  const lines=document.getElementById('a18lines'), sl=document.getElementById('a18r'),
+        ro=document.getElementById('a18ro'), st=document.getElementById('a18st');
+  const CX=210, CY=100, N=16;
+  // วาดเส้นสนาม 16 เส้นรัศมีออกจากประจุ (จำนวนคงที่)
+  for(let i=0;i<N;i++){
+    const ang=2*Math.PI*i/N;
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',(CX+9*Math.cos(ang)).toFixed(1));
+    ln.setAttribute('y1',(CY+9*Math.sin(ang)).toFixed(1));
+    ln.setAttribute('x2',(CX+98*Math.cos(ang)).toFixed(1));
+    ln.setAttribute('y2',(CY+98*Math.sin(ang)).toFixed(1));
+    lines.appendChild(ln);
+  }
+  function upd(){
+    const R=+sl.value;
+    surf.setAttribute('r',R);
+    ro.textContent='Φ = Q/ε₀ (เส้นทะลุ '+N+' เส้น ทุกขนาด R)';
+    st.textContent='Φ คงที่ — R = '+R+' px ก็ยังทะลุครบ '+N+' เส้น';
+  }
+  sl.addEventListener('input',upd);
+  upd();
+})();
+
+/* ---------- Q24 : cross product v×B step-by-step right-hand rule ---------- */
+(function(){
+  const st=document.getElementById('a24st'); if(!st)return;
+  const ro=document.getElementById('a24ro'), btn=document.getElementById('a24step'),
+        vEl=document.getElementById('a24v'), vh=document.getElementById('a24vh'),
+        bEl=document.getElementById('a24b'), bh=document.getElementById('a24bh'),
+        fEl=document.getElementById('a24f'), fh=document.getElementById('a24fh');
+  const STEPS=[
+    {ro:'ขั้น 1: ชี้นิ้วตามทิศ v (เหนือ)', v:1,b:0,f:0},
+    {ro:'ขั้น 2: งอนิ้วเข้าหาทิศ B (ลง)', v:1,b:1,f:0},
+    {ro:'ขั้น 3: นิ้วโป้งชี้ F = ตะวันตก ✓', v:1,b:1,f:1}
+  ];
+  let s=0;
+  function vis(el,arr,on){ el.setAttribute('opacity',on?1:0.15); arr.setAttribute('opacity',on?1:0.15); }
+  function refresh(){
+    const o=STEPS[s];
+    vis(vEl,vh,o.v); vis(bEl,bh,o.b); vis(fEl,fh,o.f);
+    ro.textContent=o.ro;
+    st.textContent = o.f ? 'v × B = ŷ × (−ẑ) = −x̂ = ตะวันตก' : 'กำลังประกอบเวกเตอร์...';
+    st.setAttribute('fill', o.f ? '#b3261e' : '#141414');
+  }
+  btn.addEventListener('click',()=>{ s=(s+1)%3; refresh(); });
+  refresh();
+})();
+
+/* ---------- Q28 : half-life % decayed — 3 halvings → remains 12.5%, decayed 87.5% ---------- */
+(function(){
+  const rem=document.getElementById('a28rem'); if(!rem)return;
+  const dec=document.getElementById('a28dec'), rl=document.getElementById('a28rl'),
+        dl=document.getElementById('a28dl'), tl=document.getElementById('a28t'),
+        bs=document.getElementById('a28s'), br=document.getElementById('a28r');
+  const X0=50, W=320;
+  let k=0;
+  const PCT=[100,50,25,12.5];
+  function refresh(){
+    const r=PCT[k], d=100-r;
+    const wRem=W*r/100;
+    rem.setAttribute('width',wRem.toFixed(1));
+    dec.setAttribute('x',(X0+wRem).toFixed(1));
+    dec.setAttribute('width',(W-wRem).toFixed(1));
+    rl.textContent='เหลือ '+r+'%';
+    dl.textContent='สลาย '+d+'%'+(k===3?' ✓':'');
+    tl.textContent='t = '+(10*k)+' นาที'+(k===3?' (= 3 ครึ่งชีวิต)':'');
+    bs.disabled = k>=3;
+  }
+  bs.addEventListener('click',()=>{ if(k<3){k++;refresh();} });
+  br.addEventListener('click',()=>{ k=0; bs.disabled=false; refresh(); });
+  refresh();
+})();
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setupQuestions();
+  const opts={delimiters:[
+      {left:'\\(',right:'\\)',display:false},
+      {left:'$$',right:'$$',display:true}],
+    throwOnError:false};
+  if(window.renderMathInElement){
+    renderMathInElement(document.body,opts);
+  }else{
+    window.addEventListener('load',()=>{
+      if(window.renderMathInElement) renderMathInElement(document.body,opts);
+    });
+  }
+});
+</script>
+</body>
+</html>

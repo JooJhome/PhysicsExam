@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CU-ATS Physics Mock — October 2026 (Interactive)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{ --ink:#141414; --green:#1c7c3c; --greenbg:#e7f5ec; --red:#b3261e; --redbg:#fdecea;
+         --sel:#1a56db; --soft:#f6f5f2; --line:#d8d6d0; }
+  *{box-sizing:border-box}
+  body{ margin:0; background:#d8d7d3; color:var(--ink);
+        font-family:"Times New Roman", Georgia, "Noto Serif", serif; }
+  .sheet{ max-width:880px; margin:34px auto 70px; background:#fff; padding:54px 66px 70px;
+          box-shadow:0 2px 4px rgba(0,0,0,.18), 0 14px 38px rgba(0,0,0,.22); }
+  /* header */
+  .head h1{ font-family:"Arial Narrow",Arial,Helvetica,sans-serif; font-weight:700;
+            font-size:27px; margin:0 0 2px; }
+  .head .sub{ font-family:"Arial Narrow",Arial,Helvetica,sans-serif; font-weight:700;
+              font-size:14.5px; margin-bottom:10px; }
+  .head hr{ border:none; border-top:2.4px solid var(--ink); margin:0 0 8px; }
+  .head .meta{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;
+               font-size:13px; color:#6b6b6b; font-family:Arial,Helvetica,sans-serif; letter-spacing:.4px; }
+  .marking{ margin-top:14px; font-size:14.5px; background:var(--soft); border:1px solid var(--line);
+            border-radius:8px; padding:10px 16px; }
+  .marking b{font-family:Arial,Helvetica,sans-serif; font-size:13px;}
+  /* score chip */
+  #score{ position:fixed; top:14px; right:16px; z-index:50; background:#141414; color:#fff;
+          font-family:Arial,Helvetica,sans-serif; font-size:13px; padding:8px 14px;
+          border-radius:999px; box-shadow:0 4px 14px rgba(0,0,0,.3); }
+  /* questions */
+  .q{ margin-top:46px; }
+  .q .stem{ display:flex; gap:13px; font-size:17.5px; line-height:1.62; }
+  .q .qn{ min-width:30px; text-align:right; }
+  .q .stem p{ margin:0; text-align:justify; }
+  .choices{ list-style:none; margin:14px 0 0 44px; padding:0; font-size:17px; }
+  .choices li{ padding:7px 12px; margin:4px 0; border-radius:8px; border:1.5px solid transparent;
+               cursor:pointer; display:flex; gap:10px; align-items:center; transition:background .12s; }
+  .choices li:hover{ background:#f3f2ee; }
+  .choices li .cl{ min-width:24px; }
+  .choices li.sel{ border-color:var(--sel); background:#eef3fe; }
+  .choices li.correct{ border-color:var(--green); background:var(--greenbg); }
+  .choices li.correct::after{ content:"✔ คำตอบที่ถูก"; margin-left:auto; color:var(--green);
+        font-family:Arial,sans-serif; font-size:12.5px; font-weight:700; }
+  .choices li.wrong{ border-color:var(--red); background:var(--redbg); }
+  .choices li.wrong::after{ content:"✘"; margin-left:auto; color:var(--red); font-weight:700; }
+  .ansBtn{ margin:14px 0 0 44px; font-family:Arial,Helvetica,sans-serif; font-weight:700;
+           font-size:13.5px; padding:8px 22px; border-radius:8px; border:1.5px solid #141414;
+           background:#141414; color:#fff; cursor:pointer; }
+  .ansBtn:hover{ background:#333; }
+  .ansBtn:disabled{ background:#aaa; border-color:#aaa; cursor:default; }
+  .sol{ margin:14px 0 0 44px; border-left:4px solid var(--green); background:var(--greenbg);
+        border-radius:0 10px 10px 0; padding:12px 18px; font-size:16px; line-height:1.65; }
+  .sol .tag{ font-family:Arial,sans-serif; font-weight:700; font-size:12.5px; color:var(--green);
+             letter-spacing:.6px; }
+  .hidden{ display:none; }
+  /* animation / figure box */
+  .anim{ margin:16px 0 4px 44px; border:1.5px solid var(--line); border-radius:12px;
+         background:#fcfbf9; padding:14px 16px 12px; }
+  .sol .anim{ margin:12px 0 4px; background:#fff; }   /* กล่องแอนิเมชันที่อยู่ "ในเฉลย" */
+  .anim .cap{ font-family:Arial,sans-serif; font-size:12px; color:#7a7a72; letter-spacing:.5px;
+              margin-bottom:8px; text-transform:uppercase; }
+  .anim svg{ max-width:100%; height:auto; display:block; margin:0 auto; }
+  .ctr{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;
+        font-family:Arial,sans-serif; font-size:13px; }
+  .ctr button{ font-family:Arial,sans-serif; font-size:12.5px; font-weight:700; padding:6px 14px;
+        border-radius:7px; border:1.5px solid #141414; background:#fff; cursor:pointer; }
+  .ctr button.on{ background:#141414; color:#fff; }
+  .ctr input[type=range]{ flex:1; min-width:120px; accent-color:#141414; }
+  .ro{ font-family:"Courier New",monospace; font-size:13.5px; background:#fff;
+       border:1px solid var(--line); border-radius:6px; padding:4px 10px; white-space:nowrap; }
+  .badge{ font-family:Arial,sans-serif; font-weight:700; font-size:12px; color:var(--red); }
+  .note{ margin:30px 0 0; font-size:13.5px; color:#7a7a72; font-family:Arial,sans-serif;
+         border-top:1px solid var(--line); padding-top:14px; }
+  /* svg helpers */
+  .ground{stroke:#141414;stroke-width:2}
+  .hatch{stroke:#b9b7ae;stroke-width:1}
+  text.lbl{font-family:"Times New Roman",serif;font-size:14px;fill:#141414}
+  text.lbl.i{font-style:italic}
+  text.small{font-family:Arial,sans-serif;font-size:11px;fill:#7a7a72}
+  text.mono{font-family:"Courier New",monospace;font-size:12px;fill:#141414}
+  @media (max-width:640px){ .sheet{padding:30px 16px 50px} .choices{margin-left:8px}
+        .anim{margin-left:8px} .ansBtn,.sol{margin-left:8px} }
+</style>
+</head>
+<body>
+<div id="score">เฉลยแล้ว 0/30 • เลือกถูก 0</div>
+<div class="sheet">
+
+  <div class="head">
+    <h1>CU-ATS: Physics Section</h1>
+    <div class="sub">60 Minutes, 30 Questions</div>
+    <hr>
+    <div class="meta">
+      <span><b>Mock Exam</b> | 5 October 2026 — Interactive Edition</span>
+      <span>คลิกเลือกคำตอบ แล้วกดปุ่ม "เฉลย" เพื่อตรวจและดูวิธีทำ</span>
+    </div>
+    <div class="marking">
+      <b>MARKING SCHEME</b> &nbsp; +1 point for questions you get correct · 0 point subtracted for
+      incorrect answers · 0 point subtracted for questions you do not answer
+      <br><b style="color:#9a6a00">INTERACTIVE</b> &nbsp; ลองทำโจทย์และวาดรูปด้วยตัวเองให้เต็มที่ก่อน แล้วจึงกดเฉลย —
+      เฉลยละเอียดของบางข้อจะมีกล่อง "Interactive" ให้ลองเล่นเพื่อช่วยให้เข้าใจภาพของโจทย์มากขึ้น
+    </div>
+  </div>
+
+  <!-- ================================================== Q1 -->
+  <div class="q" data-n="1">
+    <div class="stem"><div class="qn">1.</div>
+      <p>A stone is thrown vertically downward with an initial speed of 5.0 m/s from the top of a building 60 m above the ground. What is the speed of the stone just before it hits the ground? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 25 m/s</li>
+      <li data-v="2"><span class="cl">2)</span> 30 m/s</li>
+      <li data-v="3"><span class="cl">3)</span> 40 m/s</li>
+      <li data-v="4"><span class="cl">4)</span> 45 m/s</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> โยน "ลง" — ความเร็วต้น \(u\) กับความเร่ง \(g\) ทิศเดียวกัน ใช้สมการที่ไม่มีเวลา
+      $$v^2 = u^2 + 2gh$$
+      แทนค่า: \(v^2 = (5.0)^2 + 2(10)(60) = 25 + 1{,}200 = 1{,}225\)<br>
+      ถอดราก: \(v = \sqrt{1{,}225} = \mathbf{35\ m/s}\) (จำเลขสวย: \(35^2 = 1{,}225\)) — ไม่มีในตัวเลือก → <b>None of the above</b><br>
+      (ลวง 30 ≈ \(\sqrt{2gh} = \sqrt{1{,}200}\) คือลืมความเร็วต้น, ลวง 25 = เผลอบวกแบบ \(u + 2gh/u\) มั่ว ๆ —
+      ระวัง: ห้ามเอาความเร็วมาบวกกันตรง ๆ ต้องบวกในรูป "กำลังสอง")</div>
+  </div>
+
+  <!-- ================================================== Q2 (anim ในเฉลย) -->
+  <div class="q" data-n="2">
+    <div class="stem"><div class="qn">2.</div>
+      <p>A delivery drone starts from rest and accelerates uniformly at 4.0 m/s\(^2\) along a straight path, covering a distance of 200 m. It then continues to travel another 320 m at constant speed. How long does it take for the drone to complete the entire journey?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 10 s</li>
+      <li data-v="2"><span class="cl">2)</span> 14 s</li>
+      <li data-v="3"><span class="cl">3)</span> 16 s</li>
+      <li data-v="4"><span class="cl">4)</span> 18 s</li>
+      <li data-v="5"><span class="cl">5)</span> 20 s</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> แบ่งเป็น 2 ช่วง หาเวลาแยกกันแล้วบวก<br>
+      <u>ช่วงที่ 1 (เร่งจากนิ่ง):</u> ใช้ \(s = ut + \tfrac{1}{2}at^2\) โดย \(u = 0\):
+      $$200 = \frac{1}{2}(4.0)\,t_1^2 \;\Rightarrow\; t_1^2 = 100 \;\Rightarrow\; t_1 = 10\ \mathrm{s}$$
+      ความเร็วปลายช่วงแรก: \(v = u + at_1 = 0 + (4.0)(10) = 40\) m/s<br>
+      <u>ช่วงที่ 2 (ความเร็วคงที่):</u> \(t_2 = \dfrac{s_2}{v} = \dfrac{320}{40} = 8\) s<br>
+      รวม: \(t = t_1 + t_2 = 10 + 8 = \mathbf{18\ s}\)<br>
+      (ลวง 14 = คิดช่วงแรกด้วย \(200/40 = 5\) s ซึ่งผิด — ช่วงเร่งความเร็ว "เฉลี่ย" มีแค่ 20 m/s ไม่ใช่ 40)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนเวลา t — ช่วงแรกโดรนค่อย ๆ เร็วขึ้น (x ∝ t²) ช่วงหลังบินสม่ำเสมอ</div>
+        <svg id="a2" viewBox="0 0 420 120" width="420">
+          <line x1="20" y1="92" x2="404" y2="92" class="ground"/>
+          <rect x="20" y="88" width="138" height="8" fill="#fdecea"/>
+          <rect x="158" y="88" width="222" height="8" fill="#e7f5ec"/>
+          <line x1="158" y1="78" x2="158" y2="104" stroke="#7a7a72" stroke-width="1.4"/>
+          <text x="158" y="116" class="small" text-anchor="middle">200 m</text>
+          <text x="380" y="116" class="small" text-anchor="middle">520 m</text>
+          <text x="86" y="116" class="small" text-anchor="middle">เร่ง a = 4 m/s²</text>
+          <text x="270" y="78" class="small" text-anchor="middle">ความเร็วคงที่ 40 m/s</text>
+          <g id="a2d">
+            <rect x="-14" y="-16" width="28" height="12" rx="4" fill="#f3f2ee" stroke="#141414" stroke-width="2"/>
+            <line x1="-12" y1="-16" x2="-22" y2="-24" stroke="#141414" stroke-width="1.8"/>
+            <line x1="12" y1="-16" x2="22" y2="-24" stroke="#141414" stroke-width="1.8"/>
+            <ellipse cx="-22" cy="-25" rx="11" ry="2.6" fill="#fff" stroke="#141414" stroke-width="1.4"/>
+            <ellipse cx="22" cy="-25" rx="11" ry="2.6" fill="#fff" stroke="#141414" stroke-width="1.4"/>
+          </g>
+        </svg>
+        <div class="ctr">
+          <button id="a2p">▶ Play</button>
+          <input type="range" id="a2t" min="0" max="18" step="0.2" value="0">
+          <span class="ro" id="a2tr">t = 0.0 s</span>
+          <span class="ro" id="a2xr">x = 0 m</span>
+          <span class="ro" id="a2vr">v = 0 m/s</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q3 -->
+  <div class="q" data-n="3">
+    <div class="stem"><div class="qn">3.</div>
+      <p>An object is thrown at an angle of 37° above the horizontal with an initial kinetic energy of 800 J. What is the kinetic energy of the object at the highest point of its trajectory?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 288 J</li>
+      <li data-v="2"><span class="cl">2)</span> 480 J</li>
+      <li data-v="3"><span class="cl">3)</span> 512 J</li>
+      <li data-v="4"><span class="cl">4)</span> 640 J</li>
+      <li data-v="5"><span class="cl">5)</span> 800 J</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ที่จุดสูงสุด ความเร็วแนวดิ่งเป็นศูนย์ แต่ความเร็วแนวนอน \(u\cos\theta\) "ไม่เคยเปลี่ยน"
+      (ไม่มีแรงแนวนอน) — วัตถุจึงยังเคลื่อนที่อยู่ ไม่ได้หยุด<br>
+      พลังงานจลน์ที่ยอด:
+      $$KE_{top} = \frac{1}{2}m(u\cos\theta)^2 = \left(\frac{1}{2}mu^2\right)\cos^2\theta = KE_0\cos^2\theta$$
+      แทนค่า: \(KE_{top} = 800\,(\cos 37°)^2 = 800\,(0.8)^2 = 800(0.64) = \mathbf{512\ J}\)<br>
+      (ลวง 288 = ใช้ \(\sin^2 37° = 0.36\) สลับฟังก์ชัน, ลวง 640 = คูณ \(\cos 37°\) เพียงชั้นเดียว ลืมว่าพลังงานไปกับ "กำลังสอง" ของความเร็ว)</div>
+  </div>
+
+  <!-- ================================================== Q4 (anim ในเฉลย) -->
+  <div class="q" data-n="4">
+    <div class="stem"><div class="qn">4.</div>
+      <p>A ball is thrown vertically upward. Consider the moment it reaches its highest point. Which of the following statements is/are CORRECT?</p></div>
+    <div style="margin:8px 0 0 58px; font-size:16.5px; line-height:1.7">
+      I.&nbsp;&nbsp;Its velocity is zero.<br>
+      II.&nbsp;&nbsp;Its acceleration is zero.<br>
+      III.&nbsp;The net force acting on it is zero.
+    </div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> II only</li>
+      <li data-v="2"><span class="cl">2)</span> I only</li>
+      <li data-v="3"><span class="cl">3)</span> I and III only</li>
+      <li data-v="4"><span class="cl">4)</span> All of them</li>
+      <li data-v="5"><span class="cl">5)</span> None of them</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> แยกให้ออกระหว่าง "ความเร็ว" กับ "ความเร่ง" — สองอย่างนี้เป็นศูนย์พร้อมกันไม่จำเป็น<br>
+      <b>I. จริง ✓</b> ที่ยอด ลูกบอลเปลี่ยนทิศจากขึ้นเป็นลง ชั่วขณะนั้น \(v = 0\)<br>
+      <b>II. เท็จ ✗</b> แรงโน้มถ่วงยังดึงลูกบอลอยู่ "ตลอดเวลา" → \(a = g = 10\) m/s\(^2\) ทิศลง แม้แต่วินาทีที่ \(v = 0\)<br>
+      <b>III. เท็จ ✗</b> แรงลัพธ์ = \(mg \neq 0\) (ลองคิดกลับ: ถ้าแรงลัพธ์เป็นศูนย์จริงตอน \(v = 0\)
+      ตามกฎข้อ 1 ลูกบอลจะ "ลอยค้าง" อยู่ตรงนั้นตลอดไป — ซึ่งไม่จริง)<br>
+      ดังนั้นถูกเฉพาะ I → <b>I only</b>
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนเวลา t — สังเกตลูกศร v หดจนเป็นศูนย์ที่ยอดแล้วกลับทิศ แต่ลูกศร a = g ชี้ลง "คงที่ตลอด"</div>
+        <svg id="a4" viewBox="0 0 420 200" width="420">
+          <line x1="20" y1="176" x2="404" y2="176" class="ground"/>
+          <g class="hatch">
+            <line x1="44" y1="176" x2="34" y2="188"/><line x1="92" y1="176" x2="82" y2="188"/>
+            <line x1="140" y1="176" x2="130" y2="188"/><line x1="188" y1="176" x2="178" y2="188"/>
+            <line x1="236" y1="176" x2="226" y2="188"/><line x1="284" y1="176" x2="274" y2="188"/>
+            <line x1="332" y1="176" x2="322" y2="188"/><line x1="380" y1="176" x2="370" y2="188"/>
+          </g>
+          <line x1="150" y1="40" x2="240" y2="40" stroke="#cfcdc5" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="248" y="44" class="small">จุดสูงสุด (v = 0)</text>
+          <circle id="a4b" cx="195" cy="166" r="9" fill="#fff" stroke="#141414" stroke-width="2"/>
+          <line id="a4v" x1="195" y1="150" x2="195" y2="110" stroke="#1a56db" stroke-width="3.5"/>
+          <path id="a4vh" d="" fill="#1a56db"/>
+          <text id="a4vl" x="204" y="126" font-family="Arial" font-size="12" fill="#1a56db" font-style="italic">v</text>
+          <line id="a4a" x1="262" y1="80" x2="262" y2="116" stroke="#b3261e" stroke-width="3.5"/>
+          <path d="M255,108 L262,122 L269,108 Z" fill="#b3261e"/>
+          <text x="270" y="104" font-family="Arial" font-size="12" fill="#b3261e" font-style="italic">a = g (คงที่)</text>
+          <text id="a4st" x="24" y="28" font-family="Arial" font-size="13" font-weight="bold" fill="#141414">กำลังลอยขึ้น — v ชี้ขึ้น, a ชี้ลง (กำลังหน่วง)</text>
+        </svg>
+        <div class="ctr">
+          <button id="a4p">▶ Play</button>
+          <input type="range" id="a4t" min="0" max="3" step="0.05" value="0">
+          <span class="ro" id="a4tr">t = 0.00 s</span>
+          <span class="ro" id="a4vr">v = +15 m/s</span>
+          <span class="ro">a = −10 m/s² ตลอด</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q5 -->
+  <div class="q" data-n="5">
+    <div class="stem"><div class="qn">5.</div>
+      <p>A box of mass 4.0 kg rests on a horizontal floor. The coefficients of static and kinetic friction between the box and the floor are 0.50 and 0.30, respectively. A horizontal force of 16 N is applied to the box. What is the magnitude of the friction force acting on the box? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 12 N</li>
+      <li data-v="2"><span class="cl">2)</span> 20 N</li>
+      <li data-v="3"><span class="cl">3)</span> 28 N</li>
+      <li data-v="4"><span class="cl">4)</span> 40 N</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> เช็คก่อนว่ากล่อง "ขยับหรือยัง" โดยเทียบแรงผลักกับแรงเสียดทานสถิตสูงสุด<br>
+      ขั้นที่ 1 — \(f_{s,max} = \mu_s N = \mu_s\,mg = (0.50)(4.0)(10) = 20\) N<br>
+      ขั้นที่ 2 — แรงผลัก 16 N \(<\) 20 N → กล่อง<b>ยังไม่ขยับ</b><br>
+      ขั้นที่ 3 — เมื่อนิ่ง แรงเสียดทานสถิตปรับตัวให้สมดุลกับแรงผลักพอดี:
+      \(f = F_{applied} = \mathbf{16\ N}\) — ไม่มีในตัวเลือก → <b>None of the above</b><br>
+      (กับดักคู่: ลวง 20 = ตอบ \(f_{s,max}\) ทั้งที่ยังใช้ไม่ถึง, ลวง 12 = ใช้ \(\mu_k mg\) ซึ่งใช้ได้เฉพาะตอนไถลแล้ว —
+      ข้อนี้ตั้งใจไม่ให้คำตอบจริงอยู่ในช้อยส์ อย่าเผลอเลือกตัวเลขที่ "คำนวณจากสูตรได้" โดยไม่คิดสถานการณ์)</div>
+  </div>
+
+  <!-- ================================================== Q6 (รูปนิ่งประกอบโจทย์) -->
+  <div class="q" data-n="6">
+    <div class="stem"><div class="qn">6.</div>
+      <p>A mass of \(m_1\) is placed on a frictionless inclined plane making an angle of 30° with the horizontal. It is connected to another mass of \(m_2\) by a massless string that passes over a frictionless pulley at the top of the incline, so that \(m_2\) hangs vertically. What is the magnitude of the tension in the string when the system is released?</p></div>
+    <div class="anim">
+      <div class="cap">Figure</div>
+      <svg viewBox="0 0 380 190" width="380">
+        <line x1="20" y1="166" x2="360" y2="166" class="ground"/>
+        <g class="hatch">
+          <line x1="40" y1="166" x2="30" y2="178"/><line x1="80" y1="166" x2="70" y2="178"/>
+          <line x1="120" y1="166" x2="110" y2="178"/><line x1="160" y1="166" x2="150" y2="178"/>
+          <line x1="200" y1="166" x2="190" y2="178"/><line x1="240" y1="166" x2="230" y2="178"/>
+          <line x1="280" y1="166" x2="270" y2="178"/><line x1="320" y1="166" x2="310" y2="178"/>
+        </g>
+        <polygon points="44,166 270,166 270,36" fill="#f6f5f2" stroke="#141414" stroke-width="2"/>
+        <text x="86" y="158" class="lbl">30°</text>
+        <circle cx="272" cy="33" r="10" fill="#fff" stroke="#141414" stroke-width="2"/>
+        <circle cx="272" cy="33" r="2.5" fill="#141414"/>
+        <g transform="translate(150,107) rotate(-30)">
+          <rect x="-26" y="-32" width="52" height="32" fill="#fff" stroke="#141414" stroke-width="2"/>
+          <text x="0" y="-11" class="lbl i" text-anchor="middle">m1</text>
+        </g>
+        <line x1="172" y1="80" x2="264" y2="26" stroke="#141414" stroke-width="1.6"/>
+        <line x1="282" y1="33" x2="282" y2="100" stroke="#141414" stroke-width="1.6"/>
+        <rect x="262" y="100" width="40" height="34" fill="#fff" stroke="#141414" stroke-width="2"/>
+        <text x="282" y="121" class="lbl i" text-anchor="middle">m2</text>
+        <text x="96" y="32" class="small">พื้นเอียงลื่น · รอกลื่นและเบา</text>
+      </svg>
+    </div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(\dfrac{m_1 m_2 g}{m_1 + m_2}\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(\dfrac{3 m_1 m_2 g}{2(m_1 + m_2)}\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(\dfrac{m_1 m_2 g}{2(m_1 + m_2)}\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(\dfrac{(m_2 - m_1)g}{2}\)</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> มองทั้งระบบหาความเร่ง แล้วแยกดูก้อนเดียวหาแรงดึงเชือก (สมมุติ \(m_2\) เลื่อนลง —
+      ผลลัพธ์ \(T\) จะออกมาหน้าตาเดิมไม่ว่าระบบไหลไปทางไหน)<br>
+      <u>ขั้นที่ 1 — ทั้งระบบ:</u> \(m_2\) ถูกดึงลงด้วย \(m_2 g\) ส่วน \(m_1\) ถ่วงตามแนวพื้นเอียงด้วย \(m_1 g\sin 30° = \dfrac{m_1 g}{2}\)
+      $$a = \frac{m_2 g - m_1 g\sin 30°}{m_1 + m_2} = \frac{\left(m_2 - \tfrac{m_1}{2}\right)g}{m_1 + m_2}$$
+      <u>ขั้นที่ 2 — แยกดูก้อนที่ห้อย (\(m_2\)):</u> \(m_2 g - T = m_2 a\) จัดรูป \(T = m_2(g - a)\):
+      $$T = m_2 g\left(1 - \frac{m_2 - \tfrac{m_1}{2}}{m_1 + m_2}\right)
+        = m_2 g\cdot\frac{m_1 + m_2 - m_2 + \tfrac{m_1}{2}}{m_1 + m_2}
+        = m_2 g\cdot\frac{\tfrac{3m_1}{2}}{m_1 + m_2} = \mathbf{\frac{3m_1 m_2 g}{2(m_1+m_2)}}$$
+      <b>เช็คความสมเหตุสมผล:</b> ถ้าแทน \(\sin\theta = 0\) (พื้นราบ) สูตรทั่วไป \(T = \dfrac{m_1 m_2 g(1+\sin\theta)}{m_1+m_2}\)
+      ต้องลดรูปเป็นช้อยส์ 1 พอดี — ช้อยส์ 1 คือกับดักสำหรับคนจำสูตรพื้นราบมาใช้โดยไม่คิดมุม</div>
+  </div>
+
+  <!-- ================================================== Q7 (anim ในเฉลย) -->
+  <div class="q" data-n="7">
+    <div class="stem"><div class="qn">7.</div>
+      <p>An object of mass 0.40 kg is tied to a light string of length 0.80 m and swung in a vertical circle. At the lowest point of the motion, its speed is 6.0 m/s. What is the magnitude of the tension in the string at this point? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 10 N</li>
+      <li data-v="2"><span class="cl">2)</span> 14 N</li>
+      <li data-v="3"><span class="cl">3)</span> 18 N</li>
+      <li data-v="4"><span class="cl">4)</span> 22 N</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> ที่จุดต่ำสุด จุดศูนย์กลางวงกลมอยู่ "ข้างบน" — แรงลัพธ์ต้องชี้ขึ้น (เข้าหาศูนย์กลาง)
+      เขียนกฎข้อ 2 ในแนวดิ่ง: เชือกดึงขึ้น \(T\) น้ำหนักดึงลง \(mg\)
+      $$T - mg = \frac{mv^2}{r} \;\Rightarrow\; T = \frac{mv^2}{r} + mg$$
+      แทนค่า: \(T = \dfrac{(0.40)(6.0)^2}{0.80} + (0.40)(10) = \dfrac{14.4}{0.80} + 4.0 = 18 + 4.0 = \mathbf{22\ N}\)<br>
+      (ลวง 18 = ตอบเฉพาะ \(mv^2/r\) ลืมน้ำหนัก, ลวง 14 = เผลอ "ลบ" \(mg\) ซึ่งเป็นสูตรของ "จุดสูงสุด" ไม่ใช่จุดต่ำสุด)
+      <div class="anim">
+        <div class="cap">Interactive · เลื่อนความเร็วที่จุดต่ำสุด แล้วดูแรงดึงเชือก T = mv²/r + mg</div>
+        <svg id="a7" viewBox="0 0 420 210" width="420">
+          <circle cx="210" cy="92" r="78" fill="none" stroke="#cfcdc5" stroke-width="1.4" stroke-dasharray="5 5"/>
+          <circle cx="210" cy="92" r="3" fill="#141414"/>
+          <text x="218" y="88" class="small">จุดหมุน</text>
+          <line x1="210" y1="92" x2="210" y2="170" stroke="#141414" stroke-width="1.8"/>
+          <circle cx="210" cy="170" r="10" fill="#f3f2ee" stroke="#141414" stroke-width="2"/>
+          <line id="a7T" x1="232" y1="160" x2="232" y2="112" stroke="#1a56db" stroke-width="3.5"/>
+          <path id="a7Th" d="M225,120 L232,106 L239,120 Z" fill="#1a56db"/>
+          <text id="a7Tl" x="240" y="128" font-family="Arial" font-size="12" fill="#1a56db" font-style="italic">T</text>
+          <line x1="188" y1="180" x2="188" y2="204" stroke="#b3261e" stroke-width="3.5"/>
+          <path d="M181,198 L188,210 L195,198 Z" fill="#b3261e" transform="translate(0,-4)"/>
+          <text x="160" y="196" font-family="Arial" font-size="12" fill="#b3261e" font-style="italic">mg</text>
+          <line x1="252" y1="170" x2="296" y2="170" stroke="#1a56db" stroke-width="2"/>
+          <path d="M252,164 L240,170 L252,176 Z" fill="#1a56db" transform="rotate(180,268,170)"/>
+          <text x="262" y="160" class="small">ทิศหมุนผ่านจุดต่ำสุด</text>
+          <text id="a7note" x="24" y="26" class="small">ขนาด T ต้อง "ชนะ" mg เสมอจึงโค้งขึ้นได้</text>
+        </svg>
+        <div class="ctr">
+          <span style="font-family:Arial">v:</span>
+          <input type="range" id="a7v" min="0" max="8" step="0.5" value="6">
+          <span class="ro" id="a7vr">v = 6.0 m/s</span>
+          <span class="ro" id="a7Tr">T = 22.0 N</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q8 -->
+  <div class="q" data-n="8">
+    <div class="stem"><div class="qn">8.</div>
+      <p>A satellite moves in a stable circular orbit around the Earth with an orbital speed \(v\). What is the minimum <b>additional</b> speed that must be given to the satellite at this orbit so that it can escape the Earth's gravity?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(v\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(v/2\)</li>
+      <li data-v="3"><span class="cl">3)</span> \((\sqrt{2} - 1)v\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(\sqrt{2}\,v\)</li>
+      <li data-v="5"><span class="cl">5)</span> \(2v\)</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> เทียบสองความเร็วที่รัศมีวงโคจรเดียวกัน \(r\)<br>
+      ความเร็ววงโคจร (แรงโน้มถ่วง = แรงสู่ศูนย์กลาง): \(\dfrac{GMm}{r^2} = \dfrac{mv^2}{r} \Rightarrow v = \sqrt{\dfrac{GM}{r}}\)<br>
+      ความเร็วหลุดพ้น (พลังงานรวม = 0): \(\tfrac{1}{2}mv_{esc}^2 - \dfrac{GMm}{r} = 0 \Rightarrow v_{esc} = \sqrt{\dfrac{2GM}{r}}\)<br>
+      เทียบกัน:
+      $$v_{esc} = \sqrt{2}\cdot v$$
+      ดาวเทียมมีความเร็ว \(v\) อยู่แล้ว ส่วนที่ต้อง "เติมเพิ่ม" คือ
+      \(\Delta v = v_{esc} - v = \sqrt{2}v - v = \mathbf{(\sqrt{2}-1)v} \approx 0.41v\)<br>
+      (ลวง \(\sqrt{2}v\) = ตอบความเร็วหลุดพ้น "ทั้งก้อน" — โจทย์เน้นคำว่า additional คือส่วนต่างเท่านั้น)</div>
+  </div>
+
+  <!-- ================================================== Q9 (anim ในเฉลย) -->
+  <div class="q" data-n="9">
+    <div class="stem"><div class="qn">9.</div>
+      <p>A 50-kg gymnast steps off a platform 1.2 m above a trampoline and lands on it. The trampoline behaves like an ideal spring and is depressed by a maximum of 0.40 m. What is the effective spring constant of the trampoline? (Given \(g\) = 10 m/s\(^2\))</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 2.5 kN/m</li>
+      <li data-v="2"><span class="cl">2)</span> 5.0 kN/m</li>
+      <li data-v="3"><span class="cl">3)</span> 7.5 kN/m</li>
+      <li data-v="4"><span class="cl">4)</span> 10 kN/m</li>
+      <li data-v="5"><span class="cl">5)</span> 15 kN/m</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> ใช้การอนุรักษ์พลังงานจาก "จุดปล่อยตัว" ถึง "จุดกดลึกสุด" (ทั้งสองจุดความเร็วเป็นศูนย์)
+      — จุดสำคัญคือความสูงที่ตกจริงไม่ใช่แค่ \(h\) แต่เป็น \(h + x\) เพราะตัวคนลงไปต่ออีก 0.40 m ระหว่างกดแทรมโพลีน
+      $$mg(h + x) = \frac{1}{2}kx^2$$
+      แทนค่า: \((50)(10)(1.2 + 0.40) = \tfrac{1}{2}k(0.40)^2\)<br>
+      \(500 \times 1.6 = 800 = \tfrac{1}{2}k(0.16) = 0.080\,k\)<br>
+      \(k = \dfrac{800}{0.080} = 10{,}000\ \mathrm{N/m} = \mathbf{10\ kN/m}\)<br>
+      (ลวง 7.5 kN/m = ใช้แค่ \(mgh\) ลืมบวกระยะกด \(x\) — พลังงานศักย์ต้องนับถึง "จุดต่ำสุดจริง")
+      <div class="anim">
+        <div class="cap">Interactive · กด Play ดูพลังงานถ่ายรูป: ศักย์โน้มถ่วง → จลน์ → ศักย์สปริง (รวมคงที่ 800 J)</div>
+        <svg id="a9" viewBox="0 0 420 220" width="420">
+          <line x1="30" y1="60" x2="92" y2="60" stroke="#141414" stroke-width="3"/>
+          <line x1="92" y1="60" x2="92" y2="196" stroke="#141414" stroke-width="2"/>
+          <line x1="20" y1="196" x2="404" y2="196" class="ground"/>
+          <line x1="120" y1="160" x2="240" y2="160" stroke="#cfcdc5" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="244" y="164" class="small">ผิวแทรมโพลีน (ยังไม่กด)</text>
+          <path id="a9tr" d="M120 160 L180 160 L240 160" fill="none" stroke="#141414" stroke-width="3"/>
+          <line x1="120" y1="160" x2="120" y2="196" stroke="#141414" stroke-width="2"/>
+          <line x1="240" y1="160" x2="240" y2="196" stroke="#141414" stroke-width="2"/>
+          <g id="a9g">
+            <circle cx="0" cy="-26" r="8" fill="#fff" stroke="#141414" stroke-width="2"/>
+            <line x1="0" y1="-18" x2="0" y2="4" stroke="#141414" stroke-width="2"/>
+            <line x1="0" y1="-12" x2="-9" y2="-2" stroke="#141414" stroke-width="1.8"/>
+            <line x1="0" y1="-12" x2="9" y2="-2" stroke="#141414" stroke-width="1.8"/>
+            <line x1="0" y1="4" x2="-7" y2="16" stroke="#141414" stroke-width="1.8"/>
+            <line x1="0" y1="4" x2="7" y2="16" stroke="#141414" stroke-width="1.8"/>
+          </g>
+          <g font-family="Arial" font-size="11" fill="#7a7a72">
+            <text x="292" y="60">PE โน้มถ่วง</text>
+            <text x="292" y="106">KE</text>
+            <text x="292" y="152">PE สปริง</text>
+          </g>
+          <rect x="370" y="50" width="0" height="14" fill="#9fb6ee" id="a9b1"/>
+          <rect x="370" y="96" width="0" height="14" fill="#1a56db" id="a9b2"/>
+          <rect x="370" y="142" width="0" height="14" fill="#1c7c3c" id="a9b3"/>
+          <rect x="370" y="50" width="46" height="14" fill="none" stroke="#d8d6d0"/>
+          <rect x="370" y="96" width="46" height="14" fill="none" stroke="#d8d6d0"/>
+          <rect x="370" y="142" width="46" height="14" fill="none" stroke="#d8d6d0"/>
+          <text id="a9dep" x="24" y="28" font-family="Courier New" font-size="12">ลึก x = 0.00 m</text>
+        </svg>
+        <div class="ctr">
+          <button id="a9p">▶ Play</button>
+          <span class="ro" id="a9e">PEg 800 · KE 0 · PEs 0 (J)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q10 -->
+  <div class="q" data-n="10">
+    <div class="stem"><div class="qn">10.</div>
+      <p>A ball of mass 0.50 kg falls and hits the floor with a speed of 8.0 m/s. It rebounds vertically upward with a speed of 6.0 m/s. If the contact time between the ball and the floor is 0.020 s, what is the magnitude of the average force exerted by the floor on the ball?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 50 N</li>
+      <li data-v="2"><span class="cl">2)</span> 150 N</li>
+      <li data-v="3"><span class="cl">3)</span> 350 N</li>
+      <li data-v="4"><span class="cl">4)</span> 500 N</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ลูกบอล "กลับทิศ" — กำหนดทิศขึ้นเป็นบวก: ความเร็วเปลี่ยนจาก \(-8.0\) เป็น \(+6.0\) m/s
+      ขนาดการเปลี่ยนความเร็วจึงเป็น "ผลบวก" ไม่ใช่ผลต่าง
+      $$\Delta v = v_2 - (-v_1) = 6.0 + 8.0 = 14\ \mathrm{m/s}$$
+      การดล: \(J = m\,\Delta v = (0.50)(14) = 7.0\) N·s<br>
+      แรงเฉลี่ย: \(F = \dfrac{J}{\Delta t} = \dfrac{7.0}{0.020} = \mathbf{350\ N}\)<br>
+      (น้ำหนัก \(mg = 5\) N เล็กมากเทียบกับแรงกระแทกหลักร้อย จึงละได้ตามแบบฉบับข้อสอบ —
+      ลวง 50 = ใช้ \(8.0 - 6.0 = 2.0\) ลืมว่าทิศกลับ, ลวง 500 = ใช้ความเร็วขาลงอย่างเดียวแบบผิดสูตร)</div>
+  </div>
+  <!-- ================================================== Q11 -->
+  <div class="q" data-n="11">
+    <div class="stem"><div class="qn">11.</div>
+      <p>A block of mass 0.80 kg is attached to a massless spring and performs simple harmonic motion on a frictionless horizontal surface with an amplitude of 0.10 m. If the maximum speed of the block is 2.0 m/s, what is the spring constant of this system?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 16 N/m</li>
+      <li data-v="2"><span class="cl">2)</span> 40 N/m</li>
+      <li data-v="3"><span class="cl">3)</span> 160 N/m</li>
+      <li data-v="4"><span class="cl">4)</span> 320 N/m</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> ใน SHM ความเร็วสูงสุด (ที่จุดสมดุล) สัมพันธ์กับแอมพลิจูดผ่านความถี่เชิงมุม:
+      \(v_{max} = \omega A\) — โจทย์ให้ทั้งคู่ จึงหา \(\omega\) ได้ทันที
+      $$\omega = \frac{v_{max}}{A} = \frac{2.0}{0.10} = 20\ \mathrm{rad/s}$$
+      จากระบบมวล–สปริง \(\omega = \sqrt{\dfrac{k}{m}}\) จัดรูปได้ \(k = m\omega^2\)<br>
+      แทนค่า: \(k = (0.80)(20)^2 = (0.80)(400) = \mathbf{320\ N/m}\)<br>
+      (ลวง 16 = ใช้ \(k = m\omega\) ลืมยกกำลังสอง, ลวง 160 = หลงหาร 2 จากการสับสนกับสูตรพลังงาน)</div>
+  </div>
+
+  <!-- ================================================== Q12 -->
+  <div class="q" data-n="12">
+    <div class="stem"><div class="qn">12.</div>
+      <p>A cylindrical tube with one closed end and one open end resonates at a fundamental frequency of 250 Hz. What is the length of this tube? (Given the speed of sound in air is 340 m/s)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 34 cm</li>
+      <li data-v="2"><span class="cl">2)</span> 68 cm</li>
+      <li data-v="3"><span class="cl">3)</span> 102 cm</li>
+      <li data-v="4"><span class="cl">4)</span> 136 cm</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> ท่อ "ปลายปิดหนึ่งด้าน" — ปลายปิดเป็น node ปลายเปิดเป็น antinode
+      โหมดพื้นฐานจึงบรรจุคลื่นแค่หนึ่งในสี่ลูก: \(L = \dfrac{\lambda}{4}\) นั่นคือ \(\lambda = 4L\)<br>
+      จาก \(f_1 = \dfrac{v}{\lambda} = \dfrac{v}{4L}\) จัดรูปหา \(L\):
+      $$L = \frac{v}{4f_1} = \frac{340}{4(250)} = \frac{340}{1{,}000} = 0.34\ \mathrm{m} = \mathbf{34\ cm}$$
+      (ลวง 68 = ใช้สูตรท่อเปิดสองด้าน \(v/2f\) — ท่อเปิดสองด้านปลายทั้งคู่เป็น antinode บรรจุครึ่งลูก ไม่ใช่หนึ่งในสี่)</div>
+  </div>
+
+  <!-- ================================================== Q13 (anim ในเฉลย) -->
+  <div class="q" data-n="13">
+    <div class="stem"><div class="qn">13.</div>
+      <p>A string of length 50 cm is fixed at both ends. The string has a linear mass density of 8.0 g/m and is stretched under a tension of 20 N. What is the lowest resonant frequency of this string?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 25 Hz</li>
+      <li data-v="2"><span class="cl">2)</span> 50 Hz</li>
+      <li data-v="3"><span class="cl">3)</span> 100 Hz</li>
+      <li data-v="4"><span class="cl">4)</span> 200 Hz</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> ทำสองขั้น — หา "ความเร็วคลื่นบนเชือก" จากแรงตึงก่อน แล้วค่อยหาความถี่พื้นฐาน<br>
+      <u>ขั้นที่ 1:</u> แปลงหน่วยก่อน \(\mu = 8.0\ \mathrm{g/m} = 0.0080\ \mathrm{kg/m}\)
+      $$v = \sqrt{\frac{T}{\mu}} = \sqrt{\frac{20}{0.0080}} = \sqrt{2{,}500} = 50\ \mathrm{m/s}$$
+      <u>ขั้นที่ 2:</u> เชือกตรึงสองปลาย โหมดพื้นฐาน \(\lambda = 2L = 2(0.50) = 1.0\) m
+      $$f_1 = \frac{v}{\lambda} = \frac{v}{2L} = \frac{50}{1.0} = \mathbf{50\ Hz}$$
+      (ลวง 25 = ใช้ \(v/4L\) สูตรท่อปิด, ลวง 100 = ลืมตัวคูณ 2 ใน \(2L\) —
+      และอย่าลืมแปลง g/m → kg/m ไม่งั้นค่า \(v\) จะเพี้ยนไป \(\sqrt{1{,}000}\) เท่า)
+      <div class="anim">
+        <div class="cap">Interactive · คลื่นนิ่งบนเชือกตรึงสองปลาย — สลับโหมดดูว่าแต่ละฮาร์มอนิกบรรจุกี่ครึ่งลูก</div>
+        <svg id="a13" viewBox="0 0 400 140" width="400">
+          <line x1="50" y1="70" x2="350" y2="70" stroke="#d8d6d0" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="50" y1="36" x2="50" y2="104" stroke="#141414" stroke-width="4"/>
+          <line x1="350" y1="36" x2="350" y2="104" stroke="#141414" stroke-width="4"/>
+          <path id="a13w1" d="" fill="none" stroke="#1a56db" stroke-width="2.4"/>
+          <path id="a13w2" d="" fill="none" stroke="#9fb6ee" stroke-width="1.6" stroke-dasharray="5 4"/>
+          <text x="200" y="24" class="small" text-anchor="middle">L = 0.50 m · v = √(T/μ) = 50 m/s</text>
+          <text x="50" y="122" class="small" text-anchor="middle">node</text>
+          <text x="350" y="122" class="small" text-anchor="middle">node</text>
+        </svg>
+        <div class="ctr">
+          <button id="a13m1" class="on">Fundamental</button>
+          <button id="a13m2">2nd harmonic</button>
+          <span class="ro" id="a13fr">λ = 2L → f₁ = 50 Hz</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q14 (anim ในเฉลย) -->
+  <div class="q" data-n="14">
+    <div class="stem"><div class="qn">14.</div>
+      <p>A fire truck is moving at a constant speed along a straight road directly toward a large building. Its siren emits sound at a frequency of 800 Hz. A detector on the truck receives the echo reflected from the building at a frequency of 900 Hz. What is the speed of the fire truck? (Given the speed of sound is 340 m/s)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 10 m/s</li>
+      <li data-v="2"><span class="cl">2)</span> 20 m/s</li>
+      <li data-v="3"><span class="cl">3)</span> 30 m/s</li>
+      <li data-v="4"><span class="cl">4)</span> 40 m/s</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> เสียงสะท้อน (echo) คือ Doppler "สองชั้น" ต่อกัน — ตึกได้ยินก่อน แล้วสะท้อนกลับมาให้รถได้ยินอีกที<br>
+      <u>ชั้นที่ 1 — ตึกเป็นผู้ฟังนิ่ง รับจากแหล่งกำเนิด (รถ) ที่วิ่งเข้า:</u>
+      \(f_{wall} = f\,\dfrac{v_s}{v_s - u}\)<br>
+      <u>ชั้นที่ 2 — ตึกสะท้อนเสียงทำหน้าที่เป็น "แหล่งนิ่ง" ส่งความถี่ \(f_{wall}\) กลับมา
+      รถเป็น "ผู้ฟังที่วิ่งเข้า":</u> \(f' = f_{wall}\,\dfrac{v_s + u}{v_s}\)<br>
+      รวมสองชั้น (\(v_s\) ตัดกัน):
+      $$f' = f\,\frac{v_s + u}{v_s - u} \;\Rightarrow\; \frac{900}{800} = \frac{9}{8} = \frac{340 + u}{340 - u}$$
+      คูณไขว้: \(9(340 - u) = 8(340 + u)\)<br>
+      \(3{,}060 - 9u = 2{,}720 + 8u \;\Rightarrow\; 340 = 17u \;\Rightarrow\; u = \mathbf{20\ m/s}\)<br>
+      (ถ้าใช้ Doppler ชั้นเดียว \(f' = f\frac{v}{v-u}\) จะได้ \(u \approx 38\) m/s ใกล้ลวง 40 — ลืมไม่ได้ว่า echo โดนบีบ "สองรอบ")
+      <div class="anim">
+        <div class="cap">Interactive · กด Play — คลื่นสีน้ำเงินวิ่งจากรถไปชนตึก คลื่นสะท้อน (สีอ่อน) บีบซ้ำอีกชั้นตอนวิ่งสวนกลับมาหารถ</div>
+        <svg id="a14" viewBox="0 0 420 170" width="420">
+          <defs><clipPath id="a14clip"><rect x="0" y="0" width="352" height="170"/></clipPath></defs>
+          <line x1="10" y1="140" x2="352" y2="140" class="ground"/>
+          <rect x="352" y="20" width="38" height="120" fill="#f3f2ee" stroke="#141414" stroke-width="2"/>
+          <line x1="360" y1="34" x2="382" y2="34" stroke="#b9b7ae" stroke-width="1.2"/>
+          <line x1="360" y1="54" x2="382" y2="54" stroke="#b9b7ae" stroke-width="1.2"/>
+          <line x1="360" y1="74" x2="382" y2="74" stroke="#b9b7ae" stroke-width="1.2"/>
+          <line x1="360" y1="94" x2="382" y2="94" stroke="#b9b7ae" stroke-width="1.2"/>
+          <text x="371" y="160" class="small" text-anchor="middle">ตึก</text>
+          <g id="a14w" clip-path="url(#a14clip)"></g>
+          <g id="a14tr">
+            <rect x="-44" y="-30" width="56" height="22" rx="3" fill="#fdecea" stroke="#141414" stroke-width="2"/>
+            <rect x="12" y="-24" width="18" height="16" fill="#fff" stroke="#141414" stroke-width="2"/>
+            <circle cx="-28" cy="-4" r="7" fill="#fff" stroke="#141414" stroke-width="1.6"/>
+            <circle cx="14" cy="-4" r="7" fill="#fff" stroke="#141414" stroke-width="1.6"/>
+            <text x="-16" y="-36" font-family="Arial" font-size="10" fill="#7a7a72" text-anchor="middle">800 Hz →</text>
+          </g>
+          <text id="a14hear" x="22" y="30" font-family="Courier New" font-size="12">detector ได้ยิน echo 900 Hz</text>
+        </svg>
+        <div class="ctr"><button id="a14p">▶ Play</button>
+          <span class="ro">บีบ 2 ชั้น: f′ = f(v+u)/(v−u)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q15 -->
+  <div class="q" data-n="15">
+    <div class="stem"><div class="qn">15.</div>
+      <p>A small speaker emits sound uniformly in all directions. The sound intensity measured at a distance of 2.0 m from the speaker is 2.0 W/m\(^2\). What is the approximate power of this speaker?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 8.0 W</li>
+      <li data-v="2"><span class="cl">2)</span> 25 W</li>
+      <li data-v="3"><span class="cl">3)</span> 50 W</li>
+      <li data-v="4"><span class="cl">4)</span> 80 W</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> เสียงกระจายทุกทิศ — กำลังทั้งหมดเกลี่ยบนผิว "ทรงกลม" รัศมี \(r\) ซึ่งมีพื้นที่ \(4\pi r^2\)
+      $$I = \frac{P}{4\pi r^2} \;\Rightarrow\; P = I\,(4\pi r^2)$$
+      แทนค่า: \(P = (2.0)(4\pi)(2.0)^2 = (2.0)(4\pi)(4.0) = 32\pi \approx \mathbf{100\ W}\)<br>
+      ไม่มีในตัวเลือก → <b>None of the above</b><br>
+      (ลวง 50 = ใช้ \(2\pi r^2\) ครึ่งทรงกลม, ลวง 25 = ใช้พื้นที่วงกลม \(\pi r^2\),
+      ลวง 8.0 = คูณแค่ \(I\,r^2\) — ต้องจำให้แม่น: ผิวทรงกลมเต็มใบ = \(4\pi r^2\))</div>
+  </div>
+
+  <!-- ================================================== Q16 -->
+  <div class="q" data-n="16">
+    <div class="stem"><div class="qn">16.</div>
+      <p>Light travels from a glass block with a refractive index of 1.6 into a liquid with a refractive index of 1.2. What is the critical angle for this glass–liquid surface?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> arcsin(0.75)</li>
+      <li data-v="2"><span class="cl">2)</span> arcsin(0.80)</li>
+      <li data-v="3"><span class="cl">3)</span> arcsin(1.33)</li>
+      <li data-v="4"><span class="cl">4)</span> 0.75</li>
+      <li data-v="5"><span class="cl">5)</span> No critical angle observed</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>เช็คเงื่อนไขก่อน:</b> มุมวิกฤตมีจริงเฉพาะเมื่อแสงวิ่งจากตัวกลาง "หนากว่า" ไป "บางกว่า"
+      — ที่นี่แก้ว (1.6) → ของเหลว (1.2) เข้าเงื่อนไข มีมุมวิกฤตแน่นอน (อย่าหลงช้อยส์ 5)<br>
+      มุมวิกฤตคือมุมตกที่ทำให้มุมหักเหกาง 90° พอดี — จากกฎของสเนลล์ \(n_1\sin\theta_c = n_2\sin 90°\):
+      $$\sin\theta_c = \frac{n_2}{n_1} = \frac{1.2}{1.6} = 0.75 \;\Rightarrow\; \theta_c = \mathbf{\arcsin(0.75)}$$
+      (ลวง arcsin(1.33) = จับเศษส่วนกลับหัว — สังเกตว่า \(\sin\) เกิน 1 ไม่ได้ ตัวเลือกนี้จึงเป็นไปไม่ได้ตั้งแต่ต้น,
+      ลวง "0.75" เฉย ๆ = ค่า sin ไม่ใช่มุม)</div>
+  </div>
+
+  <!-- ================================================== Q17 -->
+  <div class="q" data-n="17">
+    <div class="stem"><div class="qn">17.</div>
+      <p>An object placed 30 cm in front of a curved mirror forms a real image 60 cm from the mirror. What is the type of the mirror and its radius of curvature?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> Convex mirror with a radius of curvature of 20 cm</li>
+      <li data-v="2"><span class="cl">2)</span> Convex mirror with a radius of curvature of 40 cm</li>
+      <li data-v="3"><span class="cl">3)</span> Concave mirror with a radius of curvature of 40 cm</li>
+      <li data-v="4"><span class="cl">4)</span> Concave mirror with a radius of curvature of 20 cm</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>ส่วนที่ 1 — ชนิดกระจก:</b> โจทย์บอกว่าได้ "ภาพจริง" — กระจกนูนให้ภาพเสมือนเสมอไม่ว่าวางวัตถุตรงไหน
+      ดังนั้นต้องเป็น<b>กระจกเว้า</b> (ตัดช้อยส์ 1 กับ 2 ทิ้งได้ทันที)<br>
+      <b>ส่วนที่ 2 — รัศมีความโค้ง:</b> ภาพจริง → \(s' = +60\) cm ใช้สมการกระจก
+      $$\frac{1}{f} = \frac{1}{s} + \frac{1}{s'} = \frac{1}{30} + \frac{1}{60} = \frac{2}{60} + \frac{1}{60} = \frac{3}{60} = \frac{1}{20}$$
+      \(f = 20\) cm แล้วแปลงเป็นรัศมีความโค้ง: \(R = 2f = \mathbf{40\ cm}\)<br>
+      → <b>Concave mirror, R = 40 cm</b> (ลวงช้อยส์ 4 = ตอบ \(f\) โดยลืมคูณ 2 เป็น \(R\))</div>
+  </div>
+
+  <!-- ================================================== Q18 -->
+  <div class="q" data-n="18">
+    <div class="stem"><div class="qn">18.</div>
+      <p>In a double-slit experiment, light of wavelength 600 nm passes through two slits separated by 0.30 mm. The interference pattern is observed on a screen placed 2.0 m away from the slits. What is the distance between two adjacent bright fringes on the screen?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 1.0 mm</li>
+      <li data-v="2"><span class="cl">2)</span> 2.0 mm</li>
+      <li data-v="3"><span class="cl">3)</span> 4.0 mm</li>
+      <li data-v="4"><span class="cl">4)</span> 8.0 mm</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ระยะห่างแถบสว่างติดกัน \(\Delta y = \dfrac{\lambda L}{d}\) —
+      จุดอันตรายคือการแปลงหน่วยให้เป็น "เมตร" ทั้งหมดก่อน<br>
+      แปลงหน่วย: \(\lambda = 600\ \mathrm{nm} = 600\times10^{-9}\ \mathrm{m}\),
+      \(d = 0.30\ \mathrm{mm} = 0.30\times10^{-3}\ \mathrm{m}\), \(L = 2.0\ \mathrm{m}\)
+      $$\Delta y = \frac{\lambda L}{d} = \frac{(600\times10^{-9})(2.0)}{0.30\times10^{-3}}
+      = \frac{1.2\times10^{-6}}{3.0\times10^{-4}} = 4.0\times10^{-3}\ \mathrm{m} = \mathbf{4.0\ mm}$$
+      (ลวง 1.0 / 2.0 / 8.0 = แปลงหน่วยพลาดหนึ่งหลักหรือสลับ \(\lambda\) กับ \(d\) —
+      เทคนิคเช็คเร็ว: \(\Delta y\) ระดับ "มิลลิเมตร" เสมอสำหรับ setup มาตรฐานแบบนี้)</div>
+  </div>
+
+  <!-- ================================================== Q19 -->
+  <div class="q" data-n="19">
+    <div class="stem"><div class="qn">19.</div>
+      <p>Two charges of \(+Q\) and \(+9Q\) are located at points \(x = 0\) and \(x = 4d\), respectively. Which of the following correctly describes the neutral point (the position where the net electric field from both charges is zero)?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> At \(x = d\)</li>
+      <li data-v="2"><span class="cl">2)</span> At \(x = 4d/3\)</li>
+      <li data-v="3"><span class="cl">3)</span> At \(x = 2d\)</li>
+      <li data-v="4"><span class="cl">4)</span> At \(x = 3d\)</li>
+      <li data-v="5"><span class="cl">5)</span> No neutral point exists</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> ประจุ "ชนิดเดียวกัน" — ระหว่างประจุทั้งสอง สนามของแต่ละตัวชี้สวนทางกัน
+      จึงมีจุดหักล้างหนึ่งจุด และต้องอยู่ "ใกล้ประจุที่เล็กกว่า" (\(+Q\) ที่ \(x = 0\))<br>
+      ให้จุดนั้นอยู่ที่ \(x\): ระยะจาก \(+Q\) คือ \(x\) และจาก \(+9Q\) คือ \(4d - x\) — ตั้งสมการขนาดสนามเท่ากัน:
+      $$\frac{kQ}{x^2} = \frac{k(9Q)}{(4d - x)^2}$$
+      ตัด \(kQ\) แล้วถอดรากทั้งสองข้าง: \(\dfrac{1}{x} = \dfrac{3}{4d - x}\)<br>
+      คูณไขว้: \(4d - x = 3x \;\Rightarrow\; 4d = 4x \;\Rightarrow\; x = \mathbf{d}\)<br>
+      <b>เช็คความสมเหตุสมผล:</b> จุด \(x = d\) ห่าง \(+Q\) หนึ่งส่วน ห่าง \(+9Q\) สามส่วน —
+      สนามอ่อนกว่า 9 เท่าจากประจุ แต่ใกล้กว่า 3 เท่า (\(3^2 = 9\)) หักล้างพอดี ✓<br>
+      (ลวง \(x = 3d\) = นับระยะจากฝั่ง \(+9Q\), ลวง \(2d\) = เดาว่า "ตรงกลาง" ซึ่งใช้ได้เฉพาะประจุเท่ากัน)</div>
+  </div>
+
+  <!-- ================================================== Q20 -->
+  <div class="q" data-n="20">
+    <div class="stem"><div class="qn">20.</div>
+      <p>The electric force between two point charges is \(F\). If one of the charges is tripled and the distance between them is doubled, what is the new electric force between the charges?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(3F/4\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(3F/2\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(9F/4\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(3F\)</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> กฎของคูลอมบ์ \(F = \dfrac{kq_1 q_2}{r^2}\) — คิดเป็น "ตัวคูณ" ทีละปัจจัย<br>
+      ประจุตัวหนึ่งเพิ่ม 3 เท่า → แรงคูณ 3<br>
+      ระยะเพิ่ม 2 เท่า → แรง "หาร \(2^2 = 4\)" (อยู่ในกำลังสองของตัวส่วน)
+      $$F' = \frac{k(3q_1)q_2}{(2r)^2} = \frac{3}{4}\cdot\frac{kq_1 q_2}{r^2} = \mathbf{\frac{3F}{4}}$$
+      (ลวง \(3F/2\) = ลืมยกกำลังสองของระยะ — จุดพลาดอันดับหนึ่งของสูตรกำลังสองผกผัน)</div>
+  </div>
+  <!-- ================================================== Q21 -->
+  <div class="q" data-n="21">
+    <div class="stem"><div class="qn">21.</div>
+      <p>A parallel-plate capacitor is connected to a battery and stores a charge of \(Q\). While the capacitor remains connected to the battery, the separation between the plates is doubled. What is the new amount of charge stored in the capacitor?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(Q/4\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(Q/2\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(Q\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(2Q\)</li>
+      <li data-v="5"><span class="cl">5)</span> \(4Q\)</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> คำถามตระกูลนี้ต้องถามตัวเองก่อนว่า "อะไรถูกล็อกให้คงที่" —
+      <b>ยังต่อแบตเตอรี่อยู่ → แรงดัน \(V\) คงที่</b> (ส่วนประจุ \(Q\) เปลี่ยนได้ตามความจุ)<br>
+      ขั้นที่ 1 — ความจุเปลี่ยนตามระยะแผ่น: \(C = \dfrac{\varepsilon_0 A}{d}\) เมื่อ \(d \to 2d\):
+      \(C' = \dfrac{\varepsilon_0 A}{2d} = \dfrac{C}{2}\)<br>
+      ขั้นที่ 2 — ประจุใหม่ (ที่ \(V\) เท่าเดิม):
+      $$Q' = C'V = \frac{C}{2}V = \mathbf{\frac{Q}{2}}$$
+      (กรณีตรงข้าม: ถ้า "ถอดแบตก่อน" ค่อยดึงแผ่น \(Q\) จะคงที่แทน แล้ว \(V\) จะเพิ่มเป็นสองเท่า —
+      สองสถานการณ์นี้คือคู่กับดักประจำของ capacitor)</div>
+  </div>
+
+  <!-- ================================================== Q22 -->
+  <div class="q" data-n="22">
+    <div class="stem"><div class="qn">22.</div>
+      <p>Two resistors of 2.0 kΩ and 4.0 kΩ are connected in series to a battery with an electromotive force of 12 V. What is the current flowing in the circuit?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 0.5 mA</li>
+      <li data-v="2"><span class="cl">2)</span> 2.0 mA</li>
+      <li data-v="3"><span class="cl">3)</span> 6.0 mA</li>
+      <li data-v="4"><span class="cl">4)</span> 2.0 A</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> อนุกรม — ความต้านทานบวกกันตรง ๆ แล้วใช้กฎของโอห์ม ระวังหน่วย kΩ<br>
+      ความต้านทานรวม: \(R = R_1 + R_2 = 2.0 + 4.0 = 6.0\ \mathrm{k\Omega} = 6{,}000\ \Omega\)
+      $$I = \frac{V}{R} = \frac{12}{6{,}000} = 0.0020\ \mathrm{A} = \mathbf{2.0\ mA}$$
+      (ลวง 2.0 A = แทนเลข 6 โดยลืมว่าเป็น "กิโล"โอห์ม — เทคนิคลัด: โวลต์ ÷ กิโลโอห์ม = มิลลิแอมป์ ได้ทันที)</div>
+  </div>
+
+  <!-- ================================================== Q23 -->
+  <div class="q" data-n="23">
+    <div class="stem"><div class="qn">23.</div>
+      <p>A 25-W electric fan runs continuously throughout 30 days. What is the cost of using this fan? (Given cost of electricity = 4.00 Baht per kilowatt-hour)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 18 Baht</li>
+      <li data-v="2"><span class="cl">2)</span> 36 Baht</li>
+      <li data-v="3"><span class="cl">3)</span> 72 Baht</li>
+      <li data-v="4"><span class="cl">4)</span> 144 Baht</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ค่าไฟคิดจากพลังงานหน่วย kWh = (กำลังเป็น kW) × (ชั่วโมงที่ใช้)<br>
+      ขั้นที่ 1 — แปลงกำลัง: \(25\ \mathrm{W} = 0.025\ \mathrm{kW}\)<br>
+      ขั้นที่ 2 — ชั่วโมงทั้งหมด ("ตลอด 30 วัน" = เปิดทั้งวันทั้งคืน): \(t = 24 \times 30 = 720\) h
+      $$E = P \times t = (0.025)(720) = 18\ \mathrm{kWh}$$
+      ขั้นที่ 3 — ค่าไฟ = \(18 \times 4.00 = \mathbf{72\ Baht}\)<br>
+      (ลวง 18 = ได้พลังงานแล้วลืมคูณราคา, ลวง 144 = เผลอคิด 50 W หรือคูณราคาซ้ำ —
+      สังเกตว่าพัดลมกินไฟน้อยมาก เดือนละไม่ถึงร้อยบาทจริง ๆ)</div>
+  </div>
+
+  <!-- ================================================== Q24 -->
+  <div class="q" data-n="24">
+    <div class="stem"><div class="qn">24.</div>
+      <p>A proton and an alpha particle enter a region of uniform magnetic field. The velocities of both particles are equal in magnitude and perpendicular to the magnetic field, so each moves in a circular path. What is the ratio of the radius of the alpha particle's path to the radius of the proton's path?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 1 : 2</li>
+      <li data-v="2"><span class="cl">2)</span> 1 : 1</li>
+      <li data-v="3"><span class="cl">3)</span> 2 : 1</li>
+      <li data-v="4"><span class="cl">4)</span> 4 : 1</li>
+      <li data-v="5"><span class="cl">5)</span> 8 : 1</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> ประจุวิ่งตั้งฉากกับสนาม → แรงแม่เหล็กเป็นแรงสู่ศูนย์กลาง:
+      \(qvB = \dfrac{mv^2}{r}\) จัดรูปได้รัศมีวง
+      $$r = \frac{mv}{qB}$$
+      \(v\) และ \(B\) เท่ากันทั้งคู่ → \(r \propto \dfrac{m}{q}\)<br>
+      อนุภาคแอลฟา (\({}^{4}_{2}\mathrm{He}\) นิวเคลียส): \(m_\alpha = 4m_p\), \(q_\alpha = 2e\)
+      $$\frac{r_\alpha}{r_p} = \frac{m_\alpha/q_\alpha}{m_p/q_p} = \frac{4m_p/2e}{m_p/e} = \frac{2}{1} = \mathbf{2 : 1}$$
+      (ลวง 4:1 = มองแต่มวล ลืมว่าประจุก็เพิ่มเป็นสองเท่า, ลวง 1:2 = จับอัตราส่วนกลับด้าน)</div>
+  </div>
+
+  <!-- ================================================== Q25 (anim ในเฉลย) -->
+  <div class="q" data-n="25">
+    <div class="stem"><div class="qn">25.</div>
+      <p>A rectangular coil with dimensions 20 cm by 25 cm is placed in a uniform magnetic field of 0.40 T. The plane of the coil makes an angle of 37° with the magnetic field. What is the magnetic flux through the coil?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 12 mWb</li>
+      <li data-v="2"><span class="cl">2)</span> 16 mWb</li>
+      <li data-v="3"><span class="cl">3)</span> 20 mWb</li>
+      <li data-v="4"><span class="cl">4)</span> 33 mWb</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> สูตรฟลักซ์ \(\Phi = BA\cos\theta\) — แต่ \(\theta\) ในสูตรคือมุมระหว่าง \(B\) กับ
+      "<b>เส้นแนวฉาก (normal)</b> ของระนาบ" ไม่ใช่มุมกับตัวระนาบ!<br>
+      ขั้นที่ 1 — โจทย์ให้มุมกับ "ระนาบ" = 37° → มุมกับ normal = \(90° - 37° = 53°\)<br>
+      ขั้นที่ 2 — พื้นที่: \(A = 0.20 \times 0.25 = 0.050\ \mathrm{m^2}\)<br>
+      ขั้นที่ 3 — แทนค่า:
+      $$\Phi = BA\cos 53° = (0.40)(0.050)(0.6) = 0.012\ \mathrm{Wb} = \mathbf{12\ mWb}$$
+      (เคล็ดจำ: มุมกับระนาบใช้ \(\sin\) ได้เลย \(\Phi = BA\sin 37°\) — ลวง 16 = เผลอใช้ \(\cos 37° = 0.8\),
+      ลวง 20 = \(BA\) เฉย ๆ ลืมมุม)
+      <div class="anim">
+        <div class="cap">Interactive · สลับสองมุมมอง — มุมเดียวกัน 37° แต่วัดคนละแบบ ให้ฟลักซ์ต่างกัน</div>
+        <svg id="a25" viewBox="0 0 420 190" width="420">
+          <g stroke="#9fb6ee" stroke-width="2">
+            <line x1="30" y1="50" x2="150" y2="50"/><line x1="30" y1="85" x2="150" y2="85"/>
+            <line x1="30" y1="120" x2="150" y2="120"/><line x1="30" y1="155" x2="150" y2="155"/>
+          </g>
+          <g fill="#9fb6ee">
+            <path d="M150,44 L162,50 L150,56 Z"/><path d="M150,79 L162,85 L150,91 Z"/>
+            <path d="M150,114 L162,120 L150,126 Z"/><path d="M150,149 L162,155 L150,161 Z"/>
+          </g>
+          <text x="32" y="36" font-family="Arial" font-size="12" fill="#1a56db" font-style="italic">B (แนวนอน)</text>
+          <g transform="translate(265,102)">
+            <line id="a25coil" x1="-58" y1="44" x2="58" y2="-44" stroke="#141414" stroke-width="5"/>
+            <line id="a25norm" x1="0" y1="0" x2="0" y2="-62" stroke="#b3261e" stroke-width="2.4" stroke-dasharray="6 4"/>
+          </g>
+          <text x="330" y="40" font-family="Arial" font-size="11" fill="#b3261e">normal ของระนาบ</text>
+          <text id="a25ang" x="195" y="178" class="small">มุมกับระนาบ = 37° → มุมกับ normal = 53°</text>
+        </svg>
+        <div class="ctr">
+          <button id="a25m1" class="on">37° กับระนาบ (โจทย์)</button>
+          <button id="a25m2">37° กับ normal (กับดัก)</button>
+          <span class="ro" id="a25fr">Φ = BAcos53° = 12 mWb</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q26 -->
+  <div class="q" data-n="26">
+    <div class="stem"><div class="qn">26.</div>
+      <p>Dr. Phoenix needs 880 V to power her new invention. The primary coil of a transformer is connected to a 220-V power outlet, and the secondary coil is connected to the invention. If the primary coil has 400 turns, how many turns should the secondary coil have?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 100 turns</li>
+      <li data-v="2"><span class="cl">2)</span> 200 turns</li>
+      <li data-v="3"><span class="cl">3)</span> 800 turns</li>
+      <li data-v="4"><span class="cl">4)</span> 1,600 turns</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 4)</span><br>
+      <b>แนวคิด:</b> หม้อแปลง — แรงดันแปรตามจำนวนรอบของขดลวด:
+      $$\frac{V_2}{V_1} = \frac{N_2}{N_1}$$
+      ต้องการ "เพิ่ม" แรงดันจาก 220 V เป็น 880 V (step-up 4 เท่า) → ขดทุติยภูมิต้องมีรอบ "มากกว่า":
+      \(N_2 = N_1 \times \dfrac{V_2}{V_1} = 400 \times \dfrac{880}{220} = 400 \times 4 = \mathbf{1{,}600}\) turns<br>
+      (ลวง 100 = จับอัตราส่วนกลับด้าน ได้ step-down — เช็คทิศก่อนเสมอ: อยากได้แรงดันขึ้น รอบต้องขึ้นตาม)</div>
+  </div>
+
+  <!-- ================================================== Q27 -->
+  <div class="q" data-n="27">
+    <div class="stem"><div class="qn">27.</div>
+      <p>Electromagnetic waves with a wavelength of 400 nm are incident on a metal surface whose work function is 1.9 eV. What is the maximum kinetic energy of the emitted photoelectrons? (Given \(hc \approx 1{,}240\) eV·nm, where \(h\) is Planck's constant and \(c\) is the speed of light in vacuum)</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 1.2 eV</li>
+      <li data-v="2"><span class="cl">2)</span> 1.9 eV</li>
+      <li data-v="3"><span class="cl">3)</span> 3.1 eV</li>
+      <li data-v="4"><span class="cl">4)</span> 5.0 eV</li>
+      <li data-v="5"><span class="cl">5)</span> None of the above</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 1)</span><br>
+      <b>แนวคิด:</b> สมการ photoelectric ของไอน์สไตน์ — พลังงานโฟตอนหนึ่งก้อน \(\dfrac{hc}{\lambda}\)
+      จ่าย "ค่าหลุด" (work function \(W\)) ก่อน ที่เหลือเป็นพลังงานจลน์ของอิเล็กตรอน
+      $$KE_{max} = \frac{hc}{\lambda} - W$$
+      ขั้นที่ 1 — พลังงานโฟตอน: \(\dfrac{hc}{\lambda} = \dfrac{1{,}240}{400} = 3.1\) eV<br>
+      ขั้นที่ 2 — หักค่าหลุด: \(KE_{max} = 3.1 - 1.9 = \mathbf{1.2\ eV}\)<br>
+      (ลวง 3.1 = ตอบพลังงานโฟตอนลืมหัก \(W\), ลวง 5.0 = เผลอบวกแทนลบ)</div>
+  </div>
+
+  <!-- ================================================== Q28 (anim ในเฉลย) -->
+  <div class="q" data-n="28">
+    <div class="stem"><div class="qn">28.</div>
+      <p>According to the Bohr model of the hydrogen atom, which of the following transitions of an electron emits a photon with the <b>highest energy</b>?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> \(n = 2\) to \(n = 1\)</li>
+      <li data-v="2"><span class="cl">2)</span> \(n = 6\) to \(n = 1\)</li>
+      <li data-v="3"><span class="cl">3)</span> \(n = 6\) to \(n = 2\)</li>
+      <li data-v="4"><span class="cl">4)</span> \(n = 6\) to \(n = 5\)</li>
+      <li data-v="5"><span class="cl">5)</span> All transitions emit photons with the same energy.</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 2)</span><br>
+      <b>แนวคิด:</b> พลังงานโฟตอน = ขนาดการ "ตกชั้น" \(\Delta E = E_{n_i} - E_{n_f}\) โดย \(E_n = -\dfrac{13.6}{n^2}\) eV
+      — ยิ่งตกจากชั้นสูงลง "ชั้นต่ำ ๆ" ยิ่งได้พลังงานมาก เพราะชั้นล่างห่างกันมากที่สุด<br>
+      เทียบเป็นตัวเลข:
+      \(\Delta E_{6\to1} = 13.6\left(1 - \dfrac{1}{36}\right) \approx 13.2\) eV (มากสุด ✓)<br>
+      \(\Delta E_{2\to1} = 13.6\left(1 - \dfrac{1}{4}\right) = 10.2\) eV ·
+      \(\Delta E_{6\to2} = 13.6\left(\dfrac{1}{4} - \dfrac{1}{36}\right) \approx 3.0\) eV ·
+      \(\Delta E_{6\to5} = 13.6\left(\dfrac{1}{25} - \dfrac{1}{36}\right) \approx 0.17\) eV (น้อยสุด)<br>
+      → คำตอบคือ \(n = 6 \to n = 1\)<br>
+      (กับดัก: บางคนท่องว่า "ชั้นติดกันข้างบนสุด" — นั่นคือคำตอบของคำถาม "\(\lambda\) ยาวสุด/พลังงานต่ำสุด"
+      ซึ่งตรงข้ามกับข้อนี้พอดี อ่านคำถามให้ชัดว่าถาม highest หรือ lowest)
+      <div class="anim">
+        <div class="cap">Interactive · กดเลือกการเปลี่ยนชั้น — ดูความยาวลูกศรเทียบ ΔE (สังเกตชั้นบนเบียดกันมาก)</div>
+        <svg id="a28" viewBox="0 0 420 210" width="420">
+          <line x1="60" y1="190" x2="360" y2="190" stroke="#141414" stroke-width="2.4"/>
+          <text x="370" y="194" class="lbl i">n=1</text>
+          <line x1="60" y1="78" x2="360" y2="78" stroke="#141414" stroke-width="2"/>
+          <text x="370" y="82" class="lbl i">n=2</text>
+          <line x1="60" y1="57" x2="360" y2="57" stroke="#141414" stroke-width="1.6"/>
+          <text x="370" y="61" class="lbl i">n=3</text>
+          <line x1="60" y1="50" x2="360" y2="50" stroke="#141414" stroke-width="1.4"/>
+          <text x="370" y="50" class="lbl i" font-size="11">n=4</text>
+          <line x1="60" y1="46" x2="360" y2="46" stroke="#141414" stroke-width="1.2"/>
+          <line x1="60" y1="43" x2="360" y2="43" stroke="#141414" stroke-width="1.2"/>
+          <text x="370" y="40" class="lbl i" font-size="11">n=5,6</text>
+          <text x="38" y="194" font-family="Courier New" font-size="10" text-anchor="end">−13.6</text>
+          <text x="38" y="82" font-family="Courier New" font-size="10" text-anchor="end">−3.4</text>
+          <text x="38" y="61" font-family="Courier New" font-size="10" text-anchor="end">−1.5</text>
+          <line id="a28ar" x1="150" y1="43" x2="150" y2="184" stroke="#b3261e" stroke-width="3.5"/>
+          <path id="a28ah" d="M143,172 L150,186 L157,172 Z" fill="#b3261e"/>
+          <text id="a28de" x="162" y="120" font-family="Courier New" font-size="13" fill="#b3261e">ΔE ≈ 13.2 eV</text>
+        </svg>
+        <div class="ctr">
+          <button id="a28b1">2→1</button>
+          <button id="a28b2" class="on">6→1</button>
+          <button id="a28b3">6→2</button>
+          <button id="a28b4">6→5</button>
+          <span class="ro" id="a28out">6→1 : ΔE ≈ 13.2 eV (มากสุด)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== Q29 -->
+  <div class="q" data-n="29">
+    <div class="stem"><div class="qn">29.</div>
+      <p>Consider the following nuclear equation.</p></div>
+    <p style="text-align:center; font-size:18px; margin:10px 0">
+      \( {}^{210}_{84}\mathrm{Po} \;\longrightarrow\; {}^{206}_{82}\mathrm{Pb} + \mathrm{X} \)</p>
+    <p style="margin:0 0 0 44px; font-size:17.5px">What is X?</p>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> A proton</li>
+      <li data-v="2"><span class="cl">2)</span> A neutron</li>
+      <li data-v="3"><span class="cl">3)</span> An electron</li>
+      <li data-v="4"><span class="cl">4)</span> A positron</li>
+      <li data-v="5"><span class="cl">5)</span> An alpha particle</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 5)</span><br>
+      <b>แนวคิด:</b> สมการนิวเคลียร์ต้องอนุรักษ์ทั้ง "เลขมวล \(A\)" (บน) และ "เลขอะตอม \(Z\)" (ล่าง)
+      — เทียบสองข้างหาส่วนที่หายไป<br>
+      เลขมวล: \(210 - 206 = 4\) → X มี \(A = 4\)<br>
+      เลขอะตอม: \(84 - 82 = 2\) → X มี \(Z = 2\)<br>
+      อนุภาคที่มี \(A = 4, Z = 2\) คือ \({}^{4}_{2}\mathrm{He}\) = <b>อนุภาคแอลฟา</b><br>
+      (เช็คเร็ว: การสลายแบบ \(\alpha\) ลายเซ็นคือ \(A\) ลด 4 และ \(Z\) ลด 2 เสมอ —
+      ส่วน \(\beta^\pm\) เปลี่ยนเฉพาะ \(Z\) ทีละ 1 โดย \(A\) คงที่)</div>
+  </div>
+
+  <!-- ================================================== Q30 -->
+  <div class="q" data-n="30">
+    <div class="stem"><div class="qn">30.</div>
+      <p>An unknown radioactive substance has a half-life of 12 hours. How much time will it take for the substance's amount to decrease to 3.125% of its original value?</p></div>
+    <ul class="choices">
+      <li data-v="1"><span class="cl">1)</span> 36 hours</li>
+      <li data-v="2"><span class="cl">2)</span> 48 hours</li>
+      <li data-v="3"><span class="cl">3)</span> 60 hours</li>
+      <li data-v="4"><span class="cl">4)</span> 72 hours</li>
+      <li data-v="5"><span class="cl">5)</span> 96 hours</li>
+    </ul>
+    <button class="ansBtn">เฉลย (Answer)</button>
+    <div class="sol hidden"><span class="tag">SOLUTION — ตอบ 3)</span><br>
+      <b>แนวคิด:</b> นับว่าต้อง "หารครึ่ง" กี่ครั้งถึงเหลือ 3.125%<br>
+      ขั้นที่ 1 — แปลงเป็นเศษส่วน: \(3.125\% = \dfrac{3.125}{100} = \dfrac{1}{32}\)<br>
+      ขั้นที่ 2 — เขียนเป็นกำลังของครึ่ง: \(\dfrac{1}{32} = \left(\dfrac{1}{2}\right)^5\) → ผ่านไป \(n = 5\) ครึ่งชีวิต<br>
+      ขั้นที่ 3 — เวลา:
+      $$t = n \times t_{1/2} = 5 \times 12 = \mathbf{60\ hours}$$
+      (เคล็ดจำลำดับ: 50% → 25% → 12.5% → 6.25% → <b>3.125%</b> นับนิ้วได้ 5 ขั้นพอดี —
+      ลวง 48 = นับพลาดเหลือ 4 ขั้น, ลวง 96 = สับสนกับ 1/256)</div>
+  </div>
+
+  <div class="note">CU-ATS Physics Mock Exam — 5 October 2026 · Interactive Edition ·
+    ใช้คู่กับไฟล์ PDF สำหรับการสอบบนกระดาษ · ต้องต่ออินเทอร์เน็ตครั้งแรกเพื่อโหลดฟอนต์คณิตศาสตร์ (KaTeX)</div>
+</div><!-- /sheet -->
+<script>
+'use strict';
+const ANS=[5,4,3,2,5,2,4,3,4,3,4,1,2,2,5,1,3,3,1,1,2,2,3,3,1,4,1,2,5,3];
+const REV={}; let answered=0, correctCnt=0;
+const HOOKS=[];
+
+function setupQuestions(){
+  document.querySelectorAll('.q').forEach(q=>{
+    const n=+q.dataset.n;
+    q.querySelectorAll('.choices li').forEach(li=>li.addEventListener('click',()=>{
+      if(REV[n])return;
+      q.querySelectorAll('.choices li').forEach(x=>x.classList.remove('sel'));
+      li.classList.add('sel');
+    }));
+    q.querySelector('.ansBtn').addEventListener('click',()=>reveal(q,n));
+  });
+}
+function reveal(q,n){
+  if(REV[n])return; REV[n]=true;
+  const ans=ANS[n-1];
+  const sel=q.querySelector('.choices li.sel');
+  q.querySelectorAll('.choices li').forEach(li=>{
+    const v=+li.dataset.v;
+    if(v===ans)li.classList.add('correct');
+    else if(li.classList.contains('sel'))li.classList.add('wrong');
+  });
+  q.querySelector('.sol').classList.remove('hidden');
+  const b=q.querySelector('.ansBtn'); b.disabled=true; b.textContent='เฉลยแล้ว ✓';
+  answered++; if(sel&&+sel.dataset.v===ans)correctCnt++;
+  document.getElementById('score').textContent=`เฉลยแล้ว ${answered}/30 • เลือกถูก ${correctCnt}`;
+  HOOKS.forEach(f=>f());
+}
+
+/* ---------- Q2 : drone two-phase motion (x ∝ t² then linear) ---------- */
+(function(){
+  const d=document.getElementById('a2d'); if(!d)return;
+  const tl=document.getElementById('a2t'), tr=document.getElementById('a2tr'),
+        xr=document.getElementById('a2xr'), vRo=document.getElementById('a2vr'),
+        pb=document.getElementById('a2p');
+  const X0=24, SCALE=0.69;                 // 520 m → ~359 px
+  let t=0, playing=false, last=0;
+  function setT(x){
+    t=x; tl.value=t.toFixed(1);
+    let pos,v;
+    if(t<=10){ pos=2*t*t; v=4*t; }         // s = ½at², a = 4
+    else { pos=200+40*(t-10); v=40; }
+    d.setAttribute('transform',`translate(${(X0+pos*SCALE).toFixed(1)},72)`);
+    tr.textContent='t = '+t.toFixed(1)+' s';
+    xr.textContent='x = '+pos.toFixed(0)+' m';
+    vRo.textContent='v = '+v.toFixed(0)+' m/s';
+  }
+  tl.addEventListener('input',()=>{playing=false;pb.textContent='▶ Play';setT(+tl.value);});
+  pb.addEventListener('click',()=>{
+    playing=!playing; pb.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ if(t>=18)t=0; last=performance.now(); requestAnimationFrame(step); }
+  });
+  function step(now){
+    if(!playing)return;
+    t+=Math.min((now-last)/1000,0.05)*2.4; last=now;
+    if(t>=18){t=18;playing=false;pb.textContent='▶ Play';}
+    setT(t);
+    if(playing)requestAnimationFrame(step);
+  }
+  setT(0);
+})();
+
+/* ---------- Q4 : ball thrown up — v shrinks/flips, a constant ---------- */
+(function(){
+  const b=document.getElementById('a4b'); if(!b)return;
+  const tl=document.getElementById('a4t'), tr=document.getElementById('a4tr'),
+        vr=document.getElementById('a4vr'), st=document.getElementById('a4st'),
+        vln=document.getElementById('a4v'), vh=document.getElementById('a4vh'),
+        vl=document.getElementById('a4vl'), pb=document.getElementById('a4p');
+  const U=15, G=10, Y0=166, SC=11;         // h_max = 11.25 m → ~124 px
+  let t=0, playing=false, last=0;
+  function setT(x){
+    t=x; tl.value=t.toFixed(2);
+    const h=Math.max(0,U*t-5*t*t);
+    const cy=Y0-h*SC;
+    b.setAttribute('cy',cy.toFixed(1));
+    const v=U-G*t;
+    tr.textContent='t = '+t.toFixed(2)+' s';
+    vr.textContent='v = '+(v>=0?'+':'')+v.toFixed(1)+' m/s';
+    const len=Math.abs(v)*3.2;
+    if(len<1.5){
+      vln.setAttribute('opacity',0); vh.setAttribute('opacity',0); vl.setAttribute('opacity',0);
+      st.textContent='ที่ยอด: v = 0 แต่ a = g ยังชี้ลงเหมือนเดิม!';
+    } else {
+      vln.setAttribute('opacity',1); vh.setAttribute('opacity',1); vl.setAttribute('opacity',1);
+      const y1=cy-14, dir=v>0?-1:1;
+      vln.setAttribute('x1',195); vln.setAttribute('x2',195);
+      vln.setAttribute('y1',(v>0?y1:cy+14).toFixed(1));
+      vln.setAttribute('y2',((v>0?y1:cy+14)+dir*len).toFixed(1));
+      const tip=(v>0?y1:cy+14)+dir*(len+9);
+      const base=tip-dir*13;
+      vh.setAttribute('d',`M188,${base.toFixed(1)} L195,${tip.toFixed(1)} L202,${base.toFixed(1)} Z`);
+      vl.setAttribute('y',((v>0?y1:cy+14)+dir*len/2).toFixed(1));
+      st.textContent=v>0?'กำลังลอยขึ้น — v ชี้ขึ้น, a ชี้ลง (หน่วง)':'กำลังตกลง — v ชี้ลง, a ชี้ลง (เร่ง)';
+    }
+  }
+  tl.addEventListener('input',()=>{playing=false;pb.textContent='▶ Play';setT(+tl.value);});
+  pb.addEventListener('click',()=>{
+    playing=!playing; pb.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ if(t>=3)t=0; last=performance.now(); requestAnimationFrame(step); }
+  });
+  function step(now){
+    if(!playing)return;
+    t+=Math.min((now-last)/1000,0.05)*0.8; last=now;
+    if(t>=3){t=3;playing=false;pb.textContent='▶ Play';}
+    setT(t);
+    if(playing)requestAnimationFrame(step);
+  }
+  setT(0);
+})();
+
+/* ---------- Q7 : tension at lowest point, T = mv²/r + mg ---------- */
+(function(){
+  const sl=document.getElementById('a7v'); if(!sl)return;
+  const vr=document.getElementById('a7vr'), Tr=document.getElementById('a7Tr'),
+        Tln=document.getElementById('a7T'), Th=document.getElementById('a7Th'),
+        Tl=document.getElementById('a7Tl'), note=document.getElementById('a7note');
+  function upd(){
+    const v=+sl.value;
+    const T=0.40*v*v/0.80 + 0.40*10;       // mv²/r + mg
+    vr.textContent='v = '+v.toFixed(1)+' m/s';
+    Tr.textContent='T = '+T.toFixed(1)+' N';
+    const len=10+T*2.2;
+    Tln.setAttribute('y2',(160-len).toFixed(1));
+    Th.setAttribute('d',`M225,${(168-len).toFixed(1)} L232,${(154-len).toFixed(1)} L239,${(168-len).toFixed(1)} Z`);
+    Tl.setAttribute('y',(160-len/2).toFixed(1));
+    note.textContent = v>=6.33 ? 'v ≥ √(5gr) ≈ 6.3 m/s → ครบรอบวงดิ่งได้จริง'
+                               : 'ขนาด T ต้อง "ชนะ" mg เสมอจึงโค้งขึ้นได้ (ครบรอบจริงต้อง v ≥ 6.3 m/s)';
+  }
+  sl.addEventListener('input',upd);
+  upd();
+})();
+
+/* ---------- Q9 : trampoline energy transfer (integration of motion) ---------- */
+(function(){
+  const g=document.getElementById('a9g'); if(!g)return;
+  const tr9=document.getElementById('a9tr'), dep=document.getElementById('a9dep'),
+        b1=document.getElementById('a9b1'), b2=document.getElementById('a9b2'),
+        b3=document.getElementById('a9b3'), eo=document.getElementById('a9e'),
+        pb=document.getElementById('a9p');
+  const H=1.2, K=10000, M=50, GR=10, SC=60;   // 1 m → 60 px
+  const YS=160, XG=180, YSTART=YS-H*SC;       // เริ่มสูง 1.2 m เหนือผิว
+  let d=0, v=0, playing=false, last=0;        // d = ระยะตกจากจุดเริ่ม (0..1.6)
+  function draw(){
+    const c=Math.max(0,d-H);                  // ระยะกดแทรมโพลีน
+    g.setAttribute('transform',`translate(${XG},${(YSTART+d*SC-16).toFixed(1)})`);
+    tr9.setAttribute('d',`M120 160 L180 ${(160+c*SC).toFixed(1)} L240 160`);
+    dep.textContent='ลึก x = '+c.toFixed(2)+' m';
+    const PEs=0.5*K*c*c;
+    const PEg2=M*GR*(1.6-d);                  // อ้างอิงจุดต่ำสุด: ความสูงเหนือจุดต่ำสุด = 1.6−d
+    const KE=Math.max(0,800-PEg2-PEs);
+    b1.setAttribute('width',(PEg2/800*46).toFixed(1));
+    b2.setAttribute('width',(KE/800*46).toFixed(1));
+    b3.setAttribute('width',(PEs/800*46).toFixed(1));
+    eo.textContent='PEg '+PEg2.toFixed(0)+' · KE '+KE.toFixed(0)+' · PEs '+PEs.toFixed(0)+' (J)';
+  }
+  pb.addEventListener('click',()=>{
+    playing=!playing; pb.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ last=performance.now(); requestAnimationFrame(step); }
+  });
+  function step(now){
+    if(!playing)return;
+    let dt=Math.min((now-last)/1000,0.05)*0.55; last=now;
+    for(let i=0;i<3;i++){                     // sub-steps กันสปริงสั่นหลุด
+      const h=dt/3;
+      const c=Math.max(0,d-H);
+      const a=GR-(K/M)*c;                     // โน้มถ่วง − สปริง
+      v+=a*h; d+=v*h;
+      if(d<0){ d=0; v=0; }                    // กลับถึงจุดปล่อย (อนุรักษ์พลังงานพอดี)
+    }
+    draw();
+    requestAnimationFrame(step);
+  }
+  draw();
+})();
+
+/* ---------- Q13 : standing wave on string fixed both ends ---------- */
+(function(){
+  const w1=document.getElementById('a13w1'); if(!w1)return;
+  const w2=document.getElementById('a13w2'),
+        b1=document.getElementById('a13m1'), b2=document.getElementById('a13m2'),
+        fr=document.getElementById('a13fr');
+  let n=1, t=0, last=performance.now();
+  const X0=50, X1=350, Y=70, A=26;
+  function path(sign,phase){
+    let d='M '+X0+' '+Y;
+    for(let i=1;i<=60;i++){
+      const x=X0+(X1-X0)*i/60;
+      const y=Y - sign*A*Math.sin(n*Math.PI*(i/60))*Math.cos(phase);
+      d+=' L '+x.toFixed(1)+' '+y.toFixed(1);
+    }
+    return d;
+  }
+  function refresh(){
+    b1.classList.toggle('on',n===1); b2.classList.toggle('on',n===2);
+    fr.textContent = n===1 ? 'λ = 2L → f₁ = 50 Hz' : 'λ = L → f₂ = 2f₁ = 100 Hz';
+  }
+  b1.addEventListener('click',()=>{n=1;refresh();});
+  b2.addEventListener('click',()=>{n=2;refresh();});
+  function step(now){
+    t+=(now-last)/1000; last=now;
+    w1.setAttribute('d',path(1,t*4));
+    w2.setAttribute('d',path(-1,t*4));
+    requestAnimationFrame(step);
+  }
+  refresh(); requestAnimationFrame(step);
+})();
+
+/* ---------- Q14 : echo Doppler — wavefronts + mirror-image reflection ---------- */
+(function(){
+  const tr14=document.getElementById('a14tr'); if(!tr14)return;
+  const wf=document.getElementById('a14w'), pb=document.getElementById('a14p');
+  const WALL=352, SY=110, C=58, T=0.62, U=14;
+  let waves=[], emitT=0, tx=46, playing=false, last=0;
+  function mk(col,wd){
+    const e=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    e.setAttribute('cy',SY); e.setAttribute('fill','none');
+    e.setAttribute('stroke',col); e.setAttribute('stroke-width',wd);
+    wf.appendChild(e); return e;
+  }
+  pb.addEventListener('click',()=>{
+    playing=!playing; pb.textContent=playing?'⏸ Pause':'▶ Play';
+    if(playing){ last=performance.now(); requestAnimationFrame(step); }
+  });
+  function step(now){
+    if(!playing)return;
+    const dt=Math.min((now-last)/1000,0.05); last=now;
+    tx+=U*dt;
+    if(tx>WALL-70){ tx=46; waves.forEach(w=>{w.el.remove(); w.rel&&w.rel.remove();}); waves=[]; emitT=0; }
+    emitT+=dt;
+    if(emitT>=T){ emitT=0;
+      waves.push({x:tx, r:2, el:mk('#1a56db','1.5'), rel:null});  // จำตำแหน่ง ณ ขณะปล่อย
+    }
+    for(let i=waves.length-1;i>=0;i--){
+      const w=waves[i]; w.r+=C*dt;
+      if(w.r>520){ w.el.remove(); w.rel&&w.rel.remove(); waves.splice(i,1); continue; }
+      w.el.setAttribute('cx',w.x); w.el.setAttribute('r',w.r.toFixed(1));
+      w.el.setAttribute('opacity',Math.max(0,0.95-w.r/420).toFixed(2));
+      // คลื่นสะท้อน = วงกลมจากแหล่งภาพในกระจก (2·WALL − x) ปรากฏเมื่อหน้าคลื่นแตะตึก
+      if(w.r > WALL-w.x){
+        if(!w.rel) w.rel=mk('#9fb6ee','1.5');
+        w.rel.setAttribute('cx',(2*WALL-w.x).toFixed(1));
+        w.rel.setAttribute('r',w.r.toFixed(1));
+        w.rel.setAttribute('opacity',Math.max(0,0.95-w.r/420).toFixed(2));
+      }
+    }
+    tr14.setAttribute('transform',`translate(${tx.toFixed(1)},134)`);
+    requestAnimationFrame(step);
+  }
+  tr14.setAttribute('transform','translate(46,134)');
+})();
+
+/* ---------- Q25 : flux — angle with plane vs angle with normal ---------- */
+(function(){
+  const coil=document.getElementById('a25coil'); if(!coil)return;
+  const b1=document.getElementById('a25m1'), b2=document.getElementById('a25m2'),
+        fr=document.getElementById('a25fr'), ang=document.getElementById('a25ang'),
+        nl=document.getElementById('a25norm');
+  let mode=1;
+  function refresh(){
+    b1.classList.toggle('on',mode===1); b2.classList.toggle('on',mode===2);
+    // mode 1: ระนาบทำ 37° กับ B (แนวนอน) · mode 2: normal ทำ 37° → ระนาบเอียง 53°
+    const planeAng = mode===1 ? 37 : 53;
+    const rad=planeAng*Math.PI/180;
+    const dx=58*Math.cos(rad), dy=58*Math.sin(rad);
+    coil.setAttribute('x1',(-dx).toFixed(1)); coil.setAttribute('y1',(dy).toFixed(1));
+    coil.setAttribute('x2',(dx).toFixed(1));  coil.setAttribute('y2',(-dy).toFixed(1));
+    // normal ตั้งฉากกับระนาบคอยล์ (เส้นประแดง)
+    const nrad=rad+Math.PI/2;
+    nl.setAttribute('x2',(-62*Math.cos(nrad)).toFixed(1));
+    nl.setAttribute('y2',(62*Math.sin(nrad)).toFixed(1));
+    if(mode===1){
+      ang.textContent='มุมกับระนาบ = 37° → มุมกับ normal = 53° (ตามโจทย์)';
+      fr.textContent='Φ = BAcos53° = (0.40)(0.05)(0.6) = 12 mWb';
+    } else {
+      ang.textContent='ถ้า 37° เป็นมุมกับ normal → มุมกับระนาบจะเป็น 53°';
+      fr.textContent='Φ = BAcos37° = (0.40)(0.05)(0.8) = 16 mWb (กับดัก!)';
+    }
+  }
+  b1.addEventListener('click',()=>{mode=1;refresh();});
+  b2.addEventListener('click',()=>{mode=2;refresh();});
+  refresh();
+})();
+
+/* ---------- Q28 : Bohr energy levels — compare transitions ---------- */
+(function(){
+  const ar=document.getElementById('a28ar'); if(!ar)return;
+  const ah=document.getElementById('a28ah'), de=document.getElementById('a28de'),
+        out=document.getElementById('a28out');
+  const Y={1:190, 2:78, 3:57, 5:43, 6:41};
+  const DATA={
+    b1:{from:2,to:1, x:110, txt:'2→1 : ΔE = 10.2 eV'},
+    b2:{from:6,to:1, x:170, txt:'6→1 : ΔE ≈ 13.2 eV (มากสุด)'},
+    b3:{from:6,to:2, x:230, txt:'6→2 : ΔE ≈ 3.0 eV'},
+    b4:{from:6,to:5, x:290, txt:'6→5 : ΔE ≈ 0.17 eV (น้อยสุด)'}
+  };
+  const btns={};
+  function show(key){
+    Object.keys(DATA).forEach(k=>btns[k].classList.toggle('on',k===key));
+    const o=DATA[key];
+    const y1=Y[o.from], y2=Y[o.to];
+    ar.setAttribute('x1',o.x); ar.setAttribute('x2',o.x);
+    ar.setAttribute('y1',(y2-y1>14? y1 : y1).toFixed(1));
+    ar.setAttribute('y2',(y2-6).toFixed(1));
+    ah.setAttribute('d',`M${o.x-7},${(y2-14).toFixed(1)} L${o.x},${(y2-2).toFixed(1)} L${o.x+7},${(y2-14).toFixed(1)} Z`);
+    de.setAttribute('x',o.x+12);
+    de.setAttribute('y',((y1+y2)/2).toFixed(1));
+    de.textContent='ΔE '+o.txt.split(': ΔE ')[1].split(' (')[0];
+    out.textContent=o.txt;
+  }
+  ['b1','b2','b3','b4'].forEach(k=>{
+    btns[k]=document.getElementById('a28'+k);
+    btns[k].addEventListener('click',()=>show(k));
+  });
+  show('b2');
+})();
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setupQuestions();
+  const opts={delimiters:[
+      {left:'\\(',right:'\\)',display:false},
+      {left:'$$',right:'$$',display:true}],
+    throwOnError:false};
+  if(window.renderMathInElement){
+    renderMathInElement(document.body,opts);
+  }else{
+    window.addEventListener('load',()=>{
+      if(window.renderMathInElement) renderMathInElement(document.body,opts);
+    });
+  }
+});
+</script>
+</body>
+</html>

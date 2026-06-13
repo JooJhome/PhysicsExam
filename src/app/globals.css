@@ -1,0 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #1a56db;
+}
+
+html,
+body {
+  background: #f3f4f6;
+  color: #111827;
+}

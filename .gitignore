@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+
+# env (ความลับ — ห้าม commit)
+.env
+.env.local
+.env*.local
+.dev.vars
+
+# ผลผลิตจากการแปลงข้อสอบ (มีเฉลย ถือเป็นความลับ)
+dist/
+*.answers.json
+
+# cloudflare เดิม (เก็บไว้อ้างอิง ไม่ขึ้น repo)
+.archive-cloudflare/
+
+# supabase (ไฟล์ชั่วคราวจาก CLI)
+supabase/.temp/
+
+# ระบบ
+.DS_Store
+*.log
