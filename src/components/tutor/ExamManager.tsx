@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   createExam,
   setExamStatus,
+  setExamDuration,
   setAllowReview,
   deleteExam,
 } from "@/lib/actions/tutor";
@@ -74,7 +75,7 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
           <input
             name="duration_minutes"
             type="number"
-            defaultValue={180}
+            defaultValue={30}
             min={1}
             placeholder="นาที"
             className="rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
@@ -151,9 +152,14 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
                       {e.total_questions}
                     </span>{" "}
                     ข้อ ·{" "}
-                    <span className="font-display font-bold tabular-nums text-ink">
-                      {e.duration_minutes}
-                    </span>{" "}
+                    <DurationEditor
+                      key={e.duration_minutes}
+                      value={e.duration_minutes}
+                      disabled={pending}
+                      onSave={(mins) =>
+                        act(() => setExamDuration(e.id, mins))
+                      }
+                    />{" "}
                     น.
                   </td>
                   <td className="px-5 py-4">
@@ -250,5 +256,64 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
         onCancel={() => setToDelete(null)}
       />
     </div>
+  );
+}
+
+function DurationEditor({
+  value,
+  disabled,
+  onSave,
+}: {
+  value: number;
+  disabled: boolean;
+  onSave: (mins: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+
+  function commit() {
+    const mins = Math.round(Number(draft));
+    setEditing(false);
+    if (Number.isFinite(mins) && mins >= 1 && mins !== value) {
+      onSave(mins);
+    } else {
+      setDraft(String(value));
+    }
+  }
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        title="คลิกเพื่อแก้เวลา"
+        disabled={disabled}
+        onClick={() => {
+          setDraft(String(value));
+          setEditing(true);
+        }}
+        className="rounded-md px-1.5 font-display font-bold tabular-nums text-ink underline decoration-dotted decoration-line underline-offset-4 transition-colors hover:bg-brand-50 hover:text-brand-700 disabled:opacity-50"
+      >
+        {value}
+      </button>
+    );
+  }
+
+  return (
+    <input
+      autoFocus
+      type="number"
+      min={1}
+      value={draft}
+      onChange={(ev) => setDraft(ev.target.value)}
+      onBlur={commit}
+      onKeyDown={(ev) => {
+        if (ev.key === "Enter") commit();
+        else if (ev.key === "Escape") {
+          setDraft(String(value));
+          setEditing(false);
+        }
+      }}
+      className="w-16 rounded-md border border-brand-300 bg-white px-1.5 py-0.5 text-center font-display font-bold tabular-nums text-ink focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+    />
   );
 }

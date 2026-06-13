@@ -30,7 +30,7 @@ export async function createExam(formData: FormData): Promise<ActionResult> {
     const { supabase, userId } = await assertTutor();
     const file = formData.get("file") as File | null;
     const examCode = String(formData.get("exam_code") || "").trim();
-    const duration = Number(formData.get("duration_minutes") || 180);
+    const duration = Number(formData.get("duration_minutes") || 30);
     if (!file || file.size === 0) return { ok: false, message: "กรุณาเลือกไฟล์ HTML" };
     if (!examCode) return { ok: false, message: "กรุณาใส่รหัสชุด (exam_code)" };
 
@@ -73,6 +73,24 @@ export async function setExamStatus(
   const { error } = await supabase.from("exams").update({ status }).eq("id", examId);
   revalidatePath("/tutor/exams");
   return error ? { ok: false, message: error.message } : { ok: true, message: "อัปเดตแล้ว" };
+}
+
+export async function setExamDuration(
+  examId: string,
+  durationMinutes: number
+): Promise<ActionResult> {
+  const { supabase } = await assertTutor();
+  const duration = Math.round(durationMinutes);
+  if (!Number.isFinite(duration) || duration < 1)
+    return { ok: false, message: "เวลาต้องเป็นจำนวนนาทีอย่างน้อย 1 นาที" };
+  const { error } = await supabase
+    .from("exams")
+    .update({ duration_minutes: duration })
+    .eq("id", examId);
+  revalidatePath("/tutor/exams");
+  return error
+    ? { ok: false, message: error.message }
+    : { ok: true, message: `ตั้งเวลาเป็น ${duration} นาทีแล้ว` };
 }
 
 export async function setAllowReview(
