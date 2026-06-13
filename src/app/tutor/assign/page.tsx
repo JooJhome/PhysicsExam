@@ -1,37 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
-import AssignMatrix from "@/components/tutor/AssignMatrix";
+import { getAssignExams } from "@/lib/assign";
+import AssignList from "@/components/tutor/assign/AssignList";
+
+export const dynamic = "force-dynamic";
 
 export default async function AssignPage() {
-  const supabase = await createClient();
-  const [{ data: students }, { data: exams }, { data: assignments }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, username, full_name")
-        .eq("role", "student")
-        .order("username"),
-      supabase
-        .from("exams")
-        .select("id, title, exam_code, status")
-        .order("created_at"),
-      supabase.from("assignments").select("exam_id, student_id"),
-    ]);
+  const data = await getAssignExams();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <header>
-        <h1 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
           มอบหมายชุดสอบ
         </h1>
-        <p className="mt-3 text-lg text-muted">
-          ติ๊กเพื่อมอบหมายชุดสอบให้นักเรียน — นักเรียนจะเห็นเฉพาะชุดที่ “เผยแพร่แล้ว”
+        <p className="mt-2 text-muted sm:text-lg">
+          เลือกชุดที่กำลังใช้ แล้วกดมอบหมายให้นักเรียน
         </p>
       </header>
-      <AssignMatrix
-        students={students ?? []}
-        exams={exams ?? []}
-        assignments={assignments ?? []}
-      />
+      <AssignList data={data} />
     </main>
   );
 }

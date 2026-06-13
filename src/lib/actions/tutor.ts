@@ -359,6 +359,143 @@ export async function assignExamToAll(examId: string): Promise<ActionResult> {
   return error ? { ok: false, message: error.message } : { ok: true, message: `มอบหมายให้ ${rows.length} คน` };
 }
 
+export type AttemptState = "none" | "in_progress" | "submitted";
+export type AssignWindow = { open: string | null; close: string | null; due: string | null };
+export type ExamAssignmentDetail = {
+  exam: { id: string; name: string; code: string; status: string; durationMin: number };
+  window: AssignWindow;
+  durationOverride: number | null;
+  students: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    assigned: boolean;
+    attemptState: AttemptState;
+  }[];
+};
+
+/** รายละเอียดการมอบหมายของชุดหนึ่ง — ใช้เปิด drawer เลือกนักเรียน */
+export async function getExamAssignment(examId: string): Promise<ExamAssignmentDetail> {
+  const { supabase } = await assertTutor();
+  const [examRes, studentsRes, assignRes, attemptRes] = await Promise.all([
+    supabase
+      .from("exams")
+      .select("id, title, exam_code, status, duration_minutes")
+      .eq("id", examId)
+      .single(),
+    supabase.from("profiles").select("id, username, full_name").eq("role", "student").order("username"),
+    supabase
+      .from("assignments")
+      .select("student_id, open_at, close_at, due_at, duration_override_min")
+      .eq("exam_id", examId),
+    supabase.from("attempts").select("student_id, status").eq("exam_id", examId),
+  ]);
+
+  const exam = examRes.data;
+  if (!exam) throw new Error("ไม่พบชุดข้อสอบ");
+
+  const assignRows = assignRes.data ?? [];
+  const assignedSet = new Set(assignRows.map((a) => a.student_id));
+  const attemptBy = new Map<string, AttemptState>();
+  for (const at of attemptRes.data ?? []) {
+    attemptBy.set(at.student_id, at.status as AttemptState);
+  }
+
+  // window/override ใช้ค่าร่วมของชุด (อ่านจากแถวแรกที่มอบหมายไว้)
+  const first = assignRows[0];
+
+  return {
+    exam: {
+      id: exam.id,
+      name: exam.title,
+      code: exam.exam_code,
+      status: exam.status,
+      durationMin: exam.duration_minutes,
+    },
+    window: {
+      open: first?.open_at ?? null,
+      close: first?.close_at ?? null,
+      due: first?.due_at ?? null,
+    },
+    durationOverride: first?.duration_override_min ?? null,
+    students: (studentsRes.data ?? []).map((s) => ({
+      id: s.id,
+      username: s.username,
+      displayName: s.full_name?.trim() || null,
+      assigned: assignedSet.has(s.id),
+      attemptState: attemptBy.get(s.id) ?? "none",
+    })),
+  };
+}
+
+export type SaveAssignmentResult = ActionResult & {
+  added: number;
+  removed: number;
+  blocked: number; // submitted ที่ถูกกันไม่ให้ถอน
+};
+
+/** บันทึกการมอบหมาย — คำนวณ diff, บล็อกการถอนคนที่ส่งแล้ว, อัปเดต window/override */
+export async function saveAssignment(
+  examId: string,
+  studentIds: string[],
+  window: AssignWindow,
+  durationOverrideMin: number | null
+): Promise<SaveAssignmentResult> {
+  try {
+    const { supabase } = await assertTutor();
+    const [assignRes, attemptRes] = await Promise.all([
+      supabase.from("assignments").select("student_id").eq("exam_id", examId),
+      supabase.from("attempts").select("student_id, status").eq("exam_id", examId),
+    ]);
+
+    const current = new Set((assignRes.data ?? []).map((a) => a.student_id));
+    const desired = new Set(studentIds);
+    const submitted = new Set(
+      (attemptRes.data ?? []).filter((a) => a.status === "submitted").map((a) => a.student_id)
+    );
+
+    const toAdd = [...desired].filter((id) => !current.has(id));
+    // ถอนเฉพาะคนที่ไม่ได้ส่งแล้ว (submitted = ล็อก กันถอนพลาด)
+    const toRemoveAll = [...current].filter((id) => !desired.has(id));
+    const toRemove = toRemoveAll.filter((id) => !submitted.has(id));
+    const blocked = toRemoveAll.length - toRemove.length;
+
+    const win = {
+      open_at: window.open,
+      close_at: window.close,
+      due_at: window.due,
+      duration_override_min: durationOverrideMin,
+    };
+
+    // upsert window/override ให้ทุกคนในชุดที่ต้องการ (เพิ่มใหม่ + คงเดิม)
+    if (desired.size > 0) {
+      const rows = [...desired].map((sid) => ({ exam_id: examId, student_id: sid, ...win }));
+      const { error } = await supabase
+        .from("assignments")
+        .upsert(rows, { onConflict: "exam_id,student_id" });
+      if (error) return { ok: false, message: error.message, added: 0, removed: 0, blocked: 0 };
+    }
+
+    if (toRemove.length > 0) {
+      const { error } = await supabase
+        .from("assignments")
+        .delete()
+        .eq("exam_id", examId)
+        .in("student_id", toRemove);
+      if (error)
+        return { ok: false, message: error.message, added: toAdd.length, removed: 0, blocked };
+    }
+
+    revalidatePath("/tutor/assign");
+    const msg =
+      `เพิ่ม ${toAdd.length} · ถอน ${toRemove.length} คน` +
+      (blocked > 0 ? ` · ข้าม ${blocked} คน (ส่งแล้ว)` : "");
+    return { ok: true, message: msg, added: toAdd.length, removed: toRemove.length, blocked };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message, added: 0, removed: 0, blocked: 0 };
+  }
+}
+
 /* ---------------- รีเซ็ตการทำข้อสอบ ---------------- */
 
 export async function resetAttempt(
