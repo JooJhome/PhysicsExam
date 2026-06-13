@@ -502,7 +502,30 @@ export async function resetAttempt(
   examId: string,
   studentId: string
 ): Promise<ActionResult> {
-  const { supabase } = await assertTutor();
+  const { supabase, userId } = await assertTutor();
+
+  // เก็บ snapshot ก่อนลบ (audit / กู้คืนเชิงประวัติ)
+  const { data: att } = await supabase
+    .from("attempts")
+    .select("status, score, total, answers, started_at, submitted_at")
+    .eq("exam_id", examId)
+    .eq("student_id", studentId)
+    .maybeSingle();
+
+  if (att) {
+    await supabase.from("attempt_resets").insert({
+      exam_id: examId,
+      student_id: studentId,
+      reset_by: userId,
+      prev_status: att.status,
+      prev_score: att.score,
+      prev_total: att.total,
+      prev_answers: att.answers,
+      prev_started_at: att.started_at,
+      prev_submitted_at: att.submitted_at,
+    });
+  }
+
   const { error } = await supabase
     .from("attempts")
     .delete()
@@ -510,4 +533,91 @@ export async function resetAttempt(
     .eq("student_id", studentId);
   revalidatePath("/tutor/results");
   return error ? { ok: false, message: error.message } : { ok: true, message: "รีเซ็ตแล้ว ให้ทำใหม่ได้" };
+}
+
+export async function setPassingScore(
+  examId: string,
+  passingScore: number | null
+): Promise<ActionResult> {
+  const { supabase } = await assertTutor();
+  const value =
+    passingScore == null || !Number.isFinite(passingScore) ? null : Math.max(0, Math.round(passingScore));
+  const { error } = await supabase.from("exams").update({ passing_score: value }).eq("id", examId);
+  revalidatePath("/tutor/results");
+  return error
+    ? { ok: false, message: error.message }
+    : { ok: true, message: value == null ? "กลับไปใช้เกณฑ์เริ่มต้น" : `ตั้งเกณฑ์ผ่าน ${value} ข้อ` };
+}
+
+export type BreakdownItem = {
+  n: number; // ข้อที่ (1-based)
+  answered: number;
+  correct: number;
+  pctCorrect: number;
+  topWrongChoice: number | null; // ตัวเลือกลวงที่คนเลือกบ่อยสุด
+  topWrongCount: number;
+};
+export type ExamBreakdown = {
+  examCode: string;
+  submitted: number;
+  items: BreakdownItem[];
+};
+
+/** วิเคราะห์รายข้อของชุด — รวมคำตอบผู้ส่งทุกคนเทียบเฉลย (ติวเตอร์เท่านั้น) */
+export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
+  const { supabase } = await assertTutor();
+  const [examRes, keyRes, attemptRes] = await Promise.all([
+    supabase.from("exams").select("exam_code, total_questions").eq("id", examId).single(),
+    supabase.from("exam_answer_keys").select("answers").eq("exam_id", examId).single(),
+    supabase
+      .from("attempts")
+      .select("answers")
+      .eq("exam_id", examId)
+      .eq("status", "submitted"),
+  ]);
+
+  const key = (keyRes.data?.answers as number[] | null) ?? [];
+  const total = examRes.data?.total_questions ?? key.length;
+  const submissions = (attemptRes.data ?? [])
+    .map((a) => a.answers as (number | null)[] | null)
+    .filter((a): a is (number | null)[] => Array.isArray(a));
+
+  const items: BreakdownItem[] = [];
+  for (let i = 0; i < total; i++) {
+    let answered = 0;
+    let correct = 0;
+    const wrongTally = new Map<number, number>();
+    for (const ans of submissions) {
+      const chosen = ans[i];
+      if (chosen == null) continue;
+      answered++;
+      if (chosen === key[i]) correct++;
+      else wrongTally.set(chosen, (wrongTally.get(chosen) ?? 0) + 1);
+    }
+    let topWrongChoice: number | null = null;
+    let topWrongCount = 0;
+    for (const [choice, count] of wrongTally) {
+      if (count > topWrongCount) {
+        topWrongChoice = choice;
+        topWrongCount = count;
+      }
+    }
+    items.push({
+      n: i + 1,
+      answered,
+      correct,
+      pctCorrect: answered ? Math.round((correct / answered) * 100) : 0,
+      topWrongChoice,
+      topWrongCount,
+    });
+  }
+
+  // ยากสุด (ตอบถูกน้อยสุด) ขึ้นก่อน
+  items.sort((a, b) => a.pctCorrect - b.pctCorrect);
+
+  return {
+    examCode: examRes.data?.exam_code ?? "—",
+    submitted: submissions.length,
+    items,
+  };
 }

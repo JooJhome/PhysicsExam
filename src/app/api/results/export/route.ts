@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { defaultPassingFor } from "@/lib/results";
 
 interface Row {
   status: string;
@@ -7,7 +8,7 @@ interface Row {
   total: number | null;
   started_at: string;
   submitted_at: string | null;
-  exams: { title: string; exam_code: string } | null;
+  exams: { title: string; exam_code: string; total_questions: number; passing_score: number | null } | null;
   profiles: { username: string; full_name: string | null } | null;
 }
 
@@ -34,7 +35,7 @@ export async function GET() {
   const { data } = await supabase
     .from("attempts")
     .select(
-      "status, score, total, started_at, submitted_at, exams(title, exam_code), profiles(username, full_name)"
+      "status, score, total, started_at, submitted_at, exams(title, exam_code, total_questions, passing_score), profiles(username, full_name)"
     )
     .order("submitted_at", { ascending: false, nullsFirst: false });
 
@@ -47,11 +48,19 @@ export async function GET() {
     "status",
     "score",
     "total",
+    "percent",
+    "passing_score",
+    "result",
     "started_at",
     "submitted_at",
   ];
   const lines = [head.join(",")];
   for (const r of rows) {
+    const total = r.total ?? r.exams?.total_questions ?? 30;
+    const submitted = r.status === "submitted" && r.score != null;
+    const percent = submitted ? Math.round((r.score! / total) * 100) : null;
+    const pass = r.exams?.passing_score ?? defaultPassingFor(r.exams?.total_questions ?? total);
+    const result = submitted ? (r.score! >= pass ? "ผ่าน" : "ไม่ผ่าน") : "";
     lines.push(
       [
         cell(r.profiles?.username),
@@ -60,7 +69,10 @@ export async function GET() {
         cell(r.exams?.title),
         cell(r.status),
         cell(r.score),
-        cell(r.total),
+        cell(total),
+        cell(percent == null ? "" : `${percent}%`),
+        cell(pass),
+        cell(result),
         cell(r.started_at),
         cell(r.submitted_at),
       ].join(",")
