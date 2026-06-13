@@ -67,31 +67,37 @@ export default function AssignMatrix({
 
   if (students.length === 0 || exams.length === 0) {
     return (
-      <p className="mt-6 rounded-lg bg-white px-4 py-6 text-center text-sm text-gray-400 ring-1 ring-gray-200">
-        ต้องมีนักเรียนและข้อสอบอย่างน้อยอย่างละ 1 ก่อน
-      </p>
+      <div className="mt-8 rounded-3xl border border-dashed border-line bg-white/60 px-6 py-14 text-center">
+        <p className="text-2xl">🗂️</p>
+        <p className="mt-2 font-semibold text-ink">ยังมอบหมายไม่ได้</p>
+        <p className="mt-1 text-sm text-muted">
+          ต้องมีนักเรียนและข้อสอบอย่างน้อยอย่างละ 1 ชุดก่อน
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="mt-4 overflow-auto rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
-      <table className="text-sm">
+    <div className="mt-8 overflow-auto rounded-3xl border border-line bg-white shadow-card">
+      <table className="text-left">
         <thead>
-          <tr className="border-b border-gray-200">
-            <th className="sticky left-0 z-10 bg-white px-4 py-2 text-left text-gray-600">
+          <tr className="border-b border-line bg-brand-50/70">
+            <th className="sticky left-0 z-10 bg-brand-50 px-5 py-4 text-sm font-semibold text-brand-800">
               นักเรียน
             </th>
             {exams.map((e) => (
-              <th key={e.id} className="px-3 py-2 text-center align-bottom">
-                <div className="whitespace-nowrap text-xs font-medium text-gray-700">
+              <th key={e.id} className="px-4 py-3 text-center align-bottom">
+                <div className="whitespace-nowrap font-display text-xs font-bold text-brand-800">
                   {e.exam_code}
                 </div>
                 {e.status !== "published" && (
-                  <div className="text-[10px] text-amber-600">(ร่าง)</div>
+                  <div className="mt-0.5 text-[11px] font-semibold text-accent-700">
+                    (ร่าง)
+                  </div>
                 )}
                 <button
                   onClick={() => allForExam(e.id)}
-                  className="mt-1 text-[10px] text-blue-600 hover:underline"
+                  className="mt-1.5 rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 ring-1 ring-brand-200 transition-colors hover:bg-brand-600 hover:text-white hover:ring-brand-600"
                 >
                   ทั้งหมด
                 </button>
@@ -99,20 +105,24 @@ export default function AssignMatrix({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-line">
           {students.map((s) => (
-            <tr key={s.id}>
-              <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-4 py-2 text-gray-900">
-                {s.full_name || s.username}
-                <span className="ml-1 text-xs text-gray-400">{s.username}</span>
+            <tr key={s.id} className="transition-colors hover:bg-canvas/70">
+              <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-5 py-3.5">
+                <span className="font-display font-semibold text-ink">
+                  {s.username}
+                </span>
+                {s.full_name && (
+                  <span className="ml-2 text-sm text-muted">{s.full_name}</span>
+                )}
               </td>
               {exams.map((e) => (
-                <td key={e.id} className="px-3 py-2 text-center">
+                <td key={e.id} className="px-4 py-3.5 text-center">
                   <input
                     type="checkbox"
                     checked={set.has(key(e.id, s.id))}
                     onChange={() => toggle(e.id, s.id)}
-                    className="h-4 w-4 cursor-pointer"
+                    className="h-5 w-5 cursor-pointer accent-brand-600"
                   />
                 </td>
               ))}

@@ -11,8 +11,15 @@ export default async function ExamsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-lg font-bold text-gray-900">จัดการข้อสอบ</h1>
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+      <header>
+        <h1 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+          จัดการข้อสอบ
+        </h1>
+        <p className="mt-3 text-lg text-muted">
+          อัปโหลดชุดข้อสอบ เผยแพร่ และกำหนดสิทธิ์ดูเฉลย
+        </p>
+      </header>
       <ExamManager exams={(data as ExamRow[]) ?? []} />
     </main>
   );

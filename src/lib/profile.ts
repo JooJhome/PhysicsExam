@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -8,8 +9,12 @@ export interface Profile {
   full_name: string | null;
 }
 
-/** ดึง profile ของผู้ใช้ปัจจุบัน (server-side) — ไม่ล็อกอิน → /login */
-export async function getProfile(): Promise<Profile> {
+/**
+ * ดึง profile ของผู้ใช้ปัจจุบัน (server-side) — ไม่ล็อกอิน → /login
+ * ห่อด้วย React cache() เพื่อ dedupe ต่อ request:
+ * layout (requireRole) + page เรียกซ้ำได้โดยยิง auth/DB จริงครั้งเดียว
+ */
+export const getProfile = cache(async function getProfile(): Promise<Profile> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,7 +29,7 @@ export async function getProfile(): Promise<Profile> {
 
   if (!profile) redirect("/login");
   return profile as Profile;
-}
+});
 
 export async function requireRole(role: "tutor" | "student"): Promise<Profile> {
   const profile = await getProfile();

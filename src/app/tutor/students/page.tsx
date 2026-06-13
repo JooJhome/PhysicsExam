@@ -12,8 +12,15 @@ export default async function StudentsPage() {
     .order("username");
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-lg font-bold text-gray-900">จัดการนักเรียน</h1>
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+      <header>
+        <h1 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+          จัดการนักเรียน
+        </h1>
+        <p className="mt-3 text-lg text-muted">
+          เพิ่มบัญชีนักเรียนทีละคนหรือวาง CSV และจัดการรายชื่อ
+        </p>
+      </header>
       <StudentManager students={(data as StudentRow[]) ?? []} />
     </main>
   );

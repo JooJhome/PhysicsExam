@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/lib/actions/auth";
+import { Wordmark } from "@/components/Decor";
 
 export default function AppHeader({
   title,
@@ -11,18 +12,18 @@ export default function AppHeader({
   nav?: { href: string; label: string }[];
 }) {
   return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-        <Link href="#" className="text-base font-bold text-gray-900">
-          {title}
+    <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-5">
+        <Link href="#" aria-label={title}>
+          <Wordmark />
         </Link>
         {nav && (
-          <nav className="flex gap-4 text-sm">
+          <nav className="flex gap-1 text-sm">
             {nav.map((n) => (
               <Link
                 key={n.href}
                 href={n.href}
-                className="text-gray-600 hover:text-blue-600"
+                className="rounded-full px-3 py-1.5 font-medium text-ink-soft transition-colors hover:bg-brand-50 hover:text-brand-700"
               >
                 {n.label}
               </Link>
@@ -30,9 +31,13 @@ export default function AppHeader({
           </nav>
         )}
         <div className="ml-auto flex items-center gap-3 text-sm">
-          {name && <span className="text-gray-500">{name}</span>}
+          {name && (
+            <span className="hidden font-medium text-ink-soft sm:inline">
+              {name}
+            </span>
+          )}
           <form action={logout}>
-            <button className="rounded-lg border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50">
+            <button className="rounded-full border border-line bg-white px-4 py-1.5 font-semibold text-ink-soft transition-colors hover:bg-sand-100">
               ออกจากระบบ
             </button>
           </form>
