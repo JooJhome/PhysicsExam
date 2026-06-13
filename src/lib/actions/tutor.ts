@@ -210,6 +210,75 @@ export async function createStudentsBulk(csv: string): Promise<ActionResult> {
   }
 }
 
+export type BulkRowResult = { username: string; ok: boolean; error?: string };
+
+/** สร้างหลายบัญชีพร้อมกัน แล้วคืนผลรายแถว (ใช้กับ preview/export credential) */
+export async function createStudentsBulkDetailed(
+  rows: { username: string; password: string; fullName: string }[]
+): Promise<{ ok: boolean; results: BulkRowResult[] }> {
+  try {
+    await assertTutor();
+    const results: BulkRowResult[] = [];
+    for (const r of rows) {
+      const username = r.username.trim().toLowerCase();
+      if (!username || !r.password) {
+        results.push({ username: r.username, ok: false, error: "ขาด username/password" });
+        continue;
+      }
+      if (r.password.length < 6) {
+        results.push({ username, ok: false, error: "รหัสสั้นกว่า 6 ตัว" });
+        continue;
+      }
+      const res = await createOneStudent(username, r.password, r.fullName.trim());
+      results.push({ username, ok: res.ok, error: res.ok ? undefined : res.message });
+    }
+    revalidatePath("/tutor/students");
+    return { ok: results.every((r) => r.ok), results };
+  } catch (err) {
+    return {
+      ok: false,
+      results: rows.map((r) => ({ username: r.username, ok: false, error: (err as Error).message })),
+    };
+  }
+}
+
+export async function resetStudentPassword(
+  studentId: string,
+  newPassword: string
+): Promise<ActionResult> {
+  try {
+    await assertTutor();
+    if (newPassword.length < 6)
+      return { ok: false, message: "รหัสผ่านอย่างน้อย 6 ตัวอักษร" };
+    const admin = createAdminClient();
+    const { error } = await admin.auth.admin.updateUserById(studentId, {
+      password: newPassword,
+    });
+    return error ? { ok: false, message: error.message } : { ok: true, message: "รีเซ็ตรหัสแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+export async function renameStudent(
+  studentId: string,
+  fullName: string
+): Promise<ActionResult> {
+  try {
+    await assertTutor();
+    const admin = createAdminClient();
+    const name = fullName.trim();
+    const { error } = await admin
+      .from("profiles")
+      .update({ full_name: name || null })
+      .eq("id", studentId);
+    revalidatePath("/tutor/students");
+    return error ? { ok: false, message: error.message } : { ok: true, message: "แก้ไขชื่อแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
 async function createOneStudent(
   username: string,
   password: string,

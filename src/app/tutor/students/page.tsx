@@ -1,27 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
-import StudentManager, {
-  type StudentRow,
-} from "@/components/tutor/StudentManager";
+import { getTutorStudents } from "@/lib/students";
+import StudentManager from "@/components/tutor/StudentManager";
+
+export const dynamic = "force-dynamic";
 
 export default async function StudentsPage() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, username, full_name, created_at")
-    .eq("role", "student")
-    .order("username");
+  const students = await getTutorStudents();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <header>
-        <h1 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
           จัดการนักเรียน
         </h1>
-        <p className="mt-3 text-lg text-muted">
-          เพิ่มบัญชีนักเรียนทีละคนหรือวาง CSV และจัดการรายชื่อ
+        <p className="mt-2 text-muted sm:text-lg">
+          เพิ่มบัญชีทีละคนหรือวาง CSV และจัดการรายชื่อ
         </p>
       </header>
-      <StudentManager students={(data as StudentRow[]) ?? []} />
+      <StudentManager students={students} />
     </main>
   );
 }
