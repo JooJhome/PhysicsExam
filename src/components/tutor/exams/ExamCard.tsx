@@ -148,13 +148,13 @@ export default function ExamCard({
             aria-label="ให้นักเรียนดูเฉลย"
             disabled={pending}
             onClick={() => onToggleReview(!exam.solutionVisible)}
-            className={`relative h-6 w-11 flex-none rounded-full transition-colors disabled:opacity-60 ${
+            className={`inline-flex h-6 w-11 flex-none items-center rounded-full px-0.5 transition-colors disabled:opacity-60 ${
               exam.solutionVisible ? "bg-brand-600" : "bg-sand-300"
             }`}
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                exam.solutionVisible ? "translate-x-[22px]" : "translate-x-0.5"
+              className={`h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                exam.solutionVisible ? "translate-x-5" : "translate-x-0"
               }`}
             />
           </button>
