@@ -18,11 +18,15 @@ export default async function AssignPage() {
     ]);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-lg font-bold text-gray-900">มอบหมายชุดสอบ</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        ติ๊กเพื่อมอบหมายชุดสอบให้นักเรียน (นักเรียนจะเห็นเฉพาะชุดที่ “เผยแพร่แล้ว”)
-      </p>
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-5">
+      <header>
+        <h1 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
+          มอบหมายชุดสอบ
+        </h1>
+        <p className="mt-3 text-lg text-muted">
+          ติ๊กเพื่อมอบหมายชุดสอบให้นักเรียน — นักเรียนจะเห็นเฉพาะชุดที่ “เผยแพร่แล้ว”
+        </p>
+      </header>
       <AssignMatrix
         students={students ?? []}
         exams={exams ?? []}

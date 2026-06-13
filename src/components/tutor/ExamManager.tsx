@@ -8,6 +8,7 @@ import {
   setAllowReview,
   deleteExam,
 } from "@/lib/actions/tutor";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export interface ExamRow {
   id: string;
@@ -23,7 +24,10 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [, startTransition] = useTransition();
+  const [pending, startTransition] = useTransition();
+  const [toDelete, setToDelete] = useState<{ id: string; title: string } | null>(
+    null
+  );
 
   async function onUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -48,22 +52,24 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
   }
 
   return (
-    <div className="mt-4 space-y-6">
+    <div className="mt-8 space-y-6">
       {/* อัปโหลด */}
       <form
         onSubmit={onUpload}
-        className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"
+        className="rounded-3xl border border-line bg-white p-7 shadow-card"
       >
-        <p className="font-semibold text-gray-900">อัปโหลดข้อสอบ (HTML)</p>
-        <p className="mt-1 text-xs text-gray-500">
+        <h2 className="font-display text-xl font-bold text-ink">
+          อัปโหลดข้อสอบ (HTML)
+        </h2>
+        <p className="mt-1 text-sm text-muted">
           ระบบจะถอดเฉลย ลบปุ่มเฉลย/แอนิเมชันออกจากฉบับสอบให้อัตโนมัติ
         </p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <input
             name="exam_code"
             placeholder="รหัสชุด เช่น CU-ATS_Aug2027"
             required
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm sm:col-span-2"
+            className="rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:col-span-2"
           />
           <input
             name="duration_minutes"
@@ -71,30 +77,32 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
             defaultValue={180}
             min={1}
             placeholder="นาที"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
           />
         </div>
-        <div className="mt-3 flex items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <input
             name="file"
             type="file"
             accept=".html,text/html"
             required
-            className="text-sm"
+            className="max-w-full text-sm text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
           />
           <button
             disabled={uploading}
-            className="ml-auto rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+            className="ml-auto rounded-xl bg-brand-600 px-6 py-3 text-base font-bold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60"
           >
-            {uploading ? "กำลังประมวลผล..." : "อัปโหลด"}
+            {uploading ? "กำลังประมวลผล…" : "อัปโหลด"}
           </button>
         </div>
       </form>
 
       {msg && (
         <p
-          className={`rounded-lg px-3 py-2 text-sm ${
-            msg.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+          className={`rounded-xl px-4 py-3 text-sm font-medium ring-1 ${
+            msg.ok
+              ? "bg-green-50 text-green-700 ring-green-200"
+              : "bg-red-50 text-red-700 ring-red-100"
           }`}
         >
           {msg.text}
@@ -102,81 +110,145 @@ export default function ExamManager({ exams }: { exams: ExamRow[] }) {
       )}
 
       {/* รายการ */}
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-600">
-            <tr>
-              <th className="px-4 py-2">ชุด</th>
-              <th className="px-4 py-2">ข้อ/เวลา</th>
-              <th className="px-4 py-2">สถานะ</th>
-              <th className="px-4 py-2">เฉลย</th>
-              <th className="px-4 py-2"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {exams.map((e) => (
-              <tr key={e.id}>
-                <td className="px-4 py-3">
-                  <p className="font-medium text-gray-900">{e.title}</p>
-                  <p className="text-xs text-gray-400">{e.exam_code}</p>
-                </td>
-                <td className="px-4 py-3 text-gray-600">
-                  {e.total_questions} ข้อ · {e.duration_minutes} น.
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() =>
-                      act(() =>
-                        setExamStatus(
-                          e.id,
-                          e.status === "published" ? "draft" : "published"
+      <div>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="font-display text-xl font-bold text-ink">
+            ชุดข้อสอบทั้งหมด
+          </h2>
+          <span className="text-sm text-muted">
+            <span className="font-display font-bold tabular-nums text-ink-soft">
+              {exams.length}
+            </span>{" "}
+            ชุด
+          </span>
+        </div>
+
+        <div className="overflow-x-auto rounded-3xl border border-line bg-white shadow-card">
+          <table className="w-full min-w-[680px] text-left">
+            <thead>
+              <tr className="border-b border-line bg-brand-50/70 text-sm text-brand-800">
+                <th className="px-5 py-4 font-semibold">ชุด</th>
+                <th className="px-5 py-4 font-semibold">ข้อ / เวลา</th>
+                <th className="px-5 py-4 font-semibold">สถานะ</th>
+                <th className="px-5 py-4 font-semibold">เฉลย</th>
+                <th className="px-5 py-4" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {exams.map((e) => (
+                <tr
+                  key={e.id}
+                  className="transition-colors hover:bg-canvas/70"
+                >
+                  <td className="px-5 py-4">
+                    <p className="font-semibold text-ink">{e.title}</p>
+                    <span className="mt-1.5 inline-block rounded-full bg-brand-50 px-2.5 py-0.5 font-display text-xs font-bold text-brand-700">
+                      {e.exam_code}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-4 text-ink-soft">
+                    <span className="font-display font-bold tabular-nums text-ink">
+                      {e.total_questions}
+                    </span>{" "}
+                    ข้อ ·{" "}
+                    <span className="font-display font-bold tabular-nums text-ink">
+                      {e.duration_minutes}
+                    </span>{" "}
+                    น.
+                  </td>
+                  <td className="px-5 py-4">
+                    <button
+                      title="คลิกเพื่อสลับสถานะเผยแพร่"
+                      onClick={() =>
+                        act(() =>
+                          setExamStatus(
+                            e.id,
+                            e.status === "published" ? "draft" : "published"
+                          )
                         )
-                      )
-                    }
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      e.status === "published"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {e.status === "published" ? "เผยแพร่แล้ว" : "ร่าง"}
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  <label className="inline-flex cursor-pointer items-center gap-1 text-xs text-gray-600">
-                    <input
-                      type="checkbox"
-                      checked={e.allow_review}
-                      onChange={(ev) =>
-                        act(() => setAllowReview(e.id, ev.target.checked))
                       }
-                    />
-                    ให้ดูเฉลย
-                  </label>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => {
-                      if (confirm(`ลบชุด "${e.title}"?`))
-                        act(() => deleteExam(e.id));
-                    }}
-                    className="text-xs text-red-600 hover:underline"
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition-shadow hover:ring-2 ${
+                        e.status === "published"
+                          ? "bg-green-50 text-green-700 ring-green-200"
+                          : "bg-sand-100 text-muted ring-line"
+                      }`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          e.status === "published"
+                            ? "bg-green-600"
+                            : "bg-muted"
+                        }`}
+                      />
+                      {e.status === "published" ? "เผยแพร่แล้ว" : "ร่าง"}
+                    </button>
+                  </td>
+                  <td className="px-5 py-4">
+                    <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
+                      <input
+                        type="checkbox"
+                        checked={e.allow_review}
+                        onChange={(ev) =>
+                          act(() => setAllowReview(e.id, ev.target.checked))
+                        }
+                        className="h-4 w-4 accent-brand-600"
+                      />
+                      ให้ดูเฉลย
+                    </label>
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => setToDelete({ id: e.id, title: e.title })}
+                      disabled={pending}
+                      className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                    >
+                      ลบ
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {exams.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-5 py-14 text-center text-muted"
                   >
-                    ลบ
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {exams.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
-                  ยังไม่มีข้อสอบ
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    <p className="text-2xl">📄</p>
+                    <p className="mt-2 font-semibold text-ink">
+                      ยังไม่มีชุดข้อสอบ
+                    </p>
+                    <p className="mt-1 text-sm">อัปโหลดไฟล์ HTML ด้านบนเพื่อเริ่ม</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        title="ลบชุดข้อสอบ?"
+        body={
+          <p>
+            ลบชุด{" "}
+            <span className="font-semibold text-ink">
+              “{toDelete?.title}”
+            </span>{" "}
+            พร้อมเฉลยและผลสอบที่เกี่ยวข้อง — ย้อนกลับไม่ได้
+          </p>
+        }
+        confirmLabel="ลบชุดนี้"
+        cancelLabel="ยกเลิก"
+        tone="danger"
+        busy={pending}
+        onConfirm={() => {
+          const id = toDelete?.id;
+          setToDelete(null);
+          if (id) act(() => deleteExam(id));
+        }}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 }

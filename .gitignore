@@ -23,6 +23,13 @@ dist/
 # supabase (ไฟล์ชั่วคราวจาก CLI)
 supabase/.temp/
 
+# build cache
+*.tsbuildinfo
+
+# เครื่องมือ dev (skills / artifacts — ไม่จำเป็นต่อการ deploy)
+.claude/
+.impeccable/
+
 # ระบบ
 .DS_Store
 *.log

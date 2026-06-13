@@ -1,14 +1,58 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --brand: #1a56db;
+  /* เสียงแบรนด์ + ผิว — ดู DESIGN-SYSTEM.md */
+  --brand: #16695b; /* teal */
+  --brand-strong: #0f5447;
+  --accent: #efa520; /* amber */
+  --ink: #1f211d;
+  --canvas: #faf6ec; /* cream อุ่น */
+  --line: #e7dcc6;
+}
+
+/* base font = 18px (= ขนาด list ฝั่งซ้าย) — ทุก rem ทั้งเว็บสเกลตามนี้
+   ใช้ % เพื่อเคารพการตั้งค่าขนาดตัวอักษรของผู้ใช้ในเบราว์เซอร์ (a11y) */
+html {
+  font-size: 112.5%;
 }
 
 html,
 body {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* การเลือกข้อความใช้เสียงแบรนด์ */
+::selection {
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+/* โฟกัสมองเห็นชัดเสมอ (a11y) — keyboard เท่านั้น */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* หัวข้อจัดบรรทัดให้สมดุล */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+/* เคารพ reduced motion ทั้งระบบ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
