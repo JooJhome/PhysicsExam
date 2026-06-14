@@ -7,6 +7,7 @@ export type AssignExam = {
   id: string;
   name: string;
   code: string;
+  kind: "exam" | "practice";
   subjects: string[]; // ป้ายกำกับหลายอัน (เหมือนหน้าข้อสอบ)
   status: AssignExamStatus;
   durationMin: number;
@@ -23,7 +24,7 @@ export async function getAssignExams(): Promise<AssignOverview> {
   const [examsRes, assignRes, studentsRes] = await Promise.all([
     supabase
       .from("exams")
-      .select("id, title, exam_code, subjects, status, duration_minutes, created_at")
+      .select("id, title, exam_code, kind, subjects, status, duration_minutes, created_at")
       .order("created_at", { ascending: false }),
     supabase.from("assignments").select("exam_id"),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
@@ -44,6 +45,7 @@ export async function getAssignExams(): Promise<AssignOverview> {
         id: e.id,
         name: e.title,
         code: e.exam_code,
+        kind: (e.kind as "exam" | "practice") ?? "exam",
         subjects: raw.length > 0 ? raw : derived ? [derived] : [],
         status: e.status as AssignExamStatus,
         durationMin: e.duration_minutes,

@@ -42,6 +42,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   const subjects = [...new Set(exams.flatMap((e) => e.subjects))].sort((a, b) =>
     a.localeCompare(b, "th")
   );
+  const hasPractice = exams.some((e) => e.kind === "practice");
 
   return (
     <div className="mt-6 space-y-4">
@@ -55,7 +56,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         onUpload={() => setUploadOpen(true)}
       />
 
-      <FilterBar filters={filters} subjects={subjects} onChange={setFilters} />
+      <FilterBar filters={filters} subjects={subjects} hasPractice={hasPractice} onChange={setFilters} />
 
       {msg && (
         <p

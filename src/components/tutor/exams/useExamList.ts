@@ -24,6 +24,7 @@ function parse(sp: URLSearchParams) {
       status:
         status === "published" || status === "draft" ? (status as StatusFilter) : "all",
       subject: sp.get("subject") ?? "",
+      kind: sp.get("kind") === "practice" ? "practice" : "",
       q: sp.get("q") ?? "",
     } as Filters,
     sort: (["recent", "name", "avg", "submitted"].includes(sort ?? "")
@@ -54,6 +55,7 @@ export function useExamList(exams: ExamListItem[]) {
       const p = new URLSearchParams();
       if (f.status !== "all") p.set("status", f.status);
       if (f.subject) p.set("subject", f.subject);
+      if (f.kind) p.set("kind", f.kind);
       if (f.q.trim()) p.set("q", f.q.trim());
       if (s !== "recent") p.set("sort", s);
       if (v !== "card") p.set("view", v);
@@ -67,6 +69,7 @@ export function useExamList(exams: ExamListItem[]) {
     const q = filters.q.trim().toLowerCase();
     const out = exams.filter((e) => {
       if (filters.status !== "all" && e.status !== filters.status) return false;
+      if (filters.kind === "practice" && e.kind !== "practice") return false;
       if (filters.subject && !e.subjects.includes(filters.subject)) return false;
       if (q && !`${e.title} ${e.code}`.toLowerCase().includes(q)) return false;
       return true;
@@ -91,7 +94,7 @@ export function useExamList(exams: ExamListItem[]) {
   }, [exams, filters, sort]);
 
   const hasFilter =
-    filters.status !== "all" || filters.subject !== "" || filters.q.trim() !== "";
+    filters.status !== "all" || filters.subject !== "" || filters.kind !== "" || filters.q.trim() !== "";
 
   return {
     list,
@@ -102,6 +105,6 @@ export function useExamList(exams: ExamListItem[]) {
     setFilters: (filters: Filters) => commit({ filters }),
     setSort: (sort: SortKey) => commit({ sort }),
     setView: (view: ViewMode) => commit({ view }),
-    clearFilters: () => commit({ filters: { status: "all", subject: "", q: "" } }),
+    clearFilters: () => commit({ filters: { status: "all", subject: "", kind: "", q: "" } }),
   };
 }
