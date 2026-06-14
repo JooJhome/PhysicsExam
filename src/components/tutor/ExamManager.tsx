@@ -36,7 +36,9 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   }
 
   const published = exams.filter((e) => e.status === "published").length;
-  const subjects = [...new Set(exams.map((e) => e.subject).filter(Boolean))] as string[];
+  const subjects = ([...new Set(exams.map((e) => e.subject).filter(Boolean))] as string[]).sort(
+    (a, b) => a.localeCompare(b, "th")
+  );
 
   return (
     <div className="mt-6 space-y-4">
@@ -50,7 +52,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         onUpload={() => setUploadOpen(true)}
       />
 
-      <FilterBar filters={filters} onChange={setFilters} />
+      <FilterBar filters={filters} subjects={subjects} onChange={setFilters} />
 
       {msg && (
         <p

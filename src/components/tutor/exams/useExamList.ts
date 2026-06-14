@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ExamListItem } from "@/lib/exams";
-import type { Filters, StatusFilter, TypeFilter } from "./FilterBar";
+import type { Filters, StatusFilter } from "./FilterBar";
 
 export type SortKey = "recent" | "name" | "avg" | "submitted";
 export type ViewMode = "card" | "table";
@@ -17,14 +17,13 @@ export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 function parse(sp: URLSearchParams) {
   const status = sp.get("status");
-  const type = sp.get("type");
   const sort = sp.get("sort");
   const view = sp.get("view");
   return {
     filters: {
       status:
         status === "published" || status === "draft" ? (status as StatusFilter) : "all",
-      type: type === "CU-ATS" || type === "TBAT" ? (type as TypeFilter) : "all",
+      subject: sp.get("subject") ?? "",
       q: sp.get("q") ?? "",
     } as Filters,
     sort: (["recent", "name", "avg", "submitted"].includes(sort ?? "")
@@ -54,7 +53,7 @@ export function useExamList(exams: ExamListItem[]) {
       const v = next.view ?? view;
       const p = new URLSearchParams();
       if (f.status !== "all") p.set("status", f.status);
-      if (f.type !== "all") p.set("type", f.type);
+      if (f.subject) p.set("subject", f.subject);
       if (f.q.trim()) p.set("q", f.q.trim());
       if (s !== "recent") p.set("sort", s);
       if (v !== "card") p.set("view", v);
@@ -68,7 +67,7 @@ export function useExamList(exams: ExamListItem[]) {
     const q = filters.q.trim().toLowerCase();
     const out = exams.filter((e) => {
       if (filters.status !== "all" && e.status !== filters.status) return false;
-      if (filters.type !== "all" && e.type !== filters.type) return false;
+      if (filters.subject && e.subject !== filters.subject) return false;
       if (q && !`${e.title} ${e.code}`.toLowerCase().includes(q)) return false;
       return true;
     });
@@ -92,7 +91,7 @@ export function useExamList(exams: ExamListItem[]) {
   }, [exams, filters, sort]);
 
   const hasFilter =
-    filters.status !== "all" || filters.type !== "all" || filters.q.trim() !== "";
+    filters.status !== "all" || filters.subject !== "" || filters.q.trim() !== "";
 
   return {
     list,
@@ -103,6 +102,6 @@ export function useExamList(exams: ExamListItem[]) {
     setFilters: (filters: Filters) => commit({ filters }),
     setSort: (sort: SortKey) => commit({ sort }),
     setView: (view: ViewMode) => commit({ view }),
-    clearFilters: () => commit({ filters: { status: "all", type: "all", q: "" } }),
+    clearFilters: () => commit({ filters: { status: "all", subject: "", q: "" } }),
   };
 }

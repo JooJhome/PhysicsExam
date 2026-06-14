@@ -1,25 +1,23 @@
 "use client";
 
 export type StatusFilter = "all" | "published" | "draft";
-export type TypeFilter = "all" | "CU-ATS" | "TBAT";
 
-export type Filters = { status: StatusFilter; type: TypeFilter; q: string };
+/** subject = "" หมายถึงทั้งหมด (ไม่กรองวิชา) */
+export type Filters = { status: StatusFilter; subject: string; q: string };
 
 const STATUS_CHIPS: { key: StatusFilter; label: string }[] = [
   { key: "all", label: "ทั้งหมด" },
   { key: "published", label: "เผยแพร่แล้ว" },
   { key: "draft", label: "ฉบับร่าง" },
 ];
-const TYPE_CHIPS: { key: TypeFilter; label: string }[] = [
-  { key: "CU-ATS", label: "CU-ATS" },
-  { key: "TBAT", label: "TBAT" },
-];
 
 export default function FilterBar({
   filters,
+  subjects,
   onChange,
 }: {
   filters: Filters;
+  subjects: string[];
   onChange: (next: Filters) => void;
 }) {
   function chipClass(active: boolean) {
@@ -33,31 +31,33 @@ export default function FilterBar({
   return (
     /* chips — เลื่อนแนวนอนบนมือถือ, wrap บนจอใหญ่ */
     <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
-        {STATUS_CHIPS.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            onClick={() => onChange({ ...filters, status: c.key })}
-            aria-pressed={filters.status === c.key}
-            className={chipClass(filters.status === c.key)}
-          >
-            {c.label}
-          </button>
-        ))}
+      {STATUS_CHIPS.map((c) => (
+        <button
+          key={c.key}
+          type="button"
+          onClick={() => onChange({ ...filters, status: c.key })}
+          aria-pressed={filters.status === c.key}
+          className={chipClass(filters.status === c.key)}
+        >
+          {c.label}
+        </button>
+      ))}
+
+      {/* วิชา/หมวด — dynamic ตาม subject ที่มีจริง (คลิกซ้ำ = ยกเลิก) */}
+      {subjects.length > 0 && (
         <span className="mx-1 hidden w-px self-stretch bg-line sm:block" />
-        {TYPE_CHIPS.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            onClick={() =>
-              onChange({ ...filters, type: filters.type === c.key ? "all" : c.key })
-            }
-            aria-pressed={filters.type === c.key}
-            className={chipClass(filters.type === c.key)}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      )}
+      {subjects.map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onChange({ ...filters, subject: filters.subject === s ? "" : s })}
+          aria-pressed={filters.subject === s}
+          className={chipClass(filters.subject === s)}
+        >
+          {s}
+        </button>
+      ))}
+    </div>
   );
 }
