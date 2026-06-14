@@ -25,15 +25,18 @@ export default function UploadModal({
   open,
   onClose,
   onUploaded,
+  subjects = [],
 }: {
   open: boolean;
   onClose: () => void;
   onUploaded: (msg: { ok: boolean; text: string }) => void;
+  subjects?: string[];
 }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [kind, setKind] = useState<"exam" | "practice">("exam");
   const [dragOver, setDragOver] = useState(false);
   const [validating, setValidating] = useState(false);
   const [report, setReport] = useState<ValidateResult | null>(null);
@@ -51,6 +54,7 @@ export default function UploadModal({
   useEffect(() => {
     if (!open) {
       setFile(null);
+      setKind("exam");
       setReport(null);
       setValidating(false);
       setUploading(false);
@@ -145,6 +149,47 @@ export default function UploadModal({
 
         {/* body (scroll) */}
         <div className="flex-1 overflow-y-auto p-5">
+          {/* ประเภท (ข้อสอบ/แบบฝึกหัด) + วิชา/หมวด */}
+          <div className="mb-3 grid gap-3 sm:grid-cols-3">
+            <div>
+              <span className="mb-1.5 block text-sm font-semibold text-ink-soft">ประเภท</span>
+              <div className="flex rounded-xl bg-canvas p-1">
+                {(["exam", "practice"] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setKind(k)}
+                    aria-pressed={kind === k}
+                    className={`min-h-[40px] flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                      kind === k ? "bg-brand-600 text-white shadow-sm" : "text-ink-soft hover:bg-white"
+                    }`}
+                  >
+                    {k === "exam" ? "ข้อสอบ" : "แบบฝึกหัด"}
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" name="kind" value={kind} />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="subject" className="mb-1.5 block text-sm font-semibold text-ink-soft">
+                วิชา/หมวด <span className="font-normal text-muted">(ไม่บังคับ)</span>
+              </label>
+              <input
+                id="subject"
+                name="subject"
+                list="subject-options"
+                placeholder="เช่น CU-ATS, TBAT, ฟิสิกส์ ม.6"
+                autoComplete="off"
+                className="w-full rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              />
+              <datalist id="subject-options">
+                {subjects.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+            </div>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="sm:col-span-2">
               <label htmlFor="exam_code" className="mb-1.5 block text-sm font-semibold text-ink-soft">

@@ -36,6 +36,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   }
 
   const published = exams.filter((e) => e.status === "published").length;
+  const subjects = [...new Set(exams.map((e) => e.subject).filter(Boolean))] as string[];
 
   return (
     <div className="mt-6 space-y-4">
@@ -136,6 +137,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onUploaded={(m) => setMsg(m)}
+        subjects={subjects}
       />
 
       <ConfirmDialog

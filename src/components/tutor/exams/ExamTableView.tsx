@@ -89,13 +89,20 @@ export default function ExamTableView({
                   <span className="font-display text-xs text-muted">{e.code}</span>
                 </td>
                 <td className="px-4 py-3">
-                  {e.type ? (
-                    <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
-                      {e.type}
-                    </span>
-                  ) : (
-                    <span className="text-muted">—</span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1">
+                    {e.kind === "practice" && (
+                      <span className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-bold text-accent-700 ring-1 ring-accent-100">
+                        แบบฝึกหัด
+                      </span>
+                    )}
+                    {e.subject ? (
+                      <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
+                        {e.subject}
+                      </span>
+                    ) : (
+                      e.kind !== "practice" && <span className="text-muted">—</span>
+                    )}
+                  </div>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-ink-soft">
                   <span className="font-display font-bold tabular-nums text-ink">{e.assignedCount}</span>
@@ -103,10 +110,10 @@ export default function ExamTableView({
                   <span className="font-display font-bold tabular-nums text-ink">{e.submittedCount}</span>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
-                  {e.avgScore != null ? (
+                  {e.avgPercent != null ? (
                     <span className="font-display font-bold tabular-nums text-ink">
-                      {e.avgScore}
-                      <span className="text-muted">/{e.questionCount}</span>
+                      {e.avgPercent}
+                      <span className="text-muted">%</span>
                     </span>
                   ) : (
                     <span className="text-muted">—</span>

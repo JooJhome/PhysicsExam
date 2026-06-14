@@ -76,6 +76,8 @@ export async function createExam(formData: FormData): Promise<ActionResult> {
     const file = formData.get("file") as File | null;
     const examCode = String(formData.get("exam_code") || "").trim();
     const duration = Number(formData.get("duration_minutes") || 30);
+    const kind = String(formData.get("kind") || "exam") === "practice" ? "practice" : "exam";
+    const subject = String(formData.get("subject") || "").trim() || null;
     if (!file || file.size === 0) return { ok: false, message: "กรุณาเลือกไฟล์ HTML" };
     if (!examCode) return { ok: false, message: "กรุณาใส่รหัสชุด (exam_code)" };
 
@@ -87,6 +89,8 @@ export async function createExam(formData: FormData): Promise<ActionResult> {
       .insert({
         title: t.title,
         exam_code: examCode,
+        kind,
+        subject,
         duration_minutes: duration,
         total_questions: t.totalQuestions,
         exam_html: t.examHtml,

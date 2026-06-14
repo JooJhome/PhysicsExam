@@ -118,9 +118,14 @@ export default function ExamCard({
             <span className="rounded-full bg-brand-50 px-2 py-0.5 font-display text-xs font-bold text-brand-700">
               {exam.code}
             </span>
-            {exam.type && (
+            {exam.kind === "practice" && (
+              <span className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-bold text-accent-700 ring-1 ring-accent-100">
+                แบบฝึกหัด
+              </span>
+            )}
+            {exam.subject && (
               <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
-                {exam.type}
+                {exam.subject}
               </span>
             )}
           </div>
@@ -160,13 +165,13 @@ export default function ExamCard({
                 <span>
                   ส่งแล้ว <b className="font-display font-bold tabular-nums text-ink-soft">{exam.submittedCount}</b>
                 </span>
-                {exam.avgScore != null && (
+                {exam.avgPercent != null && (
                   <>
                     <Sep />
                     <span>
                       เฉลี่ย{" "}
                       <b className="font-display font-bold tabular-nums text-ink-soft">
-                        {exam.avgScore}/{exam.questionCount}
+                        {exam.avgPercent}%
                       </b>
                     </span>
                   </>
