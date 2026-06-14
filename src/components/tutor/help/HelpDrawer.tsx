@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { HelpDoc } from "@/lib/help/content";
 
 export default function HelpDrawer({
@@ -11,6 +12,11 @@ export default function HelpDrawer({
   onClose: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     panelRef.current?.focus();
@@ -26,7 +32,9 @@ export default function HelpDrawer({
     };
   }, [onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-ink/40 animate-fade-in" onClick={onClose} />
       <div
@@ -111,6 +119,7 @@ export default function HelpDrawer({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
