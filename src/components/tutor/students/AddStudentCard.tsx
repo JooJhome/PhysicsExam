@@ -46,7 +46,13 @@ function parseCsv(text: string, existing: Set<string>): ParsedRow[] {
     });
 }
 
-export default function AddStudentCard({ existingUsernames }: { existingUsernames: string[] }) {
+export default function AddStudentCard({
+  existingUsernames,
+  variant = "card",
+}: {
+  existingUsernames: string[];
+  variant?: "card" | "bare";
+}) {
   const router = useRouter();
   const existing = new Set(existingUsernames.map((u) => u.toLowerCase()));
   const [mode, setMode] = useState<Mode>("single");
@@ -141,10 +147,12 @@ export default function AddStudentCard({ existingUsernames }: { existingUsername
   const field =
     "w-full rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30";
 
+  const bare = variant === "bare";
+
   return (
-    <div className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-7">
+    <div className={bare ? "" : "rounded-2xl border border-line bg-white p-5 shadow-card sm:p-7"}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="font-display text-xl font-bold text-ink">เพิ่มนักเรียน</h2>
+        {!bare && <h2 className="font-display text-xl font-bold text-ink">เพิ่มนักเรียน</h2>}
         <div className="flex flex-wrap gap-1 rounded-xl bg-canvas p-1">
           {seg("single", "ทีละคน")}
           {seg("csv", "วาง CSV")}
