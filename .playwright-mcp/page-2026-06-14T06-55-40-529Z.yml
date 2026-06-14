@@ -1,0 +1,46 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: B
+        - generic [ref=e6]: BSIINK.
+      - generic [ref=e7]:
+        - img [ref=e8]
+        - heading "ตั้งใจสอบ เต็มที่นะ" [level=2] [ref=e10]:
+          - text: ตั้งใจสอบ
+          - generic [ref=e11]:
+            - text: เต็มที่นะ
+            - img [ref=e12]
+        - paragraph [ref=e14]: พื้นที่สอบที่สงบ โปร่งใส และยุติธรรม — ให้คุณโฟกัสกับข้อสอบได้เต็มที่
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - img [ref=e17]
+            - text: โฟกัสได้เต็มที่ ระบบดูแลเวลาและบันทึกคำตอบให้เอง
+          - listitem [ref=e20]:
+            - img [ref=e21]
+            - text: ยุติธรรมกับทุกคน — แต่ละชุดทำได้ครั้งเดียว
+          - listitem [ref=e24]:
+            - img [ref=e25]
+            - text: รู้ผลและทบทวนเฉลยได้ทันทีหลังส่ง
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - img [ref=e30]
+          - paragraph [ref=e33]: เฉลยไม่รั่วก่อนส่ง — ตรวจคะแนนฝั่งเซิร์ฟเวอร์
+        - paragraph [ref=e34]: © 2026 BSIINK Physics
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - heading "เข้าสู่ระบบ" [level=1] [ref=e38]
+        - paragraph [ref=e39]: กรอกชื่อผู้ใช้และรหัสผ่านที่ได้รับจากติวเตอร์
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]: ชื่อผู้ใช้ (Username)
+          - textbox "ชื่อผู้ใช้ (Username)" [active] [ref=e43]: qa_check
+        - generic [ref=e44]:
+          - generic [ref=e45]: รหัสผ่าน (Password)
+          - generic [ref=e46]:
+            - textbox "รหัสผ่าน (Password)" [ref=e47]: QaCheck2026Temp
+            - button "แสดงรหัสผ่าน" [ref=e48] [cursor=pointer]:
+              - img [ref=e49]
+        - button "เข้าสู่ระบบ" [ref=e52] [cursor=pointer]
+      - paragraph [ref=e53]: ลืมรหัสผ่าน? ติดต่อติวเตอร์เพื่อรีเซ็ต
+  - alert [ref=e54]

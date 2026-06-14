@@ -1,0 +1,134 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "BSIINK · ติวเตอร์" [ref=e5] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e6]:
+          - generic [ref=e7]: B
+          - generic [ref=e8]: BSIINK.
+      - navigation [ref=e9]:
+        - link "ภาพรวม" [ref=e10] [cursor=pointer]:
+          - /url: /tutor
+        - link "ข้อสอบ" [ref=e11] [cursor=pointer]:
+          - /url: /tutor/exams
+        - link "นักเรียน" [ref=e12] [cursor=pointer]:
+          - /url: /tutor/students
+        - link "มอบหมาย" [ref=e13] [cursor=pointer]:
+          - /url: /tutor/assign
+        - link "ผลสอบ" [ref=e14] [cursor=pointer]:
+          - /url: /tutor/results
+      - generic [ref=e15]:
+        - button "วิธีใช้หน้านี้" [ref=e16] [cursor=pointer]: "?"
+        - generic [ref=e17]: QA Check (temp)
+        - button "ออกจากระบบ" [ref=e19] [cursor=pointer]
+  - main [ref=e20]:
+    - generic [ref=e21]:
+      - heading "ภาพรวมระบบ" [level=1] [ref=e22]
+      - paragraph [ref=e23]:
+        - text: วันนี้มี
+        - generic [ref=e24]: 3 อย่างที่ต้องจัดการ
+        - text: · อัปเดตล่าสุด เมื่อสักครู่
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - img [ref=e29]
+          - text: ชุดข้อสอบ
+        - paragraph [ref=e32]: "8"
+        - paragraph [ref=e33]: 8 เผยแพร่ · 0 ฉบับร่าง
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - img [ref=e37]
+          - text: นักเรียน
+        - paragraph [ref=e40]: "3"
+        - paragraph [ref=e41]: ใช้งานสัปดาห์นี้ 2 คน
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - img [ref=e45]
+          - text: ค้างส่ง
+        - paragraph [ref=e48]: "15"
+        - paragraph [ref=e49]: มอบหมายแล้วยังไม่ทำ
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - img [ref=e53]
+          - text: คะแนนเฉลี่ย
+        - paragraph [ref=e56]:
+          - text: "1"
+          - generic [ref=e57]: /30
+        - paragraph [ref=e58]: จาก 9 ครั้งที่ส่ง
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - heading "ต้องจัดการ" [level=2] [ref=e62]:
+            - img [ref=e63]
+            - text: ต้องจัดการ
+          - list [ref=e66]:
+            - listitem [ref=e67]:
+              - img [ref=e69]
+              - paragraph [ref=e72]: Test Student ยังไม่เปิดลิงก์ (มอบหมาย วันนี้)
+              - link "ดูการมอบหมาย" [ref=e73] [cursor=pointer]:
+                - /url: /tutor/assign
+            - listitem [ref=e74]:
+              - img [ref=e76]
+              - paragraph [ref=e79]: santibharbmarkhai ยังไม่เปิดลิงก์ (มอบหมาย วันนี้)
+              - link "ดูการมอบหมาย" [ref=e80] [cursor=pointer]:
+                - /url: /tutor/assign
+            - listitem [ref=e81]:
+              - img [ref=e83]
+              - paragraph [ref=e86]: punim ยังไม่เปิดลิงก์ (มอบหมาย วันนี้)
+              - link "ดูการมอบหมาย" [ref=e87] [cursor=pointer]:
+                - /url: /tutor/assign
+        - generic [ref=e88]:
+          - heading "ความเคลื่อนไหวล่าสุด" [level=2] [ref=e89]:
+            - img [ref=e90]
+            - text: ความเคลื่อนไหวล่าสุด
+          - list [ref=e92]:
+            - listitem [ref=e93]:
+              - generic [ref=e94]: pu
+              - generic [ref=e95]:
+                - paragraph [ref=e96]: punim
+                - paragraph [ref=e97]: CU-ATS_Jun2027 · 21 นาทีที่แล้ว
+              - generic [ref=e98]: 1/30
+            - listitem [ref=e99]:
+              - generic [ref=e100]: pu
+              - generic [ref=e101]:
+                - paragraph [ref=e102]: punim
+                - paragraph [ref=e103]: CU-ATS_Feb2027 · 25 นาทีที่แล้ว
+              - generic [ref=e104]: 6/30
+            - listitem [ref=e105]:
+              - generic [ref=e106]: pu
+              - generic [ref=e107]:
+                - paragraph [ref=e108]: punim
+                - paragraph [ref=e109]: CU-ATS_Aug2027 · 26 นาทีที่แล้ว
+              - generic [ref=e110]: 0/30
+            - listitem [ref=e111]:
+              - generic [ref=e112]: TS
+              - generic [ref=e113]:
+                - paragraph [ref=e114]: Test Student
+                - paragraph [ref=e115]: CU-ATS_Feb2027 · 1 ชม.ที่แล้ว
+              - generic [ref=e116]: 0/30
+            - listitem [ref=e117]:
+              - generic [ref=e118]: TS
+              - generic [ref=e119]:
+                - paragraph [ref=e120]: Test Student
+                - paragraph [ref=e121]: CU-ATS_Aug2027 · 12 ชม.ที่แล้ว
+              - generic [ref=e122]: 0/30
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - heading "การกระทำหลัก" [level=2] [ref=e125]
+          - generic [ref=e126]:
+            - link "อัปโหลดข้อสอบ" [ref=e127] [cursor=pointer]:
+              - /url: /tutor/exams
+              - img [ref=e128]
+              - text: อัปโหลดข้อสอบ
+            - link "เพิ่มนักเรียน" [ref=e131] [cursor=pointer]:
+              - /url: /tutor/students
+              - img [ref=e132]
+              - text: เพิ่มนักเรียน
+            - link "มอบหมายชุดสอบ" [ref=e134] [cursor=pointer]:
+              - /url: /tutor/assign
+              - img [ref=e135]
+              - text: มอบหมายชุดสอบ
+        - generic [ref=e137]:
+          - paragraph [ref=e138]: อัตราการทำเสร็จ
+          - paragraph [ref=e139]: 38%
+          - paragraph [ref=e142]: 9 จาก 24 ที่มอบหมาย

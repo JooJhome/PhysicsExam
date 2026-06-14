@@ -1,0 +1,336 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: B
+        - generic [ref=e7]: BSIINK.
+      - button "พับเมนู" [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+    - navigation "เมนูติวเตอร์" [ref=e11]:
+      - list [ref=e13]:
+        - listitem [ref=e14]:
+          - link "ภาพรวม" [ref=e15] [cursor=pointer]:
+            - /url: /tutor
+            - img [ref=e16]
+            - generic [ref=e21]: ภาพรวม
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: เนื้อหา
+        - list [ref=e24]:
+          - listitem [ref=e25]:
+            - link "ข้อสอบ" [ref=e26] [cursor=pointer]:
+              - /url: /tutor/exams
+              - img [ref=e27]
+              - generic [ref=e30]: ข้อสอบ
+          - listitem [ref=e31]:
+            - generic [ref=e32]:
+              - img [ref=e33]
+              - generic [ref=e36]: คลังข้อสอบ
+              - generic [ref=e37]:
+                - img [ref=e38]
+                - text: เร็วๆนี้
+      - generic [ref=e41]:
+        - paragraph [ref=e42]: คน
+        - list [ref=e43]:
+          - listitem [ref=e44]:
+            - link "นักเรียน" [ref=e45] [cursor=pointer]:
+              - /url: /tutor/students
+              - img [ref=e46]
+              - generic [ref=e50]: นักเรียน
+          - listitem [ref=e51]:
+            - generic [ref=e52]:
+              - img [ref=e53]
+              - generic [ref=e57]: กลุ่ม/ห้องเรียน
+              - generic [ref=e58]:
+                - img [ref=e59]
+                - text: เร็วๆนี้
+          - listitem [ref=e62]:
+            - link "มอบหมาย" [ref=e63] [cursor=pointer]:
+              - /url: /tutor/assign
+              - img [ref=e64]
+              - generic [ref=e68]: มอบหมาย
+      - generic [ref=e69]:
+        - paragraph [ref=e70]: ผล
+        - list [ref=e71]:
+          - listitem [ref=e72]:
+            - link "ผลสอบ" [ref=e73] [cursor=pointer]:
+              - /url: /tutor/results
+              - img [ref=e74]
+              - generic [ref=e78]: ผลสอบ
+    - button "เมนูบัญชี ครูเอ ทดสอบ" [ref=e81] [cursor=pointer]:
+      - generic [ref=e82]: ค
+      - generic [ref=e83]:
+        - generic [ref=e84]: ครูเอ ทดสอบ
+        - generic [ref=e85]: ติวเตอร์
+      - img [ref=e86]
+  - main [ref=e89]:
+    - generic [ref=e90]:
+      - heading "จัดการข้อสอบ" [level=1] [ref=e91]
+      - paragraph [ref=e92]: อัปโหลดชุดข้อสอบ เผยแพร่ และกำหนดสิทธิ์ดูเฉลย
+    - generic [ref=e93]:
+      - generic [ref=e94]:
+        - heading "อัปโหลดข้อสอบ (HTML)" [level=2] [ref=e95]
+        - paragraph [ref=e96]: ระบบจะถอดเฉลย ลบปุ่มเฉลย/แอนิเมชันออกจากฉบับสอบให้อัตโนมัติ
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - generic [ref=e99]: รหัสชุด
+            - textbox "รหัสชุด" [ref=e100]:
+              - /placeholder: เช่น CU-ATS_Aug2027
+          - generic [ref=e101]:
+            - generic [ref=e102]: เวลาสอบ
+            - generic [ref=e103]:
+              - spinbutton "เวลาสอบ" [ref=e104]: "30"
+              - generic: นาที
+        - button "ลากไฟล์ .html มาวาง หรือเลือกไฟล์" [ref=e105] [cursor=pointer]:
+          - img [ref=e107]
+          - generic [ref=e110]:
+            - paragraph [ref=e111]: ลากไฟล์ .html มาวาง หรือเลือกไฟล์
+            - paragraph [ref=e112]: รองรับฉบับ Interactive ไฟล์เดียว
+          - generic [ref=e113]: เลือกไฟล์
+          - button "Choose File" [ref=e114]
+        - button "อัปโหลด & บันทึกเป็นฉบับร่าง" [disabled] [ref=e116]
+      - generic [ref=e117]:
+        - heading "ชุดข้อสอบทั้งหมด 8 ชุด · 8 เผยแพร่" [level=2] [ref=e119]:
+          - text: ชุดข้อสอบทั้งหมด
+          - generic [ref=e120]: 8 ชุด · 8 เผยแพร่
+        - generic [ref=e121]:
+          - generic [ref=e122]:
+            - generic:
+              - img
+            - searchbox "ค้นหาชุดข้อสอบ" [ref=e123]
+          - generic [ref=e124]:
+            - button "ทั้งหมด" [pressed] [ref=e125] [cursor=pointer]
+            - button "เผยแพร่แล้ว" [ref=e126] [cursor=pointer]
+            - button "ฉบับร่าง" [ref=e127] [cursor=pointer]
+            - button "CU-ATS" [ref=e129] [cursor=pointer]
+            - button "TBAT" [ref=e130] [cursor=pointer]
+        - generic [ref=e131]:
+          - article [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e135]:
+                - heading "TBAT Physics Mock — October 2027 (Interactive)" [level=3] [ref=e136]
+                - generic [ref=e137]: TBAT_Oct2027
+                - generic [ref=e138]: TBAT
+              - generic [ref=e139]:
+                - button "เผยแพร่แล้ว" [ref=e140] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e143] [cursor=pointer]:
+                  - img [ref=e144]
+            - paragraph [ref=e148]:
+              - generic [ref=e149]: 30 ข้อ
+              - generic [ref=e150]: ·
+              - generic [ref=e151]: 30 นาที
+              - generic [ref=e152]: ·
+              - generic [ref=e153]: มอบหมาย 3
+              - generic [ref=e154]: ·
+              - generic [ref=e155]: ส่งแล้ว 0
+            - generic [ref=e156]:
+              - generic [ref=e157] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e158]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e160]:
+                - link "ดูตัวอย่าง" [ref=e161] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/85b17481-af94-413e-b034-51184ec86295
+                - link "มอบหมาย" [ref=e162] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e166]:
+                - heading "TBAT Physics Mock — December 2026 (Interactive)" [level=3] [ref=e167]
+                - generic [ref=e168]: TBAT_Dec2026
+                - generic [ref=e169]: TBAT
+              - generic [ref=e170]:
+                - button "เผยแพร่แล้ว" [ref=e171] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e174] [cursor=pointer]:
+                  - img [ref=e175]
+            - paragraph [ref=e179]:
+              - generic [ref=e180]: 30 ข้อ
+              - generic [ref=e181]: ·
+              - generic [ref=e182]: 30 นาที
+              - generic [ref=e183]: ·
+              - generic [ref=e184]: มอบหมาย 3
+              - generic [ref=e185]: ·
+              - generic [ref=e186]: ส่งแล้ว 0
+            - generic [ref=e187]:
+              - generic [ref=e188] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e189]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e191]:
+                - link "ดูตัวอย่าง" [ref=e192] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/f0412896-721c-474a-b620-feddccab3186
+                - link "มอบหมาย" [ref=e193] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e194]:
+            - generic [ref=e195]:
+              - generic [ref=e197]:
+                - heading "CU-ATS Physics Mock — October 2026 (Interactive)" [level=3] [ref=e198]
+                - generic [ref=e199]: CU-ATS_Oct2026
+              - generic [ref=e200]:
+                - button "เผยแพร่แล้ว" [ref=e201] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e204] [cursor=pointer]:
+                  - img [ref=e205]
+            - paragraph [ref=e209]:
+              - generic [ref=e210]: 30 ข้อ
+              - generic [ref=e211]: ·
+              - generic [ref=e212]: 30 นาที
+              - generic [ref=e213]: ·
+              - generic [ref=e214]: มอบหมาย 3
+              - generic [ref=e215]: ·
+              - generic [ref=e216]: ส่งแล้ว 0
+            - generic [ref=e217]:
+              - generic [ref=e218] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e219]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e221]:
+                - link "ดูตัวอย่าง" [ref=e222] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/af300eb4-0c22-481e-bec6-60db1f819569
+                - link "มอบหมาย" [ref=e223] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e224]:
+            - generic [ref=e225]:
+              - generic [ref=e227]:
+                - heading "CU-ATS Physics Mock — June 2027 (Interactive)" [level=3] [ref=e228]
+                - generic [ref=e229]: CU-ATS_Jun2027
+              - generic [ref=e230]:
+                - button "เผยแพร่แล้ว" [ref=e231] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e234] [cursor=pointer]:
+                  - img [ref=e235]
+            - paragraph [ref=e239]:
+              - generic [ref=e240]: 30 ข้อ
+              - generic [ref=e241]: ·
+              - generic [ref=e242]: 30 นาที
+              - generic [ref=e243]: ·
+              - generic [ref=e244]: มอบหมาย 3
+              - generic [ref=e245]: ·
+              - generic [ref=e246]: ส่งแล้ว 1
+              - generic [ref=e247]: ·
+              - generic [ref=e248]:
+                - text: เฉลี่ย
+                - generic [ref=e249]: 1/30
+            - generic [ref=e250]:
+              - generic [ref=e251] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e252]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e254]:
+                - link "ดูตัวอย่าง" [ref=e255] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/e9fc5863-2bba-479e-8d13-24a506aeb30c
+                - link "มอบหมาย" [ref=e256] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e257]:
+            - generic [ref=e258]:
+              - generic [ref=e260]:
+                - heading "CU-ATS Physics Mock — February 2027 (Interactive)" [level=3] [ref=e261]
+                - generic [ref=e262]: CU-ATS_Feb2027
+              - generic [ref=e263]:
+                - button "เผยแพร่แล้ว" [ref=e264] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e267] [cursor=pointer]:
+                  - img [ref=e268]
+            - paragraph [ref=e272]:
+              - generic [ref=e273]: 30 ข้อ
+              - generic [ref=e274]: ·
+              - generic [ref=e275]: 30 นาที
+              - generic [ref=e276]: ·
+              - generic [ref=e277]: มอบหมาย 3
+              - generic [ref=e278]: ·
+              - generic [ref=e279]: ส่งแล้ว 2
+              - generic [ref=e280]: ·
+              - generic [ref=e281]:
+                - text: เฉลี่ย
+                - generic [ref=e282]: 3/30
+            - generic [ref=e283]:
+              - generic [ref=e284] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e285]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e287]:
+                - link "ดูตัวอย่าง" [ref=e288] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/7f100446-f320-47f6-a010-af3725402162
+                - link "มอบหมาย" [ref=e289] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e290]:
+            - generic [ref=e291]:
+              - generic [ref=e293]:
+                - heading "CU-ATS Physics Mock — August 2027 (Interactive)" [level=3] [ref=e294]
+                - generic [ref=e295]: CU-ATS_Aug2027
+              - generic [ref=e296]:
+                - button "เผยแพร่แล้ว" [ref=e297] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e300] [cursor=pointer]:
+                  - img [ref=e301]
+            - paragraph [ref=e305]:
+              - generic [ref=e306]: 30 ข้อ
+              - generic [ref=e307]: ·
+              - generic [ref=e308]: 30 นาที
+              - generic [ref=e309]: ·
+              - generic [ref=e310]: มอบหมาย 3
+              - generic [ref=e311]: ·
+              - generic [ref=e312]: ส่งแล้ว 2
+              - generic [ref=e313]: ·
+              - generic [ref=e314]:
+                - text: เฉลี่ย
+                - generic [ref=e315]: 0/30
+            - generic [ref=e316]:
+              - generic [ref=e317] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e318]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e320]:
+                - link "ดูตัวอย่าง" [ref=e321] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/39f27305-abaa-4293-8f81-b8842e7ea9da
+                - link "มอบหมาย" [ref=e322] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e323]:
+            - generic [ref=e324]:
+              - generic [ref=e326]:
+                - heading "CU-ATS Physics Mock — August 2026 (Interactive)" [level=3] [ref=e327]
+                - generic [ref=e328]: CU-ATS_Aug2026
+              - generic [ref=e329]:
+                - button "เผยแพร่แล้ว" [ref=e330] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e333] [cursor=pointer]:
+                  - img [ref=e334]
+            - paragraph [ref=e338]:
+              - generic [ref=e339]: 30 ข้อ
+              - generic [ref=e340]: ·
+              - generic [ref=e341]: 30 นาที
+              - generic [ref=e342]: ·
+              - generic [ref=e343]: มอบหมาย 3
+              - generic [ref=e344]: ·
+              - generic [ref=e345]: ส่งแล้ว 2
+              - generic [ref=e346]: ·
+              - generic [ref=e347]:
+                - text: เฉลี่ย
+                - generic [ref=e348]: 2/30
+            - generic [ref=e349]:
+              - generic [ref=e350] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e351]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e353]:
+                - link "ดูตัวอย่าง" [ref=e354] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/7f068e75-c365-45db-9211-606d6322d7c6
+                - link "มอบหมาย" [ref=e355] [cursor=pointer]:
+                  - /url: /tutor/assign
+          - article [ref=e356]:
+            - generic [ref=e357]:
+              - generic [ref=e359]:
+                - heading "CU-ATS Physics Mock — April 2027 (Interactive)" [level=3] [ref=e360]
+                - generic [ref=e361]: CU-ATS_Apr2027
+              - generic [ref=e362]:
+                - button "เผยแพร่แล้ว" [ref=e363] [cursor=pointer]: เผยแพร่แล้ว
+                - button "ตัวเลือกเพิ่มเติม" [ref=e366] [cursor=pointer]:
+                  - img [ref=e367]
+            - paragraph [ref=e371]:
+              - generic [ref=e372]: 30 ข้อ
+              - generic [ref=e373]: ·
+              - generic [ref=e374]: 30 นาที
+              - generic [ref=e375]: ·
+              - generic [ref=e376]: มอบหมาย 3
+              - generic [ref=e377]: ·
+              - generic [ref=e378]: ส่งแล้ว 2
+              - generic [ref=e379]: ·
+              - generic [ref=e380]:
+                - text: เฉลี่ย
+                - generic [ref=e381]: 1/30
+            - generic [ref=e382]:
+              - generic [ref=e383] [cursor=pointer]:
+                - switch "ให้นักเรียนดูเฉลย" [checked] [ref=e384]
+                - text: ให้นักเรียนดูเฉลย
+              - generic [ref=e386]:
+                - link "ดูตัวอย่าง" [ref=e387] [cursor=pointer]:
+                  - /url: /tutor/exams/preview/dfacd4dd-91f1-43ea-bd89-4cc53eea88a2
+                - link "มอบหมาย" [ref=e388] [cursor=pointer]:
+                  - /url: /tutor/assign
