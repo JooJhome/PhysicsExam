@@ -2,8 +2,8 @@
 
 export type StatusFilter = "all" | "published" | "draft";
 
-/** subject = "" หมายถึงทั้งหมด (ไม่กรองวิชา) */
-export type Filters = { status: StatusFilter; subject: string; q: string };
+/** subject = "" หมายถึงทั้งหมด (ไม่กรองวิชา) ; kind = "" หมายถึงทุกประเภท */
+export type Filters = { status: StatusFilter; subject: string; kind: "" | "practice"; q: string };
 
 const STATUS_CHIPS: { key: StatusFilter; label: string }[] = [
   { key: "all", label: "ทั้งหมด" },
@@ -14,10 +14,12 @@ const STATUS_CHIPS: { key: StatusFilter; label: string }[] = [
 export default function FilterBar({
   filters,
   subjects,
+  hasPractice,
   onChange,
 }: {
   filters: Filters;
   subjects: string[];
+  hasPractice: boolean;
   onChange: (next: Filters) => void;
 }) {
   function chipClass(active: boolean) {
@@ -43,9 +45,19 @@ export default function FilterBar({
         </button>
       ))}
 
-      {/* วิชา/หมวด — dynamic ตาม subject ที่มีจริง (คลิกซ้ำ = ยกเลิก) */}
-      {subjects.length > 0 && (
+      {/* ประเภท + วิชา/หมวด — dynamic (คลิกซ้ำ = ยกเลิก) */}
+      {(hasPractice || subjects.length > 0) && (
         <span className="mx-1 hidden w-px self-stretch bg-line sm:block" />
+      )}
+      {hasPractice && (
+        <button
+          type="button"
+          onClick={() => onChange({ ...filters, kind: filters.kind === "practice" ? "" : "practice" })}
+          aria-pressed={filters.kind === "practice"}
+          className={chipClass(filters.kind === "practice")}
+        >
+          แบบฝึกหัด
+        </button>
       )}
       {subjects.map((s) => (
         <button

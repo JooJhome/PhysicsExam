@@ -31,6 +31,7 @@ export default function AssignList({ data }: { data: AssignOverview }) {
   const router = useRouter();
   const [lifecycle, setLifecycle] = useState<Lifecycle>("active");
   const [subject, setSubject] = useState(""); // "" = ทุกป้าย
+  const [practiceOnly, setPracticeOnly] = useState(false);
   const [q, setQ] = useState("");
   const [detail, setDetail] = useState<ExamAssignmentDetail | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -42,17 +43,19 @@ export default function AssignList({ data }: { data: AssignOverview }) {
     () => [...new Set(data.exams.flatMap((e) => e.subjects))].sort((a, b) => a.localeCompare(b, "th")),
     [data.exams]
   );
+  const hasPractice = useMemo(() => data.exams.some((e) => e.kind === "practice"), [data.exams]);
 
   const exams = useMemo(() => {
     const term = q.trim().toLowerCase();
     return data.exams.filter((e) => {
       const archived = e.status === "archived";
       if (lifecycle === "archived" ? !archived : archived) return false;
+      if (practiceOnly && e.kind !== "practice") return false;
       if (subject && !e.subjects.includes(subject)) return false; // membership
       if (term && !`${e.name} ${e.code}`.toLowerCase().includes(term)) return false;
       return true;
     });
-  }, [data.exams, lifecycle, subject, q]);
+  }, [data.exams, lifecycle, practiceOnly, subject, q]);
 
   async function openDrawer(exam: AssignExam) {
     setLoadingId(exam.id);
@@ -114,8 +117,18 @@ export default function AssignList({ data }: { data: AssignOverview }) {
           </button>
         ))}
 
-        {subjects.length > 0 && (
+        {(hasPractice || subjects.length > 0) && (
           <span className="mx-1 hidden w-px self-stretch bg-line sm:block" />
+        )}
+        {hasPractice && (
+          <button
+            type="button"
+            onClick={() => setPracticeOnly((v) => !v)}
+            aria-pressed={practiceOnly}
+            className={chipClass(practiceOnly)}
+          >
+            แบบฝึกหัด
+          </button>
         )}
         {subjects.map((s) => (
           <button
