@@ -307,16 +307,29 @@ function StudentList({
               {s.username}
               {s.displayName && <span className="text-sm font-normal text-muted"> · {s.displayName}</span>}
             </p>
-            <p className="text-sm text-muted">
-              ทำ <b className="font-display tabular-nums text-ink-soft">{s.examsTaken}</b> ชุด
-              {s.trend && <span className={`ml-2 font-semibold ${trendCls[s.trend]}`}>{trendLabel[s.trend]}</span>}
+            <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
+              <span>
+                มอบหมาย <b className="font-display font-bold tabular-nums text-ink-soft">{s.assignedCount}</b>
+              </span>
+              <span className="text-line">·</span>
+              <span>
+                ทำเสร็จ <b className="font-display font-bold tabular-nums text-ink-soft">{s.examsTaken}</b>
+              </span>
+              {s.avgPercent != null && (
+                <>
+                  <span className="text-line">·</span>
+                  <span>
+                    เฉลี่ย <b className="font-display font-bold tabular-nums text-ink-soft">{s.avgPercent}%</b>
+                  </span>
+                </>
+              )}
+              {s.trend && (
+                <>
+                  <span className="text-line">·</span>
+                  <span className={`font-semibold ${trendCls[s.trend]}`}>{trendLabel[s.trend]}</span>
+                </>
+              )}
             </p>
-          </div>
-          <div className="text-right">
-            <p className="font-display text-xl font-extrabold tabular-nums text-ink">
-              {s.avgPercent != null ? `${s.avgPercent}%` : "—"}
-            </p>
-            <p className="text-xs text-muted">เฉลี่ย</p>
           </div>
           <svg viewBox="0 0 24 24" className="h-4 w-4 flex-none text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="m9 18 6-6-6-6" />

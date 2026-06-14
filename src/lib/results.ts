@@ -49,6 +49,7 @@ export type StudentSummary = {
   username: string;
   displayName: string | null;
   initials: string;
+  assignedCount: number;
   examsTaken: number;
   avgPercent: number | null;
   trend: "up" | "down" | "flat" | null;
@@ -183,6 +184,11 @@ export async function getResults(): Promise<ResultsData> {
     .filter((s) => s.submitted > 0 || s.assigned > 0);
 
   // ---------- student summaries ----------
+  // มอบหมายต่อคน (เฉพาะ graded — assignments ถูกกรอง practice ออกแล้ว)
+  const assignedByStudent = new Map<string, number>();
+  for (const a of assignments)
+    assignedByStudent.set(a.student_id, (assignedByStudent.get(a.student_id) ?? 0) + 1);
+
   const studentSummaries: StudentSummary[] = students
     .map((s) => {
       const subs = submittedAttempts
@@ -202,6 +208,7 @@ export async function getResults(): Promise<ResultsData> {
         username: s.username,
         displayName: s.full_name?.trim() || null,
         initials: initialsOf(name),
+        assignedCount: assignedByStudent.get(s.id) ?? 0,
         examsTaken: subs.length,
         avgPercent,
         trend,
