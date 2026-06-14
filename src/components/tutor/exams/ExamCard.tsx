@@ -48,23 +48,22 @@ export default function ExamCard({
   ];
 
   return (
-    <article className="rounded-2xl border border-line bg-white p-5 shadow-card transition-shadow hover:shadow-lift sm:p-6">
-      {/* บรรทัดบน: ชื่อ+badge | สถานะ + ⋯ */}
+    <article className="rounded-2xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-lift">
+      {/* บรรทัดบน: ชื่อ+chips | สถานะ + ⋯ */}
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-lg font-bold text-ink">{exam.title}</h3>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full bg-brand-50 px-2.5 py-0.5 font-display text-xs font-bold text-brand-700">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h3 className="font-display text-base font-bold leading-snug text-ink">
+              {exam.title}
+            </h3>
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 font-display text-xs font-bold text-brand-700">
               {exam.code}
             </span>
             {exam.type && (
-              <span className="rounded-full bg-canvas px-2.5 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
+              <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
                 {exam.type}
               </span>
             )}
-            <span className="rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-medium text-muted">
-              Interactive
-            </span>
           </div>
         </div>
 
@@ -74,7 +73,7 @@ export default function ExamCard({
             onClick={onToggleStatus}
             disabled={pending}
             title="คลิกเพื่อสลับสถานะเผยแพร่"
-            className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition-shadow hover:ring-2 disabled:opacity-60 ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ring-1 transition-shadow hover:ring-2 disabled:opacity-60 ${
               published
                 ? "bg-green-50 text-green-700 ring-green-200"
                 : "bg-sand-100 text-muted ring-line"
@@ -88,7 +87,7 @@ export default function ExamCard({
       </div>
 
       {/* meta */}
-      <p className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
+      <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">
         <Meta value={exam.questionCount} unit="ข้อ" />
         <Sep />
         {editingDuration ? (
@@ -138,8 +137,8 @@ export default function ExamCard({
         )}
       </p>
 
-      {/* บรรทัดล่าง */}
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-line pt-4">
+      {/* บรรทัดล่าง — ไม่มี divider, กระชับ */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2.5 text-sm text-ink-soft">
           <button
             type="button"
