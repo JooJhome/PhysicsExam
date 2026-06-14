@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { ExamSummary } from "@/lib/results";
 
 export default function ExamSummaryView({
@@ -155,6 +156,17 @@ function ExamSummaryCard({
           )}
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href={`/tutor/exams/preview/${exam.examId}`}
+            target="_blank"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas"
+          >
+            <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            ดูตัวอย่าง
+          </Link>
           <button
             type="button"
             onClick={() => onOpenSurvey(exam.examId, exam.examCode)}
