@@ -8,8 +8,9 @@
 
 type P = { className?: string };
 
-/** เส้นใต้วาดมือ — วางใต้คำสำคัญในหัวข้อ */
-export function Underline({ className }: P) {
+/** เส้นใต้วาดมือ — วางใต้คำสำคัญในหัวข้อ
+ *  draw=true ให้เส้นค่อย ๆ วาดตัวเองตอนเข้า (เคารพ reduced-motion อัตโนมัติผ่าน globals) */
+export function Underline({ className, draw = false }: P & { draw?: boolean }) {
   return (
     <svg className={className} viewBox="0 0 120 12" fill="none" aria-hidden>
       <path
@@ -17,6 +18,8 @@ export function Underline({ className }: P) {
         stroke="currentColor"
         strokeWidth="4"
         strokeLinecap="round"
+        pathLength={draw ? 1 : undefined}
+        className={draw ? "[stroke-dasharray:1] animate-draw" : undefined}
       />
     </svg>
   );

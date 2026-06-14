@@ -159,10 +159,35 @@ export default {
           from: { opacity: "0", transform: "translateY(6px) scale(0.98)" },
           to: { opacity: "1", transform: "translateY(0) scale(1)" },
         },
+        // entrance สำหรับหน้า low-stakes — fade + ลอยขึ้นเบา ๆ (ใช้คู่ stagger delay)
+        "rise-in": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        // feedback error — สั่น 1 ครั้งแล้วหยุด (คู่กับสีแดง semantic)
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "20%, 60%": { transform: "translateX(-5px)" },
+          "40%, 80%": { transform: "translateX(5px)" },
+        },
+        // decor บรรยากาศ — ลอยนิ่ง ๆ ต่อเนื่อง (blob/sparkle)
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        // วาดเส้น stroke ของ Underline/Sparkle ตอนเข้า
+        draw: {
+          from: { strokeDashoffset: "1" },
+          to: { strokeDashoffset: "0" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.2s ease-out both",
         "dialog-in": "dialog-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "rise-in": "rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
+        shake: "shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both",
+        float: "float 6s ease-in-out infinite",
+        draw: "draw 0.8s ease-out 0.3s both",
       },
     },
   },
