@@ -54,10 +54,10 @@ function ExamSummaryCard({
   }
 
   return (
-    <article className="rounded-2xl border border-line bg-white p-5 shadow-card">
+    <article className="rounded-2xl border border-line bg-white p-4 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-display text-lg font-bold text-ink">{exam.examTitle}</h3>
+          <h3 className="font-display text-base font-bold text-ink">{exam.examTitle}</h3>
           <p className="text-sm text-muted">
             {exam.examCode} · ส่งแล้ว{" "}
             <b className="font-display tabular-nums text-ink-soft">
