@@ -45,9 +45,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-dvh md:grid-cols-2">
-      {/* ── แผงแบรนด์ (เทียลเต็มความสูง) ── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-600 p-10 text-white md:flex lg:p-14">
+    <main className="grid min-h-dvh lg:grid-cols-2">
+      {/* ── แผงแบรนด์ (เทียลเต็มความสูง) — โชว์ตั้งแต่ lg ขึ้นไป (iPad portrait ใช้ฟอร์มเดี่ยว) ── */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-600 p-10 text-white lg:flex lg:p-14">
         {/* พื้นหลัง composed: กระดาษกราฟ (ธีมฟิสิกส์) + แสงอำพันนุ่ม */}
         <div
           aria-hidden
@@ -66,19 +66,19 @@ export default function LoginPage() {
         <Wordmark className="relative" onDark />
 
         <div className="relative my-auto mx-auto flex max-w-xl flex-col items-center py-10 text-center">
-          <Sparkle className="mb-6 h-12 w-12 text-accent-300" />
-          <h2 className="font-display text-6xl font-extrabold leading-[1.05] lg:text-7xl">
+          <Sparkle className="mb-5 h-10 w-10 text-accent-300" />
+          <h2 className="font-display text-hero font-extrabold">
             ตั้งใจสอบ
             <br />
             <span className="relative inline-block text-accent-300">
               เต็มที่นะ
-              <Underline className="absolute -bottom-4 left-0 w-full text-accent-400" />
+              <Underline className="absolute -bottom-3 left-0 w-full text-accent-400" />
             </span>
           </h2>
-          <p className="mt-8 max-w-lg text-xl leading-relaxed text-white/85 lg:text-2xl">
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-white/85">
             พื้นที่สอบที่สงบ โปร่งใส และยุติธรรม — ให้คุณโฟกัสกับข้อสอบได้เต็มที่
           </p>
-          <ul className="mt-10 space-y-5 text-left">
+          <ul className="mt-8 space-y-4 text-left">
             {[
               "โฟกัสได้เต็มที่ ระบบดูแลเวลาและบันทึกคำตอบให้เอง",
               "ยุติธรรมกับทุกคน — แต่ละชุดทำได้ครั้งเดียว",
@@ -86,7 +86,7 @@ export default function LoginPage() {
             ].map((t) => (
               <li
                 key={t}
-                className="flex items-center gap-3.5 text-lg text-white/90 lg:text-xl"
+                className="flex items-center gap-3 text-base text-white/90"
               >
                 <CheckCircle />
                 {t}
@@ -109,25 +109,25 @@ export default function LoginPage() {
       </div>
 
       {/* ── ฟอร์มเข้าสู่ระบบ (พื้นขาวเต็มความสูง) ── */}
-      <div className="flex flex-col justify-center bg-white px-6 py-12 sm:px-12 lg:px-24">
-        <div className="mx-auto w-full max-w-lg">
-          <div className="md:hidden">
+      <div className="flex flex-col justify-center bg-white px-6 py-12 sm:px-12 lg:px-16">
+        <div className="mx-auto w-full max-w-md">
+          <div className="lg:hidden">
             <Wordmark />
           </div>
-          <div className="mt-8 md:mt-0">
-            <h1 className="font-display text-5xl font-extrabold text-ink lg:text-[3.25rem]">
+          <div className="mt-8 lg:mt-0">
+            <h1 className="font-display text-h1 font-extrabold text-ink">
               เข้าสู่ระบบ
             </h1>
-            <p className="mt-3 text-lg text-muted">
+            <p className="mt-2 text-base text-muted">
               กรอกชื่อผู้ใช้และรหัสผ่านที่ได้รับจากติวเตอร์
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="mt-10 space-y-6">
+          <form onSubmit={handleLogin} className="mt-8 space-y-5">
             <div>
               <label
                 htmlFor="login-username"
-                className="block text-base font-semibold text-ink-soft"
+                className="block text-sm font-semibold text-ink-soft"
               >
                 ชื่อผู้ใช้ (Username)
               </label>
@@ -144,13 +144,13 @@ export default function LoginPage() {
                 required
                 autoFocus
                 aria-invalid={error ? true : undefined}
-                className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-4 text-lg transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             </div>
             <div>
               <label
                 htmlFor="login-password"
-                className="block text-base font-semibold text-ink-soft"
+                className="block text-sm font-semibold text-ink-soft"
               >
                 รหัสผ่าน (Password)
               </label>
@@ -163,14 +163,14 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   required
                   aria-invalid={error ? true : undefined}
-                  className="w-full rounded-xl border border-line bg-white px-4 py-4 pr-14 text-lg transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                  className="w-full rounded-xl border border-line bg-white px-4 py-3 pr-12 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
                   aria-label={showPw ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                   aria-pressed={showPw}
-                  className="absolute inset-y-0 right-0 grid w-14 place-items-center rounded-r-xl text-muted transition-colors hover:text-ink-soft"
+                  className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-xl text-muted transition-colors hover:text-ink-soft"
                 >
                   {showPw ? <EyeOff /> : <Eye />}
                 </button>
@@ -189,7 +189,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-[1.15rem] text-lg font-bold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60"
             >
               {loading && (
                 <span
@@ -201,7 +201,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-8 border-t border-line pt-6 text-center text-base text-muted">
+          <p className="mt-8 border-t border-line pt-6 text-center text-sm text-muted">
             ลืมรหัสผ่าน?{" "}
             <span className="font-semibold text-ink-soft">
               ติดต่อติวเตอร์เพื่อรีเซ็ต

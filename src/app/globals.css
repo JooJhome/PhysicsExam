@@ -12,12 +12,9 @@
   --line: #e7dcc6;
 }
 
-/* base font = 18px (= ขนาด list ฝั่งซ้าย) — ทุก rem ทั้งเว็บสเกลตามนี้
-   ใช้ % เพื่อเคารพการตั้งค่าขนาดตัวอักษรของผู้ใช้ในเบราว์เซอร์ (a11y) */
-html {
-  font-size: 112.5%;
-}
-
+/* base font = 16px (มาตรฐานสากล) — ไม่ override root font-size อีกต่อไป
+   ความ "ใหญ่/เล็ก" คุมผ่าน fluid type scale (text-display/h1/h2/h3) ใน tailwind.config
+   ที่ย่อ-ขยายลื่นตามจอด้วย clamp() แทนการ scale ทั้งเว็บเท่ากันทุกอุปกรณ์ */
 html,
 body {
   background: var(--canvas);
