@@ -1,23 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
 
 export type ExamType = "CU-ATS" | "TBAT" | null;
+export type ExamKind = "exam" | "practice";
 
 export type ExamListItem = {
   id: string;
   title: string;
   code: string;
-  type: ExamType;
+  kind: ExamKind;
+  subject: string | null; // วิชา/หมวด อิสระ (เช่น CU-ATS, TBAT, ฟิสิกส์ ม.6)
+  type: ExamType; // คงไว้ให้ตัวกรอง CU-ATS/TBAT เดิม — derive จาก subject
   status: "draft" | "published";
   questionCount: number;
   durationMin: number;
   solutionVisible: boolean;
   assignedCount: number;
   submittedCount: number;
-  avgScore: number | null;
+  avgScore: number | null; // คะแนนดิบเฉลี่ย (เต็ม = questionCount)
+  avgPercent: number | null; // คะแนนเฉลี่ยเป็น %
   createdAt: string;
 };
 
-/** ประเภทชุด — derive จาก prefix ของรหัสชุด (DB ไม่มีคอลัมน์ type) */
+/** วิชาเดิม — derive จาก prefix ของรหัสชุด (ใช้เป็น fallback เมื่อ subject ว่าง) */
 export function deriveType(code: string): ExamType {
   const c = code.toUpperCase().replace(/[\s_]/g, "");
   if (c.startsWith("CUATS")) return "CU-ATS";
@@ -32,7 +36,7 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
     supabase
       .from("exams")
       .select(
-        "id, title, exam_code, duration_minutes, total_questions, status, allow_review, created_at"
+        "id, title, exam_code, kind, subject, duration_minutes, total_questions, status, allow_review, created_at"
       )
       .order("created_at", { ascending: false }),
     supabase.from("assignments").select("exam_id"),
@@ -59,18 +63,23 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
 
   return exams.map((e) => {
     const sub = submittedBy.get(e.id);
+    const avg = sub && sub.count > 0 ? sub.sum / sub.count : null;
+    const subject = (e.subject as string | null) ?? deriveType(e.exam_code);
     return {
       id: e.id,
       title: e.title,
       code: e.exam_code,
-      type: deriveType(e.exam_code),
+      kind: (e.kind as ExamKind) ?? "exam",
+      subject,
+      type: subject === "CU-ATS" || subject === "TBAT" ? (subject as ExamType) : null,
       status: e.status as "draft" | "published",
       questionCount: e.total_questions,
       durationMin: e.duration_minutes,
       solutionVisible: e.allow_review,
       assignedCount: assignedBy.get(e.id) ?? 0,
       submittedCount: sub?.count ?? 0,
-      avgScore: sub && sub.count > 0 ? Math.round(sub.sum / sub.count) : null,
+      avgScore: avg != null ? Math.round(avg) : null,
+      avgPercent: avg != null && e.total_questions > 0 ? Math.round((avg / e.total_questions) * 100) : null,
       createdAt: e.created_at,
     };
   });
