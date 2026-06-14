@@ -8,11 +8,13 @@ export default function ExamSummaryView({
   pending,
   onSavePassing,
   onOpenBreakdown,
+  onOpenSurvey,
 }: {
   exams: ExamSummary[];
   pending: boolean;
   onSavePassing: (examId: string, score: number | null) => void;
   onOpenBreakdown: (examId: string, examCode: string) => void;
+  onOpenSurvey: (examId: string, examCode: string) => void;
 }) {
   if (exams.length === 0) {
     return <Empty />;
@@ -26,6 +28,7 @@ export default function ExamSummaryView({
           pending={pending}
           onSavePassing={onSavePassing}
           onOpenBreakdown={onOpenBreakdown}
+          onOpenSurvey={onOpenSurvey}
         />
       ))}
     </div>
@@ -37,11 +40,13 @@ function ExamSummaryCard({
   pending,
   onSavePassing,
   onOpenBreakdown,
+  onOpenSurvey,
 }: {
   exam: ExamSummary;
   pending: boolean;
   onSavePassing: (examId: string, score: number | null) => void;
   onOpenBreakdown: (examId: string, examCode: string) => void;
+  onOpenSurvey: (examId: string, examCode: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(exam.passingScore));
@@ -149,13 +154,22 @@ function ExamSummaryCard({
             </button>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => onOpenBreakdown(exam.examId, exam.examCode)}
-          className="ml-auto rounded-lg border border-brand-200 px-3 py-1.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
-        >
-          วิเคราะห์รายข้อ
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onOpenSurvey(exam.examId, exam.examCode)}
+            className="rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas"
+          >
+            แบบสอบถาม
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenBreakdown(exam.examId, exam.examCode)}
+            className="rounded-lg border border-brand-200 px-3 py-1.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+          >
+            วิเคราะห์รายข้อ
+          </button>
+        </div>
       </div>
     </article>
   );

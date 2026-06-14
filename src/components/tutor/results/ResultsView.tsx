@@ -8,6 +8,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import ExamMenu, { type MenuItem } from "@/components/tutor/exams/ExamMenu";
 import ExamSummaryView from "./ExamSummaryView";
 import BreakdownDrawer from "./BreakdownDrawer";
+import SurveyDrawer from "./SurveyDrawer";
 
 type View = "submissions" | "exams" | "students";
 
@@ -17,6 +18,7 @@ export default function ResultsView({ data }: { data: ResultsData }) {
   const [q, setQ] = useState("");
   const [pending, startTransition] = useTransition();
   const [breakdown, setBreakdown] = useState<{ id: string; code: string } | null>(null);
+  const [survey, setSurvey] = useState<{ id: string; code: string } | null>(null);
   const [toReset, setToReset] = useState<SubmissionRow | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -133,12 +135,17 @@ export default function ResultsView({ data }: { data: ResultsData }) {
           pending={pending}
           onSavePassing={(id, score) => act(() => setPassingScore(id, score))}
           onOpenBreakdown={(id, code) => setBreakdown({ id, code })}
+          onOpenSurvey={(id, code) => setSurvey({ id, code })}
         />
       )}
       {view === "students" && <StudentList rows={students} />}
 
       {breakdown && (
         <BreakdownDrawer examId={breakdown.id} examCode={breakdown.code} onClose={() => setBreakdown(null)} />
+      )}
+
+      {survey && (
+        <SurveyDrawer examId={survey.id} examCode={survey.code} onClose={() => setSurvey(null)} />
       )}
 
       <ConfirmDialog
