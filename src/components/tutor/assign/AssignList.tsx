@@ -12,38 +12,47 @@ import {
 import ExamAssignRow from "./ExamAssignRow";
 import AssignDrawer, { type UndoSnapshot } from "./AssignDrawer";
 
-type Filter = "active" | "CU-ATS" | "TBAT" | "archived";
+type Lifecycle = "active" | "archived";
 
-const CHIPS: { key: Filter; label: string }[] = [
+const LIFECYCLE_CHIPS: { key: Lifecycle; label: string }[] = [
   { key: "active", label: "กำลังใช้" },
-  { key: "CU-ATS", label: "CU-ATS" },
-  { key: "TBAT", label: "TBAT" },
   { key: "archived", label: "คลัง" },
 ];
 
+function chipClass(active: boolean) {
+  return `min-h-[40px] flex-none rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+    active
+      ? "border-brand-600 bg-brand-600 text-white"
+      : "border-line bg-white text-ink-soft hover:border-brand-200 hover:text-brand-700"
+  }`;
+}
+
 export default function AssignList({ data }: { data: AssignOverview }) {
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("active");
+  const [lifecycle, setLifecycle] = useState<Lifecycle>("active");
+  const [subject, setSubject] = useState(""); // "" = ทุกป้าย
   const [q, setQ] = useState("");
   const [detail, setDetail] = useState<ExamAssignmentDetail | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ text: string; undo: UndoSnapshot } | null>(null);
   const [, startTransition] = useTransition();
 
+  // ป้ายทั้งหมด (union ของทุกชุด) — dynamic เหมือนหน้าข้อสอบ
+  const subjects = useMemo(
+    () => [...new Set(data.exams.flatMap((e) => e.subjects))].sort((a, b) => a.localeCompare(b, "th")),
+    [data.exams]
+  );
+
   const exams = useMemo(() => {
     const term = q.trim().toLowerCase();
     return data.exams.filter((e) => {
-      if (filter === "archived") {
-        if (e.status !== "archived") return false;
-      } else if (e.status === "archived") {
-        return false; // ตัวกรองอื่นไม่รวมคลัง
-      }
-      if (filter === "CU-ATS" && e.type !== "CU-ATS") return false;
-      if (filter === "TBAT" && e.type !== "TBAT") return false;
+      const archived = e.status === "archived";
+      if (lifecycle === "archived" ? !archived : archived) return false;
+      if (subject && !e.subjects.includes(subject)) return false; // membership
       if (term && !`${e.name} ${e.code}`.toLowerCase().includes(term)) return false;
       return true;
     });
-  }, [data.exams, filter, q]);
+  }, [data.exams, lifecycle, subject, q]);
 
   async function openDrawer(exam: AssignExam) {
     setLoadingId(exam.id);
@@ -91,21 +100,32 @@ export default function AssignList({ data }: { data: AssignOverview }) {
         />
       </div>
 
-      {/* filter chips */}
+      {/* filter chips — สถานะ (lifecycle) + ป้ายกำกับ dynamic (เหมือนหน้าข้อสอบ) */}
       <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
-        {CHIPS.map((c) => (
+        {LIFECYCLE_CHIPS.map((c) => (
           <button
             key={c.key}
             type="button"
-            onClick={() => setFilter(c.key)}
-            aria-pressed={filter === c.key}
-            className={`min-h-[40px] flex-none rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
-              filter === c.key
-                ? "border-brand-600 bg-brand-600 text-white"
-                : "border-line bg-white text-ink-soft hover:border-brand-200 hover:text-brand-700"
-            }`}
+            onClick={() => setLifecycle(c.key)}
+            aria-pressed={lifecycle === c.key}
+            className={chipClass(lifecycle === c.key)}
           >
             {c.label}
+          </button>
+        ))}
+
+        {subjects.length > 0 && (
+          <span className="mx-1 hidden w-px self-stretch bg-line sm:block" />
+        )}
+        {subjects.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setSubject(subject === s ? "" : s)}
+            aria-pressed={subject === s}
+            className={chipClass(subject === s)}
+          >
+            {s}
           </button>
         ))}
       </div>

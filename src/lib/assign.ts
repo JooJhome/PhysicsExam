@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { deriveType, type ExamType } from "@/lib/exams";
+import { deriveType } from "@/lib/exams";
 
 export type AssignExamStatus = "draft" | "published" | "archived";
 
@@ -7,7 +7,7 @@ export type AssignExam = {
   id: string;
   name: string;
   code: string;
-  type: ExamType;
+  subjects: string[]; // ป้ายกำกับหลายอัน (เหมือนหน้าข้อสอบ)
   status: AssignExamStatus;
   durationMin: number;
   assignedCount: number;
@@ -23,7 +23,7 @@ export async function getAssignExams(): Promise<AssignOverview> {
   const [examsRes, assignRes, studentsRes] = await Promise.all([
     supabase
       .from("exams")
-      .select("id, title, exam_code, status, duration_minutes, created_at")
+      .select("id, title, exam_code, subjects, status, duration_minutes, created_at")
       .order("created_at", { ascending: false }),
     supabase.from("assignments").select("exam_id"),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
@@ -37,14 +37,18 @@ export async function getAssignExams(): Promise<AssignOverview> {
 
   return {
     totalStudents: studentsRes.count ?? 0,
-    exams: exams.map((e) => ({
-      id: e.id,
-      name: e.title,
-      code: e.exam_code,
-      type: deriveType(e.exam_code),
-      status: e.status as AssignExamStatus,
-      durationMin: e.duration_minutes,
-      assignedCount: assignedBy.get(e.id) ?? 0,
-    })),
+    exams: exams.map((e) => {
+      const raw = (e.subjects as string[] | null) ?? [];
+      const derived = deriveType(e.exam_code);
+      return {
+        id: e.id,
+        name: e.title,
+        code: e.exam_code,
+        subjects: raw.length > 0 ? raw : derived ? [derived] : [],
+        status: e.status as AssignExamStatus,
+        durationMin: e.duration_minutes,
+        assignedCount: assignedBy.get(e.id) ?? 0,
+      };
+    }),
   };
 }
