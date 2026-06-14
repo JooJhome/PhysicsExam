@@ -48,9 +48,9 @@ export default function StudentCard({
   ];
 
   return (
-    <article className="rounded-2xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-lift sm:p-5">
+    <article className="rounded-2xl border border-line bg-white p-4 shadow-card transition-shadow hover:shadow-lift">
       <div className="flex items-start gap-3">
-        <label className="flex min-h-[44px] flex-none items-center">
+        <label className="flex min-h-[40px] flex-none items-center">
           <input
             type="checkbox"
             checked={selected}
@@ -60,7 +60,7 @@ export default function StudentCard({
           />
         </label>
 
-        <span className="grid h-10 w-10 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
+        <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
           {initial}
         </span>
 

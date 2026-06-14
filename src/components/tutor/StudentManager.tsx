@@ -7,26 +7,48 @@ import { deleteStudent, resetStudentPassword, renameStudent } from "@/lib/action
 import { generatePassword } from "@/lib/password";
 import type { StudentListItem } from "@/lib/students";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import AddStudentCard from "@/components/tutor/students/AddStudentCard";
+import AddStudentModal from "@/components/tutor/students/AddStudentModal";
 import StudentCard from "@/components/tutor/students/StudentCard";
 import CredentialHandoff, { type Credential } from "@/components/tutor/students/CredentialHandoff";
+import StudentsToolbar, { type StudentSortKey } from "@/components/tutor/students/StudentsToolbar";
 
 export default function StudentManager({ students }: { students: StudentListItem[] }) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [q, setQ] = useState("");
+  const [sort, setSort] = useState<StudentSortKey>("recent");
+  const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; label: string } | null>(null);
   const [resetCred, setResetCred] = useState<Credential | null>(null);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    if (!term) return students;
-    return students.filter((s) =>
-      `${s.username} ${s.displayName ?? ""}`.toLowerCase().includes(term)
-    );
-  }, [students, q]);
+    const out = term
+      ? students.filter((s) =>
+          `${s.username} ${s.displayName ?? ""}`.toLowerCase().includes(term)
+        )
+      : [...students];
+    switch (sort) {
+      case "name":
+        out.sort((a, b) =>
+          (a.displayName ?? a.username).localeCompare(b.displayName ?? b.username, "th")
+        );
+        break;
+      case "assigned":
+        out.sort((a, b) => b.assignedCount - a.assignedCount);
+        break;
+      case "avg":
+        out.sort((a, b) => (b.avgScore ?? -1) - (a.avgScore ?? -1));
+        break;
+      case "recent":
+      default:
+        out.sort((a, b) => (b.lastActiveAt ?? "").localeCompare(a.lastActiveAt ?? ""));
+        break;
+    }
+    return out;
+  }, [students, q, sort]);
 
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
     startTransition(async () => {
@@ -73,8 +95,14 @@ export default function StudentManager({ students }: { students: StudentListItem
   const allVisibleSelected = filtered.length > 0 && filtered.every((s) => selected.has(s.id));
 
   return (
-    <div className="mt-8 space-y-6">
-      <AddStudentCard existingUsernames={students.map((s) => s.username)} />
+    <div className="mt-6 space-y-4">
+      <StudentsToolbar
+        q={q}
+        sort={sort}
+        onSearch={setQ}
+        onSort={setSort}
+        onAdd={() => setAddOpen(true)}
+      />
 
       {msg && (
         <p
@@ -88,20 +116,10 @@ export default function StudentManager({ students }: { students: StudentListItem
 
       {/* รายชื่อ */}
       <div>
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-display text-xl font-bold text-ink">
-            รายชื่อนักเรียน{" "}
-            <span className="text-sm font-medium text-muted">{students.length} คน</span>
-          </h2>
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="ค้นหาชื่อ / username"
-            aria-label="ค้นหานักเรียน"
-            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:w-72"
-          />
-        </div>
+        <p className="mb-2 text-sm text-muted">
+          นักเรียนทั้งหมด <b className="font-display font-bold text-ink">{students.length}</b> คน
+          {q.trim() && <> · พบ <b className="font-display font-bold text-ink">{filtered.length}</b></>}
+        </p>
 
         {/* select-all + bulk */}
         {filtered.length > 0 && (
@@ -178,6 +196,13 @@ export default function StudentManager({ students }: { students: StudentListItem
           </div>
         </div>
       )}
+
+      {/* เพิ่มนักเรียน */}
+      <AddStudentModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        existingUsernames={students.map((s) => s.username)}
+      />
 
       {/* ลบ */}
       <ConfirmDialog
