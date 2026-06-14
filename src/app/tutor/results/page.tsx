@@ -7,7 +7,7 @@ export default async function ResultsPage() {
   const data = await getResults();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
+    <main className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-5">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-h1 font-extrabold text-ink">ผลสอบ</h1>

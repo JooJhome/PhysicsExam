@@ -48,7 +48,7 @@ export default async function StudentHome() {
         title="BSIINK Physics"
         name={profile.full_name || profile.username}
       />
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-5">
+      <main className="mx-auto max-w-5xl px-4 pb-10 pt-6 sm:px-5">
         {/* ── Hero ── */}
         <section className="grid items-center gap-6 md:grid-cols-[1.4fr_1fr]">
           <div className="relative">
