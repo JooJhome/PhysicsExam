@@ -218,6 +218,8 @@ export async function createStudent(formData: FormData): Promise<ActionResult> {
       return { ok: false, message: "ต้องมี username และ password" };
     if (password.length < 6)
       return { ok: false, message: "รหัสผ่านอย่างน้อย 6 ตัวอักษร" };
+    if (!fullName)
+      return { ok: false, message: "ต้องระบุชื่อ-สกุล (ใช้เป็นลายน้ำตอนสอบ)" };
 
     const res = await createOneStudent(username, password, fullName);
     revalidatePath("/tutor/students");
@@ -242,6 +244,10 @@ export async function createStudentsBulk(csv: string): Promise<ActionResult> {
       const full = rest.join(",").trim();
       if (!u || !p) {
         errors.push(`ข้าม "${line}" (ขาด username/password)`);
+        continue;
+      }
+      if (!full) {
+        errors.push(`ข้าม "${line}" (ขาดชื่อ-สกุล)`);
         continue;
       }
       const r = await createOneStudent(u.toLowerCase(), p, full);
@@ -275,6 +281,10 @@ export async function createStudentsBulkDetailed(
       }
       if (r.password.length < 6) {
         results.push({ username, ok: false, error: "รหัสสั้นกว่า 6 ตัว" });
+        continue;
+      }
+      if (!r.fullName.trim()) {
+        results.push({ username, ok: false, error: "ขาดชื่อ-สกุล" });
         continue;
       }
       const res = await createOneStudent(username, r.password, r.fullName.trim());
@@ -345,7 +355,7 @@ async function createOneStudent(
     id: data.user.id,
     role: "student",
     username,
-    full_name: fullName || username,
+    full_name: fullName.trim() || null, // ไม่ใช้ username เป็นชื่อ (ลายน้ำต้องเป็นชื่อจริง)
   });
   if (pErr) {
     // rollback auth user หาก insert profile ล้มเหลว

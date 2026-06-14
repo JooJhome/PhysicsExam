@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ExamSurvey from "@/components/ExamSurvey";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import Watermark from "@/components/Watermark";
 
 interface StartData {
   exam_id: string;
@@ -22,6 +23,7 @@ type DialogState =
   | { kind: "submit"; unanswered: number }
   | { kind: "submit-error"; message: string }
   | { kind: "session-expired" }
+  | { kind: "exit-confirm" }
   | null;
 
 const CAUTION_MS = 10 * 60000; // เหลือ 10 นาที = เตือน
@@ -137,6 +139,42 @@ export default function ExamRunner({
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, showSurvey]);
+
+  // ---- กันเผลอออกระหว่างทำ (ปุ่ม back ของเบราว์เซอร์ / ปิดแท็บ / รีเฟรช) ----
+  // เปิดยามเฉพาะตอนทำอยู่จริง (โหลดข้อสอบแล้ว ยังไม่เข้าแบบสอบถาม/ยังไม่ส่ง)
+  useEffect(() => {
+    if (!data || showSurvey) return;
+
+    // ปิดแท็บ/รีเฟรช → กล่องเตือนเนทีฟ (กำหนดข้อความเองไม่ได้ แต่กันพลาด)
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (submittedRef.current) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+
+    // ปุ่ม back → ดักด้วย dummy history state แล้วถามยืนยันด้วยกล่องของเรา
+    window.history.pushState(null, "", window.location.href);
+    const onPopState = () => {
+      if (submittedRef.current) return; // ส่งแล้ว — ปล่อยให้ออกได้
+      window.history.pushState(null, "", window.location.href); // คง trap ไว้ก่อน
+      setDialog({ kind: "exit-confirm" });
+    };
+    window.addEventListener("popstate", onPopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [data, showSurvey]);
+
+  // ยืนยันออกกลางคัน → กลับหน้ารวม + refresh ให้ปุ่มเปลี่ยนเป็น "ทำต่อ" ทันที
+  // (router.push เป็น SPA nav จึงไม่ trigger beforeunload; unmount แล้ว effect cleanup ถอด listener เอง)
+  function confirmExit() {
+    setDialog(null);
+    router.push("/student");
+    router.refresh();
+  }
 
   function requestCollect() {
     iframeRef.current?.contentWindow?.postMessage(
@@ -327,22 +365,31 @@ export default function ExamRunner({
         dismissible={false}
         onConfirm={() => router.replace("/student")}
       />
-    </div>
-  );
-}
 
-function Watermark({ name }: { name: string }) {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='180'><text x='0' y='100' transform='rotate(-28 160 90)' font-family='sans-serif' font-size='20' fill='%23000'>${name}</text></svg>`;
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 opacity-[0.07]"
-      style={{
-        backgroundImage: `url("data:image/svg+xml;utf8,${encodeURIComponent(
-          svg
-        )}")`,
-        backgroundRepeat: "repeat",
-      }}
-    />
+      <ConfirmDialog
+        open={dialog?.kind === "exit-confirm"}
+        title="ออกจากการทำข้อสอบ?"
+        body={
+          <>
+            <p>
+              คำตอบที่กรอกไว้<span className="font-semibold text-ink">จะหายทั้งหมด</span>{" "}
+              ต้องกลับมาเริ่มกรอกใหม่
+            </p>
+            {!noTimer && (
+              <p className="mt-1.5">
+                และ<span className="font-semibold text-ink">เวลาจะยังเดินต่อ</span>
+                ระหว่างที่คุณออกไป
+              </p>
+            )}
+          </>
+        }
+        confirmLabel="ยืนยันออก"
+        cancelLabel="อยู่ทำข้อสอบต่อ"
+        tone="danger"
+        onConfirm={confirmExit}
+        onCancel={() => setDialog(null)}
+      />
+    </div>
   );
 }
 

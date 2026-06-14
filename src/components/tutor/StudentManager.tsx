@@ -50,6 +50,9 @@ export default function StudentManager({ students }: { students: StudentListItem
     return out;
   }, [students, q, sort]);
 
+  // นักเรียนที่ยังไม่มีชื่อจริง (displayName=null คือยังเป็น username/ว่าง) → ลายน้ำใช้ username
+  const needNameCount = students.filter((s) => !s.displayName).length;
+
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
     startTransition(async () => {
       const r = await fn();
@@ -112,6 +115,18 @@ export default function StudentManager({ students }: { students: StudentListItem
         >
           {msg.text}
         </p>
+      )}
+
+      {/* เตือนคนที่ยังไม่มีชื่อจริง — ลายน้ำตอนสอบจะใช้ username ไปก่อน */}
+      {needNameCount > 0 && (
+        <div className="flex items-start gap-2 rounded-xl bg-accent-50 px-4 py-3 text-sm text-accent-900 ring-1 ring-accent-200">
+          <span aria-hidden>🪪</span>
+          <p>
+            มี <b className="font-display tabular-nums">{needNameCount}</b>{" "}
+            คนยังไม่ได้ตั้งชื่อจริง — ลายน้ำตอนทำข้อสอบจะใช้ username ไปก่อน
+            กดเมนู ⋯ → แก้ไขชื่อ เพื่อเติมชื่อ-สกุล
+          </p>
+        </div>
       )}
 
       {/* รายชื่อ */}
