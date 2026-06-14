@@ -94,6 +94,13 @@ export default {
         muted: sand[500],
         canvas: sand[50],
         line: sand[200],
+        // sidebar ฝั่งติวเตอร์ (เขียวเข้มกว่า surface — โทน EduLearn)
+        side: {
+          bg: "#13402f",
+          text: "#d7e6dd",
+          muted: "#6f9a86",
+          active: "#1f6b4f",
+        },
         // override ramp เดิมให้ทั้งแอปอัปเกรดพร้อมกัน
         blue: teal,
         indigo: teal,

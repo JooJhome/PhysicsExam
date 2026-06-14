@@ -1,4 +1,4 @@
-import AppHeader from "@/components/AppHeader";
+import TutorShell from "@/components/tutor/shell/TutorShell";
 import { requireRole } from "@/lib/profile";
 
 export default async function TutorLayout({
@@ -8,19 +8,8 @@ export default async function TutorLayout({
 }) {
   const profile = await requireRole("tutor");
   return (
-    <div className="min-h-screen">
-      <AppHeader
-        title="BSIINK · ติวเตอร์"
-        name={profile.full_name || profile.username}
-        nav={[
-          { href: "/tutor", label: "ภาพรวม" },
-          { href: "/tutor/exams", label: "ข้อสอบ" },
-          { href: "/tutor/students", label: "นักเรียน" },
-          { href: "/tutor/assign", label: "มอบหมาย" },
-          { href: "/tutor/results", label: "ผลสอบ" },
-        ]}
-      />
+    <TutorShell name={profile.full_name || profile.username}>
       {children}
-    </div>
+    </TutorShell>
   );
 }
