@@ -11,6 +11,7 @@ export type StudentListItem = {
   assignedCount: number;
   completedCount: number;
   avgPercent: number | null; // คะแนนเฉลี่ยเป็น % (รองรับข้อสอบที่คะแนนเต็มต่างกัน)
+  trend: "up" | "down" | "flat" | null; // พัฒนาการ (เทียบ % 2 ครั้งล่าสุด)
 };
 
 const DAY = 86_400_000;
@@ -34,7 +35,7 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
   const [profilesRes, assignRes, attemptRes, examsRes, usersRes] = await Promise.all([
     supabase.from("profiles").select("id, username, full_name").eq("role", "student"),
     supabase.from("assignments").select("student_id, exam_id"),
-    supabase.from("attempts").select("student_id, exam_id, status, score, total"),
+    supabase.from("attempts").select("student_id, exam_id, status, score, total, submitted_at"),
     supabase.from("exams").select("id, kind"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ]);
@@ -58,15 +59,14 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
     assignedBy.set(a.student_id, (assignedBy.get(a.student_id) ?? 0) + 1);
   }
 
-  // นับ "ทำเสร็จ" และเก็บผลรวมเป็น % (เฉลี่ยข้ามชุดที่คะแนนเต็มต่างกันได้)
-  const completedBy = new Map<string, { count: number; pctSum: number; pctCount: number }>();
+  // นับ "ทำเสร็จ" + เก็บ % พร้อมเวลาส่ง (ไว้คำนวณเฉลี่ย + พัฒนาการ)
+  const completedBy = new Map<string, { count: number; pcts: { v: number; at: string }[] }>();
   for (const at of attempts) {
     if (at.status !== "submitted" || at.score == null) continue;
-    const cur = completedBy.get(at.student_id) ?? { count: 0, pctSum: 0, pctCount: 0 };
+    const cur = completedBy.get(at.student_id) ?? { count: 0, pcts: [] };
     cur.count += 1;
     if (at.total && at.total > 0) {
-      cur.pctSum += (at.score / at.total) * 100;
-      cur.pctCount += 1;
+      cur.pcts.push({ v: (at.score / at.total) * 100, at: at.submitted_at ?? "" });
     }
     completedBy.set(at.student_id, cur);
   }
@@ -75,6 +75,19 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
     .map((p) => {
       const done = completedBy.get(p.id);
       const lastActiveAt = lastSignInById.get(p.id) ?? null;
+      // เฉลี่ย + พัฒนาการ (เรียงตามเวลาส่ง เทียบ 2 ครั้งล่าสุด — ตรรกะเดียวกับหน้าผลสอบ)
+      const pctVals = (done?.pcts ?? [])
+        .slice()
+        .sort((a, b) => a.at.localeCompare(b.at))
+        .map((x) => x.v);
+      const avgPercent = pctVals.length
+        ? Math.round(pctVals.reduce((x, y) => x + y, 0) / pctVals.length)
+        : null;
+      let trend: StudentListItem["trend"] = null;
+      if (pctVals.length >= 2) {
+        const diff = pctVals[pctVals.length - 1] - pctVals[pctVals.length - 2];
+        trend = diff > 3 ? "up" : diff < -3 ? "down" : "flat";
+      }
       return {
         id: p.id,
         username: p.username,
@@ -84,7 +97,8 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
         lastActiveLabel: relativeThai(lastActiveAt, now),
         assignedCount: assignedBy.get(p.id) ?? 0,
         completedCount: done?.count ?? 0,
-        avgPercent: done && done.pctCount > 0 ? Math.round(done.pctSum / done.pctCount) : null,
+        avgPercent,
+        trend,
       };
     })
     .sort((a, b) => a.username.localeCompare(b.username));

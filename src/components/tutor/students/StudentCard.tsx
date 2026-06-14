@@ -102,6 +102,22 @@ export default function StudentCard({
                 </span>
               </>
             )}
+            {student.trend && (
+              <>
+                <span className="text-line">·</span>
+                <span
+                  className={`font-semibold ${
+                    student.trend === "up"
+                      ? "text-green-700"
+                      : student.trend === "down"
+                        ? "text-red-600"
+                        : "text-muted"
+                  }`}
+                >
+                  {student.trend === "up" ? "ดีขึ้น ↑" : student.trend === "down" ? "แย่ลง ↓" : "คงที่ →"}
+                </span>
+              </>
+            )}
           </p>
         </div>
 
