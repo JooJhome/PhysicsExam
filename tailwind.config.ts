@@ -122,6 +122,16 @@ export default {
           "sans-serif",
         ],
       },
+      fontSize: {
+        // ── Fluid type scale (clamp: มือถือ → เดสก์ท็อป) — ดู DESIGN-SYSTEM.md ──
+        // ใช้แทน text-4xl/5xl/6xl/7xl เพื่อให้หัวข้อย่อ-ขยายลื่นตามจอ ไม่ใหญ่เกินบนมือถือ/iPad
+        hero: ["clamp(2.25rem, 1.4rem + 3.6vw, 3.5rem)", { lineHeight: "1.08", letterSpacing: "-0.01em" }], // 36 → 56
+        display: ["clamp(1.9rem, 1.3rem + 2.6vw, 3rem)", { lineHeight: "1.1", letterSpacing: "-0.01em" }], // 30 → 48
+        h1: ["clamp(1.6rem, 1.25rem + 1.6vw, 2.25rem)", { lineHeight: "1.15", letterSpacing: "-0.005em" }], // 26 → 36
+        h2: ["clamp(1.2rem, 1.05rem + 0.7vw, 1.5rem)", { lineHeight: "1.3" }], // 19 → 24
+        h3: ["clamp(1.05rem, 1rem + 0.3vw, 1.25rem)", { lineHeight: "1.4" }], // 17 → 20
+        // body/label คงค่ามาตรฐาน (Tailwind base) — 16px ฐาน
+      },
       borderRadius: {
         lg: "0.75rem", // 12px
         xl: "1rem", // 16px — การ์ดมุมโค้งใหญ่แบบ EduLearn
