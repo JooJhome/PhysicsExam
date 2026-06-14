@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   setExamStatus,
   setExamDuration,
@@ -10,44 +10,20 @@ import {
 } from "@/lib/actions/tutor";
 import type { ExamListItem } from "@/lib/exams";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import UploadCard from "@/components/tutor/exams/UploadCard";
-import FilterBar, {
-  type Filters,
-  type StatusFilter,
-  type TypeFilter,
-} from "@/components/tutor/exams/FilterBar";
+import FilterBar from "@/components/tutor/exams/FilterBar";
+import ExamsToolbar from "@/components/tutor/exams/ExamsToolbar";
+import UploadModal from "@/components/tutor/exams/UploadModal";
 import ExamCard from "@/components/tutor/exams/ExamCard";
-
-function parseFilters(sp: URLSearchParams): Filters {
-  const status = sp.get("status");
-  const type = sp.get("type");
-  return {
-    status: status === "published" || status === "draft" ? (status as StatusFilter) : "all",
-    type: type === "CU-ATS" || type === "TBAT" ? (type as TypeFilter) : "all",
-    q: sp.get("q") ?? "",
-  };
-}
+import { useExamList } from "@/components/tutor/exams/useExamList";
 
 export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const { list, filters, sort, view, hasFilter, setFilters, setSort, setView, clearFilters } =
+    useExamList(exams);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [toDelete, setToDelete] = useState<ExamListItem | null>(null);
-
-  const filters = useMemo(
-    () => parseFilters(new URLSearchParams(searchParams.toString())),
-    [searchParams]
-  );
-
-  function setFilters(next: Filters) {
-    const sp = new URLSearchParams();
-    if (next.status !== "all") sp.set("status", next.status);
-    if (next.type !== "all") sp.set("type", next.type);
-    if (next.q.trim()) sp.set("q", next.q.trim());
-    const qs = sp.toString();
-    router.replace(qs ? `/tutor/exams?${qs}` : "/tutor/exams", { scroll: false });
-  }
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
     startTransition(async () => {
@@ -59,21 +35,19 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
 
   const published = exams.filter((e) => e.status === "published").length;
 
-  const filtered = useMemo(() => {
-    const q = filters.q.trim().toLowerCase();
-    return exams.filter((e) => {
-      if (filters.status !== "all" && e.status !== filters.status) return false;
-      if (filters.type !== "all" && e.type !== filters.type) return false;
-      if (q && !`${e.title} ${e.code}`.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [exams, filters]);
-
-  const hasFilter = filters.status !== "all" || filters.type !== "all" || filters.q.trim() !== "";
-
   return (
-    <div className="mt-8 space-y-6">
-      <UploadCard />
+    <div className="mt-6 space-y-4">
+      <ExamsToolbar
+        filters={filters}
+        sort={sort}
+        view={view}
+        onSearch={(q) => setFilters({ ...filters, q })}
+        onSort={setSort}
+        onView={setView}
+        onUpload={() => setUploadOpen(true)}
+      />
+
+      <FilterBar filters={filters} onChange={setFilters} />
 
       {msg && (
         <p
@@ -85,56 +59,66 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         </p>
       )}
 
-      <div>
-        {/* หัว + นับ + search */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
-          <h2 className="font-display text-xl font-bold text-ink">
-            ชุดข้อสอบทั้งหมด{" "}
-            <span className="text-sm font-medium text-muted">
-              {exams.length} ชุด · {published} เผยแพร่
-            </span>
-          </h2>
-        </div>
+      <h2 className="text-sm font-medium text-muted">
+        ชุดข้อสอบทั้งหมด{" "}
+        <span className="font-display font-bold tabular-nums text-ink-soft">{exams.length}</span> ชุด ·{" "}
+        <span className="font-display font-bold tabular-nums text-ink-soft">{published}</span> เผยแพร่
+      </h2>
 
-        <FilterBar filters={filters} onChange={setFilters} />
+      <div className="space-y-3">
+        {list.map((e) => (
+          <ExamCard
+            key={e.id}
+            exam={e}
+            pending={pending}
+            onToggleStatus={() =>
+              act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
+            }
+            onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
+            onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
+            onDelete={() => setToDelete(e)}
+          />
+        ))}
 
-        <div className="mt-4 space-y-3">
-          {filtered.map((e) => (
-            <ExamCard
-              key={e.id}
-              exam={e}
-              pending={pending}
-              onToggleStatus={() =>
-                act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
-              }
-              onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
-              onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
-              onDelete={() => setToDelete(e)}
-            />
-          ))}
-
-          {filtered.length === 0 && (
-            <div className="rounded-2xl border border-line bg-white px-5 py-14 text-center shadow-card">
-              <p className="text-2xl">{exams.length === 0 ? "📄" : "🔍"}</p>
-              <p className="mt-2 font-semibold text-ink">
-                {exams.length === 0 ? "ยังไม่มีชุดข้อสอบ" : "ไม่พบชุดที่ตรงกับตัวกรอง"}
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                {exams.length === 0 ? "อัปโหลดไฟล์ HTML ด้านบนเพื่อเริ่ม" : "ลองล้างตัวกรองหรือค้นด้วยคำอื่น"}
-              </p>
-              {exams.length > 0 && hasFilter && (
+        {list.length === 0 && (
+          <div className="rounded-2xl border border-line bg-white px-5 py-14 text-center shadow-card">
+            <p className="text-2xl">{exams.length === 0 ? "📄" : "🔍"}</p>
+            <p className="mt-2 font-semibold text-ink">
+              {exams.length === 0 ? "ยังไม่มีชุดข้อสอบ" : "ไม่พบชุดที่ตรงกับตัวกรอง"}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              {exams.length === 0
+                ? "กด “อัปโหลดชุดใหม่” เพื่อเริ่ม"
+                : "ลองล้างตัวกรองหรือค้นด้วยคำอื่น"}
+            </p>
+            {exams.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => setUploadOpen(true)}
+                className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-700"
+              >
+                อัปโหลดชุดใหม่
+              </button>
+            ) : (
+              hasFilter && (
                 <button
                   type="button"
-                  onClick={() => setFilters({ status: "all", type: "all", q: "" })}
+                  onClick={clearFilters}
                   className="mt-4 rounded-lg border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
                 >
                   ล้างตัวกรอง
                 </button>
-              )}
-            </div>
-          )}
-        </div>
+              )
+            )}
+          </div>
+        )}
       </div>
+
+      <UploadModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUploaded={(m) => setMsg(m)}
+      />
 
       <ConfirmDialog
         open={toDelete !== null}

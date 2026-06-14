@@ -15,15 +15,6 @@ const TYPE_CHIPS: { key: TypeFilter; label: string }[] = [
   { key: "TBAT", label: "TBAT" },
 ];
 
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
-  );
-}
-
 export default function FilterBar({
   filters,
   onChange,
@@ -40,25 +31,8 @@ export default function FilterBar({
   }
 
   return (
-    <div className="space-y-3">
-      {/* search — เต็มกว้างบนมือถือ */}
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
-          <SearchIcon />
-        </span>
-        <input
-          type="search"
-          inputMode="search"
-          value={filters.q}
-          onChange={(e) => onChange({ ...filters, q: e.target.value })}
-          placeholder="ค้นหาชื่อชุดหรือรหัส"
-          aria-label="ค้นหาชุดข้อสอบ"
-          className="w-full rounded-xl border border-line bg-white py-3 pl-10 pr-4 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-        />
-      </div>
-
-      {/* chips — เลื่อนแนวนอนบนมือถือ, wrap บนจอใหญ่ */}
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
+    /* chips — เลื่อนแนวนอนบนมือถือ, wrap บนจอใหญ่ */
+    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
         {STATUS_CHIPS.map((c) => (
           <button
             key={c.key}
@@ -85,6 +59,5 @@ export default function FilterBar({
           </button>
         ))}
       </div>
-    </div>
   );
 }

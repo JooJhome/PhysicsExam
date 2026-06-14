@@ -5,7 +5,8 @@ import Link from "next/link";
 
 export type MenuItem =
   | { kind: "link"; label: string; href: string; newTab?: boolean; icon?: React.ReactNode }
-  | { kind: "button"; label: string; onClick: () => void; danger?: boolean; icon?: React.ReactNode };
+  | { kind: "button"; label: string; onClick: () => void; danger?: boolean; icon?: React.ReactNode }
+  | { kind: "soon"; label: string; icon?: React.ReactNode };
 
 /**
  * เมนู ⋯ — popover บน desktop/tablet, bottom sheet บนมือถือ (<768px)
@@ -57,6 +58,21 @@ export default function ExamMenu({
           {it.icon}
           {it.label}
         </Link>
+      );
+    }
+    if (it.kind === "soon") {
+      return (
+        <div
+          key={it.label}
+          className={`${base} cursor-not-allowed text-muted`}
+          aria-disabled
+        >
+          {it.icon}
+          <span className="flex-1">{it.label}</span>
+          <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[11px] font-semibold text-muted">
+            เร็วๆนี้
+          </span>
+        </div>
       );
     }
     return (
