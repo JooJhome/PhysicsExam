@@ -381,9 +381,10 @@ export async function assignExamToAll(examId: string): Promise<ActionResult> {
 export type AttemptState = "none" | "in_progress" | "submitted";
 export type AssignWindow = { open: string | null; close: string | null; due: string | null };
 export type ExamAssignmentDetail = {
-  exam: { id: string; name: string; code: string; status: string; durationMin: number };
+  exam: { id: string; name: string; code: string; status: string; durationMin: number; kind: "exam" | "practice" };
   window: AssignWindow;
   durationOverride: number | null;
+  untimed: boolean;
   students: {
     id: string;
     username: string;
@@ -399,13 +400,13 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
   const [examRes, studentsRes, assignRes, attemptRes] = await Promise.all([
     supabase
       .from("exams")
-      .select("id, title, exam_code, status, duration_minutes")
+      .select("id, title, exam_code, status, duration_minutes, kind")
       .eq("id", examId)
       .single(),
     supabase.from("profiles").select("id, username, full_name").eq("role", "student").order("username"),
     supabase
       .from("assignments")
-      .select("student_id, open_at, close_at, due_at, duration_override_min")
+      .select("student_id, open_at, close_at, due_at, duration_override_min, untimed")
       .eq("exam_id", examId),
     supabase.from("attempts").select("student_id, status").eq("exam_id", examId),
   ]);
@@ -430,6 +431,7 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
       code: exam.exam_code,
       status: exam.status,
       durationMin: exam.duration_minutes,
+      kind: (exam.kind as "exam" | "practice") ?? "exam",
     },
     window: {
       open: first?.open_at ?? null,
@@ -437,6 +439,7 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
       due: first?.due_at ?? null,
     },
     durationOverride: first?.duration_override_min ?? null,
+    untimed: first?.untimed ?? false,
     students: (studentsRes.data ?? []).map((s) => ({
       id: s.id,
       username: s.username,
@@ -458,7 +461,8 @@ export async function saveAssignment(
   examId: string,
   studentIds: string[],
   window: AssignWindow,
-  durationOverrideMin: number | null
+  durationOverrideMin: number | null,
+  untimed: boolean = false
 ): Promise<SaveAssignmentResult> {
   try {
     const { supabase } = await assertTutor();
@@ -484,6 +488,7 @@ export async function saveAssignment(
       close_at: window.close,
       due_at: window.due,
       duration_override_min: durationOverrideMin,
+      untimed,
     };
 
     // upsert window/override ให้ทุกคนในชุดที่ต้องการ (เพิ่มใหม่ + คงเดิม)

@@ -10,6 +10,7 @@ interface StartData {
   exam_id: string;
   title: string;
   kind: "exam" | "practice";
+  untimed: boolean;
   exam_html: string;
   duration_minutes: number;
   total_questions: number;
@@ -121,9 +122,9 @@ export default function ExamRunner({
     return () => window.removeEventListener("message", onMsg);
   }, [doSubmit]);
 
-  // ---- timer (ข้ามสำหรับแบบฝึกหัด — ไม่จับเวลา) ----
+  // ---- timer (ข้ามเมื่อไม่จับเวลา — practice หรือ assignment.untimed) ----
   useEffect(() => {
-    if (!data || showSurvey || data.kind === "practice") return;
+    if (!data || showSurvey || data.untimed) return;
     const deadline =
       new Date(data.started_at).getTime() + data.duration_minutes * 60000;
     const tick = () => {
@@ -193,6 +194,7 @@ export default function ExamRunner({
   const progressPct = total ? Math.round((answered / total) * 100) : 0;
   const phase = timerPhase(remaining);
   const isPractice = data.kind === "practice";
+  const noTimer = data.untimed;
 
   return (
     <div className="relative flex h-[100dvh] flex-col">
@@ -211,9 +213,9 @@ export default function ExamRunner({
           </span>
 
           <div className="ml-auto flex items-center gap-2.5">
-            {isPractice ? (
+            {noTimer ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 text-xs font-bold text-accent-700 ring-1 ring-accent-200">
-                แบบฝึกหัด · ไม่จับเวลา
+                {isPractice ? "แบบฝึกหัด · ไม่จับเวลา" : "ไม่จับเวลา"}
               </span>
             ) : (
               <>

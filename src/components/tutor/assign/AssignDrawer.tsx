@@ -13,6 +13,7 @@ export type UndoSnapshot = {
   studentIds: string[];
   window: { open: string | null; close: string | null; due: string | null };
   durationOverride: number | null;
+  untimed: boolean;
 };
 
 function isoToLocal(iso: string | null): string {
@@ -47,6 +48,8 @@ export default function AssignDrawer({
   const [close, setClose] = useState(isoToLocal(detail.window.close));
   const [due, setDue] = useState(isoToLocal(detail.window.due));
   const [duration, setDuration] = useState(String(detail.durationOverride ?? detail.exam.durationMin));
+  // practice = ไม่จับเวลาเสมอ (ล็อก) ; exam = เลือกได้
+  const [untimed, setUntimed] = useState(detail.exam.kind === "practice" || detail.untimed);
   const [saving, setSaving] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<number | null>(null);
 
@@ -104,7 +107,8 @@ export default function AssignDrawer({
       localToIso(open) !== detail.window.open ||
       localToIso(close) !== detail.window.close ||
       localToIso(due) !== detail.window.due ||
-      currentOverride() !== (detail.durationOverride ?? null)
+      currentOverride() !== (detail.durationOverride ?? null) ||
+      untimed !== detail.untimed
     );
   }
 
@@ -133,13 +137,15 @@ export default function AssignDrawer({
       detail.exam.id,
       [...selected],
       { open: localToIso(open), close: localToIso(close), due: localToIso(due) },
-      overrideVal
+      overrideVal,
+      untimed
     );
     const undo: UndoSnapshot = {
       examId: detail.exam.id,
       studentIds: [...assignedSet],
       window: detail.window,
       durationOverride: detail.durationOverride,
+      untimed: detail.untimed,
     };
     setSaving(false);
     onSaved(result, undo);
@@ -204,17 +210,39 @@ export default function AssignDrawer({
                 ปิด
                 <input type="datetime-local" value={close} onChange={(e) => setClose(e.target.value)} className={`mt-1 ${field}`} />
               </label>
-              <label className="text-xs font-medium text-muted">
+              <label className={`text-xs font-medium ${untimed ? "text-hint" : "text-muted"}`}>
                 เวลาสอบ (นาที)
                 <input
                   type="number"
                   min={1}
-                  value={duration}
+                  value={untimed ? "" : duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className={`mt-1 ${field} font-display font-bold tabular-nums`}
+                  disabled={untimed}
+                  placeholder={untimed ? "ไม่จับเวลา" : undefined}
+                  className={`mt-1 ${field} font-display font-bold tabular-nums disabled:cursor-not-allowed disabled:bg-canvas disabled:text-hint`}
                 />
               </label>
             </div>
+
+            {/* ไม่จับเวลา */}
+            <label
+              className={`mt-3 inline-flex items-center gap-2 text-sm ${
+                detail.exam.kind === "practice" ? "cursor-not-allowed text-muted" : "cursor-pointer text-ink-soft"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={untimed}
+                disabled={detail.exam.kind === "practice"}
+                onChange={(e) => setUntimed(e.target.checked)}
+                className="h-4 w-4 accent-brand-600"
+              />
+              ไม่จับเวลา
+              {detail.exam.kind === "practice" && (
+                <span className="text-xs text-hint">(แบบฝึกหัด — ไม่จับเวลาเสมอ)</span>
+              )}
+            </label>
+
             <label className="mt-3 block text-xs font-medium text-muted">
               กำหนดส่ง (ถ้ามี)
               <input type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} className={`mt-1 ${field} sm:max-w-xs`} />
