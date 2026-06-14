@@ -10,7 +10,7 @@ export default async function ExamsPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <header>
-        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
+        <h1 className="font-display text-h1 font-extrabold text-ink">
           จัดการข้อสอบ
         </h1>
         <p className="mt-2 text-muted sm:text-lg">
