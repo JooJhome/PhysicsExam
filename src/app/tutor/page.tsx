@@ -24,7 +24,7 @@ export default async function TutorDashboard() {
       <SetupProgressBar done={o.setup.done} steps={o.setup.steps} />
 
       {/* C. หัวเรื่อง + สรุป dynamic */}
-      <header>
+      <header className="motion-safe:animate-rise-in">
         <h1 className="font-display text-h1 font-extrabold text-ink">
           ภาพรวมระบบ
         </h1>
@@ -44,7 +44,7 @@ export default async function TutorDashboard() {
       </header>
 
       {/* D. เมตริก 4 ใบ */}
-      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-4 motion-safe:animate-rise-in [animation-delay:90ms] lg:grid-cols-4">
         <MetricCard
           icon={<FileIcon />}
           label="ชุดข้อสอบ"
@@ -73,7 +73,7 @@ export default async function TutorDashboard() {
       </div>
 
       {/* E. สองคอลัมน์ */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-[1.7fr_1fr]">
+      <div className="mt-5 grid gap-5 motion-safe:animate-rise-in [animation-delay:180ms] lg:grid-cols-[1.7fr_1fr]">
         <div className="space-y-5">
           <ActionItems items={o.actionItems} />
           <ActivityFeed rows={o.activity} />

@@ -50,7 +50,7 @@ export default function ResultsView({ data }: { data: ResultsData }) {
   return (
     <div className="mt-6 space-y-4">
       {/* tiles */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 motion-safe:animate-rise-in sm:grid-cols-4">
         <Tile label="ส่งแล้ว" value={data.tiles.submitted} tone="green" />
         <Tile label="กำลังทำ" value={data.tiles.inProgress} tone="amber" />
         <Tile label="ยังไม่เริ่ม" value={data.tiles.notStarted} tone="plain" />

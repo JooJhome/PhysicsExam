@@ -8,7 +8,7 @@ export default async function AssignPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-5">
-      <header>
+      <header className="motion-safe:animate-rise-in">
         <h1 className="font-display text-h1 font-extrabold text-ink">
           มอบหมายชุดสอบ
         </h1>

@@ -175,7 +175,33 @@ ramp เดิมของ Tailwind (`blue`→teal, `gray`→sand, `amber`, `gre
 ### Named Rules
 **The Hover-Lift Rule.** การ์ดที่กดได้ยกตัว `-translate-y-0.5` ตอน hover (เคารพ reduced-motion) — แสดงว่าโต้ตอบได้ ไม่ใช้เงาหนักซ้อน
 
-## 5. Components
+## 5. Motion
+
+**แบนและสงบเป็นค่าเริ่มต้น — motion คือการเสริมความหมาย ไม่ใช่การประดับ**
+อิงกฎทอง "calm gradient" เดียวกับลูกเล่นวาดมือ: หน้า low-stakes แสดงออกได้ หน้าทำข้อสอบ/ตารางหนาแน่นต้องนิ่งสนิท
+
+**กฎทอง — motion ตามหน้า:**
+- **หน้า low-stakes** (login, dashboard, รายการชุด, ผลคะแนน, empty states): entrance นุ่ม ๆ, hover-lift, decor ลอย, feedback ที่ชัด
+- **หน้าทำข้อสอบ + ตารางหนาแน่น**: **ไม่มี entrance/decor motion** เหลือแค่ transition จำเป็น (focus, สถานะปุ่ม) — "โฟกัสคือความเมตตา"
+
+### Motion Tokens ([tailwind.config.ts](tailwind.config.ts))
+- **`animate-fade-in`** (0.2s): ปรากฏนิ่ง ๆ — error message, overlay
+- **`animate-dialog-in`** (0.22s): เด้งเข้าเบา ๆ — ConfirmDialog
+- **`animate-rise-in`** (0.5s): fade + ลอยขึ้น 12px — entrance หลักของหน้า low-stakes (หัวข้อ → การ์ด)
+- **`animate-shake`** (0.4s): สั่น 1 ครั้ง — feedback error (คู่กับสีแดง semantic + ข้อความ ไม่พึ่ง motion อย่างเดียว)
+- **`animate-float`** (6s loop): ลอยขึ้นลงต่อเนื่อง — decor บรรยากาศ (blob อำพัน, Sparkle) เท่านั้น **ห้ามใช้กับเนื้อหา**
+- **`animate-draw`** (0.8s): วาดเส้น stroke ตัวเอง — `<Underline draw>`, ลูกเล่นวาดมือตอนเข้า
+
+### Named Rules
+**The Motion-Safe Rule.** แอนิเมชันที่ขยับตำแหน่ง/transform ต้องขึ้นต้น `motion-safe:` เสมอ (เช่น `motion-safe:animate-rise-in`, `motion-safe:hover:-translate-y-0.5`) — globals มี reduced-motion reset ทั้งระบบแล้ว แต่ `motion-safe:` ทำให้ความตั้งใจชัดและกัน flash ของ keyframe แรก
+
+**The Stagger Rule.** entrance ของรายการ/หลายชิ้น ไล่ด้วย `style={{ animationDelay }}` ทีละ ~60–80ms **จำกัดเพดาน ~300ms** (อย่าให้ผู้ใช้รอ) — สร้างจังหวะ "ต้อนรับทีละชิ้น" ไม่ใช่หน่วงทั้งหน้า
+
+**The Hover-Lift Rule.** (ดู §4) การ์ด/ปุ่มที่กดได้ยกตัว `motion-safe:hover:-translate-y-0.5` + `hover:shadow-lift` ; กดลง `active:translate-y-0 active:scale-[0.99]`
+
+**The Quiet-Exam Rule.** หน้าทำข้อสอบ ([ExamRunner](src/components/ExamRunner.tsx)) ห้าม `rise-in`/`float`/`draw`/decor — รบกวนสมาธิ
+
+## 6. Components
 
 ### Buttons
 - **Shape:** มุมโค้ง 16px (`rounded-xl`)
@@ -204,7 +230,7 @@ normal = พื้น ink ขาว ; caution ≤10น = amber-100/amber-800 + "
 `Underline` (เส้นใต้วาดมือ), `Sparkle` (ดาว), `Squiggle` (เส้นหยึกหยัก), `ArrowUpRight` (ลูกศรลิงก์),
 `ChalkDoodles` (ดูเดิลบนพื้นเทียล), `Wordmark` (โลโก้) — **ห้ามใช้บนหน้าทำข้อสอบ**
 
-## 6. Do's and Don'ts
+## 7. Do's and Don'ts
 
 ### Do:
 - **Do** ใช้เทียลเป็นเสียงหลัก + อำพันเป็น accent เด่นที่หายาก (The Two-Voice Rule)

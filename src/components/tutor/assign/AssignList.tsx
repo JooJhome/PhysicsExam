@@ -112,8 +112,12 @@ export default function AssignList({ data }: { data: AssignOverview }) {
 
       {/* list */}
       <div className="space-y-3">
-        {exams.map((e) => (
-          <div key={e.id} className={loadingId === e.id ? "opacity-60" : ""}>
+        {exams.map((e, i) => (
+          <div
+            key={e.id}
+            style={{ animationDelay: `${Math.min(i * 60, 300)}ms` }}
+            className={`motion-safe:animate-rise-in ${loadingId === e.id ? "opacity-60" : ""}`}
+          >
             <ExamAssignRow exam={e} totalStudents={data.totalStudents} onOpen={() => openDrawer(e)} />
           </div>
         ))}

@@ -85,19 +85,24 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         />
       ) : (
         <div className="space-y-3">
-          {list.map((e) => (
-            <ExamCard
+          {list.map((e, i) => (
+            <div
               key={e.id}
-              exam={e}
-              pending={pending}
-              onToggleStatus={() =>
-                act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
-              }
-              onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
-              onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
-              onSaveTitle={(title) => act(() => renameExam(e.id, title))}
-              onDelete={() => setToDelete(e)}
-            />
+              style={{ animationDelay: `${Math.min(i * 60, 300)}ms` }}
+              className="motion-safe:animate-rise-in"
+            >
+              <ExamCard
+                exam={e}
+                pending={pending}
+                onToggleStatus={() =>
+                  act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
+                }
+                onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
+                onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
+                onSaveTitle={(title) => act(() => renameExam(e.id, title))}
+                onDelete={() => setToDelete(e)}
+              />
+            </div>
           ))}
 
           {list.length === 0 && (
