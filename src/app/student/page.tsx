@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import AppHeader from "@/components/AppHeader";
+import RefreshOnShow from "@/components/RefreshOnShow";
 import { getProfile } from "@/lib/profile";
 import {
   Underline,
@@ -23,6 +24,36 @@ interface StudentExam {
   submitted_at: string | null;
   attempt_status: string | null;
   reviewed_at: string | null;
+  untimed: boolean;
+  open_at: string | null;
+  close_at: string | null;
+}
+
+// แสดงวันที่/เวลาแบบไทย โซนเวลากรุงเทพฯ (เช่น 20 มิ.ย. 2569 23:59)
+function fmtThaiDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// ป้ายช่วงเวลาทำข้อสอบของแต่ละการมอบหมาย (ยังไม่เปิด / ทำได้ถึง / ปิดรับแล้ว)
+function windowInfo(e: StudentExam): { text: string; closed: boolean } | null {
+  const now = Date.now();
+  if (e.open_at && new Date(e.open_at).getTime() > now)
+    return { text: `เปิดให้ทำ ${fmtThaiDateTime(e.open_at)}`, closed: false };
+  if (e.close_at) {
+    const closed = new Date(e.close_at).getTime() < now;
+    return {
+      text: closed ? "ปิดรับแล้ว" : `ทำได้ถึง ${fmtThaiDateTime(e.close_at)}`,
+      closed,
+    };
+  }
+  return null;
 }
 
 export default async function StudentHome() {
@@ -49,6 +80,7 @@ export default async function StudentHome() {
         title="BSIINK Physics"
         name={profile.full_name || profile.username}
       />
+      <RefreshOnShow />
       <main className="mx-auto max-w-5xl px-4 pb-10 pt-6 sm:px-5">
         {/* ── Hero ── */}
         <section className="grid items-center gap-6 md:grid-cols-[1.4fr_1fr]">
@@ -150,7 +182,7 @@ export default async function StudentHome() {
                       {e.total_questions}
                     </span>{" "}
                     ข้อ ·{" "}
-                    {e.kind === "practice" ? (
+                    {e.untimed || e.kind === "practice" ? (
                       "ไม่จับเวลา"
                     ) : (
                       <>
@@ -161,6 +193,36 @@ export default async function StudentHome() {
                       </>
                     )}
                   </p>
+
+                  {/* ช่วงเวลาทำข้อสอบ (วันที่ติวเตอร์กำหนดตอนมอบหมาย) */}
+                  {e.kind !== "practice" &&
+                    (() => {
+                      const w = windowInfo(e);
+                      if (!w) return null;
+                      return (
+                        <p
+                          className={`mt-2 inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            w.closed
+                              ? "bg-red-50 text-red-600"
+                              : "bg-sand-100 text-ink-soft"
+                          }`}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            aria-hidden="true"
+                          >
+                            <rect x="3" y="4" width="18" height="17" rx="2" />
+                            <path d="M3 9h18M8 2v4M16 2v4" />
+                          </svg>
+                          {w.text}
+                        </p>
+                      );
+                    })()}
 
                   <div className="mt-5 flex items-center justify-between gap-3">
                     {e.attempt_status === "submitted" ? (

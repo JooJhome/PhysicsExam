@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -24,6 +24,8 @@ export default function GroupManager({
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [newName, setNewName] = useState("");
+  const [nameError, setNameError] = useState(false);
+  const newNameRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<GroupListItem | null>(null); // จัดสมาชิก
   const [renameTarget, setRenameTarget] = useState<GroupListItem | null>(null);
   const [renameVal, setRenameVal] = useState("");
@@ -36,7 +38,13 @@ export default function GroupManager({
 
   function onCreate() {
     const name = newName.trim();
-    if (!name) return;
+    if (!name) {
+      // ช่องว่าง → ชี้ให้ชัดว่าต้องกรอกชื่อก่อน (แทนปุ่มสีจางที่งง)
+      setNameError(true);
+      newNameRef.current?.focus();
+      return;
+    }
+    setNameError(false);
     startTransition(async () => {
       const r = await createGroup(name);
       flash(r);
@@ -73,23 +81,37 @@ export default function GroupManager({
   return (
     <div className="mt-6 space-y-4">
       {/* สร้างกลุ่ม */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 shadow-card">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && onCreate()}
-          placeholder="ชื่อกลุ่มใหม่ เช่น ม.6/1, คอร์สเข้มฟิสิกส์"
-          aria-label="ชื่อกลุ่มใหม่"
-          className="min-w-0 flex-1 rounded-xl border border-line bg-white px-4 py-2.5 text-base focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-        />
-        <button
-          type="button"
-          onClick={onCreate}
-          disabled={pending || !newName.trim()}
-          className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
-        >
-          + สร้างกลุ่ม
-        </button>
+      <div className="rounded-2xl border border-line bg-white px-4 py-3 shadow-card">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            ref={newNameRef}
+            value={newName}
+            onChange={(e) => {
+              setNewName(e.target.value);
+              if (nameError) setNameError(false);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && onCreate()}
+            placeholder="ชื่อกลุ่มใหม่ เช่น ม.6/1, คอร์สเข้มฟิสิกส์"
+            aria-label="ชื่อกลุ่มใหม่"
+            aria-invalid={nameError}
+            className={`min-w-0 flex-1 rounded-xl border bg-white px-4 py-2.5 text-base focus:outline-none focus:ring-2 ${
+              nameError
+                ? "border-red-300 focus:border-red-500 focus:ring-red-500/30"
+                : "border-line focus:border-brand-500 focus:ring-brand-500/30"
+            }`}
+          />
+          <button
+            type="button"
+            onClick={onCreate}
+            disabled={pending}
+            className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60"
+          >
+            {pending ? "กำลังสร้าง…" : "+ สร้างกลุ่ม"}
+          </button>
+        </div>
+        {nameError && (
+          <p className="mt-2 text-sm font-medium text-red-600">พิมพ์ชื่อกลุ่มก่อนกดสร้าง</p>
+        )}
       </div>
 
       {msg && (
