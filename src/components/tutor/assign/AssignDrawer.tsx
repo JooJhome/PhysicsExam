@@ -41,6 +41,10 @@ export default function AssignDrawer({
     () => new Set(detail.students.filter((s) => s.assigned).map((s) => s.id)),
     [detail]
   );
+  const studentById = useMemo(
+    () => new Map(detail.students.map((s) => [s.id, s])),
+    [detail.students]
+  );
 
   const [selected, setSelected] = useState<Set<string>>(() => new Set(assignedSet));
   const [q, setQ] = useState("");
@@ -118,16 +122,29 @@ export default function AssignDrawer({
   function selectAll() {
     setSelected(new Set(detail.students.map((s) => s.id)));
   }
-  // เพิ่มสมาชิกทั้งกลุ่มเข้า selection (snapshot ตอนกด) — ข้ามคนที่ล็อก (ส่งแล้ว)
-  function addGroup(memberIds: string[]) {
-    const lockedIds = new Set(
-      detail.students
-        .filter((s) => s.attemptState === "submitted" && !resetIds.has(s.id) && !assignedSet.has(s.id))
-        .map((s) => s.id)
-    );
+  // ล็อก = ส่งแล้ว (และยังไม่รีเซ็ตในเซสชันนี้) → ถอน/มอบไม่ได้
+  function isLocked(id: string): boolean {
+    const s = studentById.get(id);
+    return !!s && s.attemptState === "submitted" && !resetIds.has(s.id);
+  }
+  // สมาชิกกลุ่มที่ "สลับได้" (อยู่ในระบบ + ไม่ล็อก) — คนที่ส่งแล้วถอนไม่ได้ จึงไม่นับ
+  function toggleableMembers(memberIds: string[]): string[] {
+    return memberIds.filter((id) => studentById.has(id) && !isLocked(id));
+  }
+  function groupFullySelected(memberIds: string[]): boolean {
+    const t = toggleableMembers(memberIds);
+    return t.length > 0 && t.every((id) => selected.has(id));
+  }
+  // กดทั้งกลุ่ม = toggle: ครบแล้ว → ถอนทั้งกลุ่ม · ไม่ครบ → มอบทั้งกลุ่ม (ข้ามคนที่ล็อก)
+  function toggleGroup(memberIds: string[]) {
+    const t = toggleableMembers(memberIds);
+    const remove = groupFullySelected(memberIds);
     setSelected((prev) => {
       const next = new Set(prev);
-      for (const id of memberIds) if (!lockedIds.has(id)) next.add(id);
+      for (const id of t) {
+        if (remove) next.delete(id);
+        else next.add(id);
+      }
       return next;
     });
   }
@@ -284,23 +301,34 @@ export default function AssignDrawer({
             <button type="button" onClick={clearAll} className={chip}>ล้าง</button>
           </div>
 
-          {/* เลือกทั้งกลุ่ม */}
+          {/* เลือก/ถอนทั้งกลุ่ม (กดสลับ) */}
           {detail.groups.length > 0 && (
             <div className="mt-2">
-              <p className="mb-1.5 text-xs font-medium text-muted">เพิ่มทั้งกลุ่ม</p>
+              <p className="mb-1.5 text-xs font-medium text-muted">มอบ/ถอนทั้งกลุ่ม (กดอีกครั้งเพื่อถอน)</p>
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-                {detail.groups.map((g) => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => addGroup(g.memberIds)}
-                    disabled={g.memberIds.length === 0}
-                    className="flex-none rounded-full border border-brand-200 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 disabled:opacity-40 min-h-[40px]"
-                  >
-                    + {g.name}
-                    <span className="ml-1 text-xs font-normal text-brand-600/80">({g.memberIds.length})</span>
-                  </button>
-                ))}
+                {detail.groups.map((g) => {
+                  const on = groupFullySelected(g.memberIds);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => toggleGroup(g.memberIds)}
+                      disabled={g.memberIds.length === 0}
+                      aria-pressed={on}
+                      className={`flex-none rounded-full border px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-40 min-h-[40px] ${
+                        on
+                          ? "border-brand-600 bg-brand-600 text-white hover:bg-brand-700"
+                          : "border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
+                      }`}
+                    >
+                      {on ? "✓ " : "+ "}
+                      {g.name}
+                      <span className={`ml-1 text-xs font-normal ${on ? "text-white/80" : "text-brand-600/80"}`}>
+                        ({g.memberIds.length})
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
