@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   saveAssignment,
+  resetAttempt,
   type ExamAssignmentDetail,
   type SaveAssignmentResult,
 } from "@/lib/actions/tutor";
@@ -46,8 +47,11 @@ export default function AssignDrawer({
   const [freeFirst, setFreeFirst] = useState(false);
   const [open, setOpen] = useState(isoToLocal(detail.window.open));
   const [close, setClose] = useState(isoToLocal(detail.window.close));
-  const [due, setDue] = useState(isoToLocal(detail.window.due));
   const [duration, setDuration] = useState(String(detail.durationOverride ?? detail.exam.durationMin));
+  // นักเรียนที่เพิ่งรีเซ็ตในเซสชันนี้ → ปลดล็อก (กลับมาทำใหม่ได้)
+  const [resetIds, setResetIds] = useState<Set<string>>(new Set());
+  const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
+  const [resetting, setResetting] = useState(false);
   // practice = ไม่จับเวลาเสมอ (ล็อก) ; exam = เลือกได้
   const [untimed, setUntimed] = useState(detail.exam.kind === "practice" || detail.untimed);
   const [saving, setSaving] = useState(false);
@@ -106,7 +110,6 @@ export default function AssignDrawer({
     return (
       localToIso(open) !== detail.window.open ||
       localToIso(close) !== detail.window.close ||
-      localToIso(due) !== detail.window.due ||
       currentOverride() !== (detail.durationOverride ?? null) ||
       untimed !== detail.untimed
     );
@@ -115,18 +118,26 @@ export default function AssignDrawer({
   function selectAll() {
     setSelected(new Set(detail.students.map((s) => s.id)));
   }
-  function selectUnassigned() {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      detail.students.forEach((s) => {
-        if (!s.assigned) next.add(s.id);
-      });
-      return next;
-    });
-  }
   function clearAll() {
-    // คงคนที่ส่งแล้วไว้ (ล็อก ถอนไม่ได้)
-    setSelected(new Set(detail.students.filter((s) => s.attemptState === "submitted").map((s) => s.id)));
+    // คงคนที่ส่งแล้ว (ยังไม่รีเซ็ต) ไว้ — ล็อก ถอนไม่ได้
+    setSelected(
+      new Set(
+        detail.students
+          .filter((s) => s.attemptState === "submitted" && !resetIds.has(s.id))
+          .map((s) => s.id)
+      )
+    );
+  }
+
+  // รีเซ็ตการทำของนักเรียนคนเดียว → ลบ attempt+คะแนน, ปลดล็อกให้ทำใหม่ (optimistic)
+  async function doReset() {
+    if (!resetTarget) return;
+    const id = resetTarget.id;
+    setResetting(true);
+    const r = await resetAttempt(detail.exam.id, id);
+    setResetting(false);
+    setResetTarget(null);
+    if (r.ok) setResetIds((prev) => new Set(prev).add(id));
   }
 
   async function doSave() {
@@ -136,7 +147,7 @@ export default function AssignDrawer({
     const result = await saveAssignment(
       detail.exam.id,
       [...selected],
-      { open: localToIso(open), close: localToIso(close), due: localToIso(due) },
+      { open: localToIso(open), close: localToIso(close), due: detail.window.due },
       overrideVal,
       untimed
     );
@@ -242,11 +253,6 @@ export default function AssignDrawer({
                 <span className="text-xs text-hint">(แบบฝึกหัด — ไม่จับเวลาเสมอ)</span>
               )}
             </label>
-
-            <label className="mt-3 block text-xs font-medium text-muted">
-              กำหนดส่ง (ถ้ามี)
-              <input type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} className={`mt-1 ${field} sm:max-w-xs`} />
-            </label>
           </div>
 
           {/* search */}
@@ -262,7 +268,6 @@ export default function AssignDrawer({
           {/* helpers */}
           <div className="mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
             <button type="button" onClick={selectAll} className={chip}>เลือกทั้งหมด</button>
-            <button type="button" onClick={selectUnassigned} className={chip}>ที่ยังไม่ถูกมอบ</button>
             <button type="button" onClick={clearAll} className={chip}>ล้าง</button>
           </div>
 
@@ -279,7 +284,9 @@ export default function AssignDrawer({
           {/* รายนักเรียน */}
           <ul className="mt-2 divide-y divide-line">
             {filtered.map((s) => {
-              const locked = s.attemptState === "submitted";
+              const wasReset = resetIds.has(s.id);
+              const effState = wasReset ? "none" : s.attemptState;
+              const locked = effState === "submitted";
               const checked = selected.has(s.id);
               const willRemove = s.assigned && !checked;
               const willAdd = !s.assigned && checked;
@@ -306,7 +313,20 @@ export default function AssignDrawer({
                       <span className="text-sm italic text-hint"> · ยังไม่ตั้งชื่อ</span>
                     )}
                   </div>
-                  <StatusPill locked={locked} state={s.attemptState} willAdd={willAdd} willRemove={willRemove} checked={checked} />
+                  {/* ส่งแล้ว → ปุ่มรีเซ็ตให้ทำใหม่ (ล้างคะแนนเดิม) */}
+                  {s.attemptState === "submitted" && !wasReset && (
+                    <button
+                      type="button"
+                      onClick={() => setResetTarget({ id: s.id, name: s.displayName || s.username })}
+                      className="flex-none rounded-lg border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      รีเซ็ต
+                    </button>
+                  )}
+                  {wasReset && (
+                    <span className="flex-none text-xs font-semibold text-brand-600">รีเซ็ตแล้ว · ทำใหม่ได้</span>
+                  )}
+                  <StatusPill locked={locked} state={effState} willAdd={willAdd} willRemove={willRemove} checked={checked} />
                 </li>
               );
             })}
@@ -358,6 +378,24 @@ export default function AssignDrawer({
           doSave();
         }}
         onCancel={() => setConfirmRemove(null)}
+      />
+
+      <ConfirmDialog
+        open={resetTarget !== null}
+        title="ให้ทำข้อสอบใหม่?"
+        body={
+          <p>
+            รีเซ็ตการทำของ <b className="text-ink">{resetTarget?.name}</b> ในชุดนี้ —{" "}
+            <b className="text-ink">ลบคำตอบและคะแนนเดิมทิ้ง</b> ให้กลับมาทำใหม่ได้เสมือนไม่เคยทำ
+            (เก็บประวัติไว้ในระบบ ไม่นับในคะแนน) — ย้อนกลับไม่ได้
+          </p>
+        }
+        confirmLabel="รีเซ็ตให้ทำใหม่"
+        cancelLabel="ยกเลิก"
+        tone="danger"
+        busy={resetting}
+        onConfirm={doReset}
+        onCancel={() => setResetTarget(null)}
       />
     </div>
   );
