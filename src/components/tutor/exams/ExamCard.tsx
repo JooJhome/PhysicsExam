@@ -29,6 +29,7 @@ export default function ExamCard({
   onToggleStatus,
   onToggleReview,
   onSaveDuration,
+  onSaveTitle,
   onDelete,
 }: {
   exam: ExamListItem;
@@ -36,10 +37,13 @@ export default function ExamCard({
   onToggleStatus: () => void;
   onToggleReview: (checked: boolean) => void;
   onSaveDuration: (mins: number) => void;
+  onSaveTitle: (title: string) => void;
   onDelete: () => void;
 }) {
   const [editingDuration, setEditingDuration] = useState(false);
   const [draft, setDraft] = useState(String(exam.durationMin));
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(exam.title);
   const published = exam.status === "published";
   const previewHref = `/tutor/exams/preview/${exam.id}`;
 
@@ -50,10 +54,25 @@ export default function ExamCard({
     else setDraft(String(exam.durationMin));
   }
 
+  function commitTitle() {
+    const name = titleDraft.trim();
+    setEditingTitle(false);
+    if (name && name !== exam.title) onSaveTitle(name);
+    else setTitleDraft(exam.title);
+  }
+
   const menuItems: MenuItem[] = [
     { kind: "link", label: "ดูตัวอย่างฉบับนักเรียน", href: previewHref, newTab: true },
     { kind: "link", label: "มอบหมาย", href: "/tutor/assign" },
     { kind: "link", label: "ดูผลของชุดนี้", href: "/tutor/results" },
+    {
+      kind: "button",
+      label: "แก้ชื่อชุด",
+      onClick: () => {
+        setTitleDraft(exam.title);
+        setEditingTitle(true);
+      },
+    },
     {
       kind: "button",
       label: "แก้เวลาสอบ",
@@ -62,7 +81,6 @@ export default function ExamCard({
         setEditingDuration(true);
       },
     },
-    { kind: "soon", label: "แก้ชื่อชุด" },
     { kind: "soon", label: "คัดลอกชุด" },
     { kind: "button", label: "ลบชุดนี้", onClick: onDelete, danger: true },
   ];
@@ -76,9 +94,27 @@ export default function ExamCard({
         {/* ── ซ้าย: ชื่อ+chips / meta ── */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="font-display text-base font-bold leading-snug text-ink">
-              {exam.title}
-            </h3>
+            {editingTitle ? (
+              <input
+                autoFocus
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onBlur={commitTitle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitTitle();
+                  else if (e.key === "Escape") {
+                    setTitleDraft(exam.title);
+                    setEditingTitle(false);
+                  }
+                }}
+                aria-label="แก้ชื่อชุด"
+                className="min-w-0 flex-1 rounded-md border border-brand-300 bg-white px-2 py-0.5 font-display text-base font-bold text-ink focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              />
+            ) : (
+              <h3 className="font-display text-base font-bold leading-snug text-ink">
+                {exam.title}
+              </h3>
+            )}
             <span className="rounded-full bg-brand-50 px-2 py-0.5 font-display text-xs font-bold text-brand-700">
               {exam.code}
             </span>

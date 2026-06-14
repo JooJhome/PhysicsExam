@@ -94,11 +94,11 @@ export default function StudentCard({
             <span>
               ทำเสร็จ <b className="font-display font-bold tabular-nums text-ink-soft">{student.completedCount}</b>
             </span>
-            {student.avgScore != null && (
+            {student.avgPercent != null && (
               <>
                 <span className="text-line">·</span>
                 <span>
-                  เฉลี่ย <b className="font-display font-bold tabular-nums text-ink-soft">{student.avgScore}/30</b>
+                  เฉลี่ย <b className="font-display font-bold tabular-nums text-ink-soft">{student.avgPercent}%</b>
                 </span>
               </>
             )}

@@ -6,6 +6,7 @@ import {
   setExamStatus,
   setExamDuration,
   setAllowReview,
+  renameExam,
   deleteExam,
 } from "@/lib/actions/tutor";
 import type { ExamListItem } from "@/lib/exams";
@@ -76,6 +77,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
             act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
           }
           onToggleReview={(e, checked) => act(() => setAllowReview(e.id, checked))}
+          onSaveTitle={(e, title) => act(() => renameExam(e.id, title))}
           onDelete={(e) => setToDelete(e)}
         />
       ) : (
@@ -90,6 +92,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
               }
               onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
               onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
+              onSaveTitle={(title) => act(() => renameExam(e.id, title))}
               onDelete={() => setToDelete(e)}
             />
           ))}

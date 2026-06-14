@@ -10,7 +10,7 @@ export type StudentListItem = {
   lastActiveLabel: string; // relative ไทย (คำนวณฝั่งเซิร์ฟเวอร์ กัน hydration mismatch)
   assignedCount: number;
   completedCount: number;
-  avgScore: number | null;
+  avgPercent: number | null; // คะแนนเฉลี่ยเป็น % (รองรับข้อสอบที่คะแนนเต็มต่างกัน)
 };
 
 const DAY = 86_400_000;
@@ -34,7 +34,7 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
   const [profilesRes, assignRes, attemptRes, usersRes] = await Promise.all([
     supabase.from("profiles").select("id, username, full_name").eq("role", "student"),
     supabase.from("assignments").select("student_id"),
-    supabase.from("attempts").select("student_id, status, score"),
+    supabase.from("attempts").select("student_id, status, score, total"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ]);
 
@@ -53,12 +53,16 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
     assignedBy.set(a.student_id, (assignedBy.get(a.student_id) ?? 0) + 1);
   }
 
-  const completedBy = new Map<string, { count: number; sum: number }>();
+  // นับ "ทำเสร็จ" และเก็บผลรวมเป็น % (เฉลี่ยข้ามชุดที่คะแนนเต็มต่างกันได้)
+  const completedBy = new Map<string, { count: number; pctSum: number; pctCount: number }>();
   for (const at of attempts) {
     if (at.status !== "submitted" || at.score == null) continue;
-    const cur = completedBy.get(at.student_id) ?? { count: 0, sum: 0 };
+    const cur = completedBy.get(at.student_id) ?? { count: 0, pctSum: 0, pctCount: 0 };
     cur.count += 1;
-    cur.sum += at.score;
+    if (at.total && at.total > 0) {
+      cur.pctSum += (at.score / at.total) * 100;
+      cur.pctCount += 1;
+    }
     completedBy.set(at.student_id, cur);
   }
 
@@ -75,7 +79,7 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
         lastActiveLabel: relativeThai(lastActiveAt, now),
         assignedCount: assignedBy.get(p.id) ?? 0,
         completedCount: done?.count ?? 0,
-        avgScore: done && done.count > 0 ? Math.round(done.sum / done.count) : null,
+        avgPercent: done && done.pctCount > 0 ? Math.round(done.pctSum / done.pctCount) : null,
       };
     })
     .sort((a, b) => a.username.localeCompare(b.username));

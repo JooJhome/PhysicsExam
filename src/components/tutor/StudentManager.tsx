@@ -40,7 +40,7 @@ export default function StudentManager({ students }: { students: StudentListItem
         out.sort((a, b) => b.assignedCount - a.assignedCount);
         break;
       case "avg":
-        out.sort((a, b) => (b.avgScore ?? -1) - (a.avgScore ?? -1));
+        out.sort((a, b) => (b.avgPercent ?? -1) - (a.avgPercent ?? -1));
         break;
       case "recent":
       default:
