@@ -107,6 +107,7 @@ export default async function ResultPage({
             <ReviewView
               reviewHtml={review.review_html}
               answers={review.answers ?? []}
+              studentName={profile.full_name || profile.username}
             />
           </div>
         ) : (

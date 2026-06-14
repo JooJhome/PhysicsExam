@@ -35,6 +35,7 @@ function parseCsv(text: string, existing: Set<string>): ParsedRow[] {
       if (!username) error = "ไม่มี username";
       else if (existing.has(username)) error = "ซ้ำกับที่มีอยู่";
       else if (seen.has(username)) error = "ซ้ำในไฟล์";
+      else if (!fullName) error = "ไม่มีชื่อ-สกุล";
       else if (password && password.length < 6) error = "รหัสสั้นกว่า 6 ตัว";
 
       if (username) seen.add(username);
@@ -206,9 +207,9 @@ export default function AddStudentCard({
             </div>
             <div>
               <label htmlFor="full_name" className="mb-1.5 block text-sm font-semibold text-ink-soft">
-                ชื่อ-สกุล <span className="font-normal text-muted">(ไม่บังคับ)</span>
+                ชื่อ-สกุล <span className="font-normal text-muted">(ใช้เป็นลายน้ำตอนสอบ)</span>
               </label>
-              <input id="full_name" name="full_name" placeholder="เช่น สมชาย ใจดี" className={field} />
+              <input id="full_name" name="full_name" required placeholder="เช่น สมชาย ใจดี" className={field} />
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">

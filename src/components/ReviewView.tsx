@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Watermark from "@/components/Watermark";
 
 export default function ReviewView({
   reviewHtml,
   answers,
+  studentName,
 }: {
   reviewHtml: string;
   answers: number[];
+  studentName: string;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -26,11 +29,15 @@ export default function ReviewView({
   }, [answers]);
 
   return (
-    <iframe
-      ref={iframeRef}
-      srcDoc={reviewHtml}
-      className="h-[80vh] w-full rounded-xl border border-gray-200 bg-white"
-      title="review"
-    />
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <iframe
+        ref={iframeRef}
+        srcDoc={reviewHtml}
+        className="h-[80vh] w-full border-0"
+        title="review"
+      />
+      {/* ลายน้ำชื่อนักเรียน — เหมือนตอนทำข้อสอบจริง (กันแคป/ไฟล์หลุด) */}
+      <Watermark name={studentName} />
+    </div>
   );
 }

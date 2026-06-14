@@ -91,7 +91,11 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
       return {
         id: p.id,
         username: p.username,
-        displayName: p.full_name?.trim() || null,
+        // ชื่อจริง — ถ้าเท่ากับ username แปลว่าเป็น fallback เก่า (ยังไม่ได้ตั้งชื่อจริง)
+        displayName:
+          p.full_name?.trim() && p.full_name.trim() !== p.username
+            ? p.full_name.trim()
+            : null,
         status: (lastActiveAt ? "active" : "never") as "active" | "never",
         lastActiveAt,
         lastActiveLabel: relativeThai(lastActiveAt, now),
