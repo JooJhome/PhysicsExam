@@ -93,10 +93,12 @@ export default function ExamsToolbar({
           </button>
           <button
             type="button"
-            disabled
-            title="มุมมองตาราง — เร็วๆนี้"
-            aria-label="มุมมองตาราง (เร็วๆนี้)"
-            className="grid h-10 w-10 cursor-not-allowed place-items-center rounded-[0.6rem] text-muted/40"
+            onClick={() => onView("table")}
+            aria-pressed={view === "table"}
+            aria-label="มุมมองตาราง"
+            className={`grid h-10 w-10 place-items-center rounded-[0.6rem] transition-colors ${
+              view === "table" ? "bg-brand-600 text-white" : "text-muted hover:text-ink"
+            }`}
           >
             <Icon d="M3 5h18M3 10h18M3 15h18M3 20h18" />
           </button>
