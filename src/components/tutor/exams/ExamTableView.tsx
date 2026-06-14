@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { ExamListItem } from "@/lib/exams";
 import ExamMenu, { type MenuItem } from "./ExamMenu";
@@ -12,6 +13,7 @@ export default function ExamTableView({
   onSort,
   onToggleStatus,
   onToggleReview,
+  onSaveTitle,
   onDelete,
 }: {
   exams: ExamListItem[];
@@ -20,8 +22,18 @@ export default function ExamTableView({
   onSort: (s: SortKey) => void;
   onToggleStatus: (e: ExamListItem) => void;
   onToggleReview: (e: ExamListItem, checked: boolean) => void;
+  onSaveTitle: (e: ExamListItem, title: string) => void;
   onDelete: (e: ExamListItem) => void;
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState("");
+
+  function commitTitle(e: ExamListItem) {
+    const name = titleDraft.trim();
+    setEditingId(null);
+    if (name && name !== e.title) onSaveTitle(e, name);
+  }
+
   return (
     <div className="overflow-x-auto rounded-2xl border border-line bg-white shadow-card">
       <table className="w-full min-w-[720px] text-left text-sm">
@@ -44,14 +56,36 @@ export default function ExamTableView({
               { kind: "link", label: "ดูตัวอย่างฉบับนักเรียน", href: previewHref, newTab: true },
               { kind: "link", label: "มอบหมาย", href: "/tutor/assign" },
               { kind: "link", label: "ดูผลของชุดนี้", href: "/tutor/results" },
-              { kind: "soon", label: "แก้ชื่อชุด" },
+              {
+                kind: "button",
+                label: "แก้ชื่อชุด",
+                onClick: () => {
+                  setTitleDraft(e.title);
+                  setEditingId(e.id);
+                },
+              },
               { kind: "soon", label: "คัดลอกชุด" },
               { kind: "button", label: "ลบชุดนี้", onClick: () => onDelete(e), danger: true },
             ];
             return (
               <tr key={e.id} className="transition-colors hover:bg-canvas/70">
                 <td className="px-4 py-3">
-                  <p className="font-semibold text-ink">{e.title}</p>
+                  {editingId === e.id ? (
+                    <input
+                      autoFocus
+                      value={titleDraft}
+                      onChange={(ev) => setTitleDraft(ev.target.value)}
+                      onBlur={() => commitTitle(e)}
+                      onKeyDown={(ev) => {
+                        if (ev.key === "Enter") commitTitle(e);
+                        else if (ev.key === "Escape") setEditingId(null);
+                      }}
+                      aria-label="แก้ชื่อชุด"
+                      className="w-full rounded-md border border-brand-300 bg-white px-2 py-1 font-semibold text-ink focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                    />
+                  ) : (
+                    <p className="font-semibold text-ink">{e.title}</p>
+                  )}
                   <span className="font-display text-xs text-muted">{e.code}</span>
                 </td>
                 <td className="px-4 py-3">

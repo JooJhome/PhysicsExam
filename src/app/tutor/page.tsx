@@ -9,7 +9,7 @@ import {
   FileIcon,
   UsersIcon,
   ClockIcon,
-  ChartIcon,
+  SendIcon,
 } from "@/components/tutor/overview/sections";
 
 export const dynamic = "force-dynamic";
@@ -58,22 +58,17 @@ export default async function TutorDashboard() {
           context={`ใช้งานสัปดาห์นี้ ${o.students.activeThisWeek} คน`}
         />
         <MetricCard
-          icon={<ClockIcon />}
-          label="ค้างส่ง"
-          value={o.pending}
-          context="มอบหมายแล้วยังไม่ทำ"
-          accent
+          icon={<SendIcon />}
+          label="ส่งวันนี้"
+          value={o.today.submitted}
+          context="ส่งคำตอบเข้ามาวันนี้"
         />
         <MetricCard
-          icon={<ChartIcon />}
-          label="คะแนนเฉลี่ย"
-          value={
-            <>
-              {o.avgScore.score}
-              <span className="text-xl text-muted">/{o.avgScore.total}</span>
-            </>
-          }
-          context={`จาก ${o.avgScore.count} ครั้งที่ส่ง`}
+          icon={<ClockIcon />}
+          label="กำลังทำ"
+          value={o.today.inProgress}
+          context="เปิดทำอยู่ตอนนี้"
+          accent
         />
       </div>
 

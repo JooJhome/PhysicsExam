@@ -138,6 +138,21 @@ export async function setExamDuration(
     : { ok: true, message: `ตั้งเวลาเป็น ${duration} นาทีแล้ว` };
 }
 
+export async function renameExam(
+  examId: string,
+  title: string
+): Promise<ActionResult> {
+  const { supabase } = await assertTutor();
+  const name = title.trim();
+  if (name.length < 1) return { ok: false, message: "ชื่อชุดห้ามว่าง" };
+  if (name.length > 120) return { ok: false, message: "ชื่อชุดยาวเกินไป (เกิน 120 ตัวอักษร)" };
+  const { error } = await supabase.from("exams").update({ title: name }).eq("id", examId);
+  revalidatePath("/tutor/exams");
+  return error
+    ? { ok: false, message: error.message }
+    : { ok: true, message: `เปลี่ยนชื่อเป็น "${name}" แล้ว` };
+}
+
 export async function setAllowReview(
   examId: string,
   allow: boolean

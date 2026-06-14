@@ -4,9 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 export type Overview = {
   exams: { total: number; published: number; draft: number };
   students: { total: number; activeThisWeek: number };
-  pending: number;
+  today: { submitted: number; inProgress: number };
   completion: { done: number; total: number; rate: number };
-  avgScore: { score: number; total: number; count: number };
   setup: { done: number; steps: SetupStep[] };
   actionItems: ActionItem[];
   activity: ActivityRow[];
@@ -97,18 +96,23 @@ export async function getTutorOverview(): Promise<Overview> {
     attempts.filter((a) => a.started_at && a.started_at >= weekAgo).map((a) => a.student_id)
   );
 
-  // ----- pending / completion -----
+  // ----- completion (อัตราการทำเสร็จของงานที่มอบหมาย) -----
   const pending = assignments.filter((a) => !submittedKeys.has(key(a.exam_id, a.student_id))).length;
   const totalAssign = assignments.length;
   const done = totalAssign - pending;
   const rate = totalAssign > 0 ? Math.round((done / totalAssign) * 100) : 0;
 
-  // ----- avg score -----
+  // ----- สัญญาณ "วันนี้" (ไม่บวมตามจำนวนมอบหมาย ใช้ดูความเคลื่อนไหวสด ๆ) -----
+  // ขอบเขตวันตามเวลาไทย (UTC+7) ไม่ผูกกับ timezone ของเซิร์ฟเวอร์
+  const BKK = 7 * 3_600_000;
+  const startTodayIso = new Date(Math.floor((now + BKK) / DAY) * DAY - BKK).toISOString();
+  const submittedToday = attempts.filter(
+    (a) => a.status === "submitted" && a.submitted_at && a.submitted_at >= startTodayIso
+  ).length;
+  const inProgressNow = attempts.filter((a) => a.status === "in_progress").length;
+
+  // ใช้สำหรับ setup step "รับผลสอบ"
   const submitted = attempts.filter((a) => a.status === "submitted" && a.score != null);
-  const sumScore = submitted.reduce((s, a) => s + (a.score ?? 0), 0);
-  const avgScore = submitted.length > 0 ? Math.round(sumScore / submitted.length) : 0;
-  const denom =
-    submitted.find((a) => a.total)?.total ?? exams[0]?.total_questions ?? 30;
 
   // ----- setup steps -----
   const steps: SetupStep[] = [
@@ -169,9 +173,8 @@ export async function getTutorOverview(): Promise<Overview> {
   return {
     exams: { total: exams.length, published, draft },
     students: { total: students.length, activeThisWeek: activeIds.size },
-    pending,
+    today: { submitted: submittedToday, inProgress: inProgressNow },
     completion: { done, total: totalAssign, rate },
-    avgScore: { score: avgScore, total: denom, count: submitted.length },
     setup: { done: setupDone, steps },
     actionItems,
     activity,

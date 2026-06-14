@@ -33,3 +33,8 @@ supabase/.temp/
 # ระบบ
 .DS_Store
 *.log
+
+# เครื่องมือ/ชั่วคราว (local เท่านั้น)
+.playwright-mcp/
+exam-titles-backup.json
+.mcp.json

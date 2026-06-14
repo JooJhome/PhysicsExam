@@ -176,9 +176,10 @@ function ScoreChip({ row }: { row: ActivityRow }) {
   const tone = row.passed
     ? "bg-brand-50 text-brand-700"
     : "bg-accent-50 text-accent-700";
+  const pct = row.total ? Math.round((row.score / row.total) * 100) : null;
   return (
     <span className={`flex-none rounded-full px-2.5 py-1 font-display text-xs font-bold tabular-nums ${tone}`}>
-      {row.score}/{row.total}
+      {pct != null ? `${pct}%` : `${row.score}/${row.total}`}
     </span>
   );
 }
