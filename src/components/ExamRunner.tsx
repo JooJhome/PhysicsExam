@@ -9,6 +9,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 interface StartData {
   exam_id: string;
   title: string;
+  kind: "exam" | "practice";
   exam_html: string;
   duration_minutes: number;
   total_questions: number;
@@ -43,6 +44,7 @@ export default function ExamRunner({
   const [dialog, setDialog] = useState<DialogState>(null);
   const submittedRef = useRef(false);
   const startedRef = useRef(false);
+  const practiceRef = useRef(false); // อ่านใน doSubmit (เลี่ยง stale closure)
 
   // ---- เริ่ม/กลับเข้าทำข้อสอบ ----
   useEffect(() => {
@@ -66,7 +68,9 @@ export default function ExamRunner({
           setLoadError(mapError(error.message));
           return;
         }
-        setData(data as StartData);
+        const sd = data as StartData;
+        practiceRef.current = sd.kind === "practice";
+        setData(sd);
       });
   }, [examId, router]);
 
@@ -94,10 +98,15 @@ export default function ExamRunner({
         return;
       }
       iframeRef.current?.contentWindow?.postMessage({ type: "EXAM_LOCK" }, "*");
-      // ส่งสำเร็จ → บังคับตอบแบบสอบถามก่อน แล้วค่อยกลับหน้าหลัก
+      // แบบฝึกหัด: ข้ามแบบสอบถาม → ไปหน้าเฉลย/ผลได้เลย (ทำใหม่ได้)
+      if (practiceRef.current) {
+        router.replace(`/student/result/${examId}`);
+        return;
+      }
+      // ข้อสอบจริง: บังคับตอบแบบสอบถามก่อน แล้วค่อยกลับหน้าหลัก
       setShowSurvey(true);
     },
-    [examId]
+    [examId, router]
   );
 
   // ---- รับ message จาก iframe ----
@@ -112,9 +121,9 @@ export default function ExamRunner({
     return () => window.removeEventListener("message", onMsg);
   }, [doSubmit]);
 
-  // ---- timer ----
+  // ---- timer (ข้ามสำหรับแบบฝึกหัด — ไม่จับเวลา) ----
   useEffect(() => {
-    if (!data || showSurvey) return;
+    if (!data || showSurvey || data.kind === "practice") return;
     const deadline =
       new Date(data.started_at).getTime() + data.duration_minutes * 60000;
     const tick = () => {
@@ -183,6 +192,7 @@ export default function ExamRunner({
   const total = data.total_questions;
   const progressPct = total ? Math.round((answered / total) * 100) : 0;
   const phase = timerPhase(remaining);
+  const isPractice = data.kind === "practice";
 
   return (
     <div className="relative flex h-[100dvh] flex-col">
@@ -201,26 +211,34 @@ export default function ExamRunner({
           </span>
 
           <div className="ml-auto flex items-center gap-2.5">
-            {phase !== "normal" && (
-              <span
-                aria-live="polite"
-                className={`hidden text-xs font-semibold sm:inline ${
-                  phase === "danger" ? "text-red-700" : "text-amber-700"
-                }`}
-              >
-                {phase === "danger" ? "ใกล้หมดเวลามาก" : "ใกล้หมดเวลา"}
+            {isPractice ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1 text-xs font-bold text-accent-700 ring-1 ring-accent-200">
+                แบบฝึกหัด · ไม่จับเวลา
               </span>
+            ) : (
+              <>
+                {phase !== "normal" && (
+                  <span
+                    aria-live="polite"
+                    className={`hidden text-xs font-semibold sm:inline ${
+                      phase === "danger" ? "text-red-700" : "text-amber-700"
+                    }`}
+                  >
+                    {phase === "danger" ? "ใกล้หมดเวลามาก" : "ใกล้หมดเวลา"}
+                  </span>
+                )}
+                <span
+                  role="timer"
+                  aria-label={`เวลาที่เหลือ ${fmt(remaining)}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-display text-sm font-bold tabular-nums ring-1 ${timerToneClass(
+                    phase
+                  )}`}
+                >
+                  <ClockIcon />
+                  {fmt(remaining)}
+                </span>
+              </>
             )}
-            <span
-              role="timer"
-              aria-label={`เวลาที่เหลือ ${fmt(remaining)}`}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-display text-sm font-bold tabular-nums ring-1 ${timerToneClass(
-                phase
-              )}`}
-            >
-              <ClockIcon />
-              {fmt(remaining)}
-            </span>
             <button
               onClick={onClickSubmit}
               disabled={submitting}
@@ -276,7 +294,9 @@ export default function ExamRunner({
               <p>คุณตอบครบทุกข้อแล้ว</p>
             )}
             <p className="mt-1.5 font-medium text-ink">
-              เมื่อส่งแล้วจะแก้ไขคำตอบไม่ได้ และทำชุดนี้ซ้ำไม่ได้
+              {isPractice
+                ? "ส่งแล้วดูเฉลยได้ และกลับมาทำใหม่ได้"
+                : "เมื่อส่งแล้วจะแก้ไขคำตอบไม่ได้ และทำชุดนี้ซ้ำไม่ได้"}
             </p>
           </>
         }

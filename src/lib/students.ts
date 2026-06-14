@@ -31,17 +31,22 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
   const supabase = await createClient();
   const admin = createAdminClient();
 
-  const [profilesRes, assignRes, attemptRes, usersRes] = await Promise.all([
+  const [profilesRes, assignRes, attemptRes, examsRes, usersRes] = await Promise.all([
     supabase.from("profiles").select("id, username, full_name").eq("role", "student"),
-    supabase.from("assignments").select("student_id"),
-    supabase.from("attempts").select("student_id, status, score, total"),
+    supabase.from("assignments").select("student_id, exam_id"),
+    supabase.from("attempts").select("student_id, exam_id, status, score, total"),
+    supabase.from("exams").select("id, kind"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ]);
 
   const now = Date.now();
   const profiles = profilesRes.data ?? [];
-  const assignments = assignRes.data ?? [];
-  const attempts = attemptRes.data ?? [];
+  // สถิติของนักเรียน = งาน graded เท่านั้น → ตัดแบบฝึกหัดออกจาก มอบหมาย/ทำเสร็จ/เฉลี่ย
+  const practiceIds = new Set(
+    (examsRes.data ?? []).filter((e) => e.kind === "practice").map((e) => e.id)
+  );
+  const assignments = (assignRes.data ?? []).filter((a) => !practiceIds.has(a.exam_id));
+  const attempts = (attemptRes.data ?? []).filter((a) => !practiceIds.has(a.exam_id));
 
   const lastSignInById = new Map<string, string | null>();
   for (const u of usersRes.data?.users ?? []) {
