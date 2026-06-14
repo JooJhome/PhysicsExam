@@ -57,6 +57,66 @@ export function transformExam(rawHtml: string): TransformResult {
   return { title, totalQuestions, answers, examHtml, reviewHtml };
 }
 
+export interface AnalyzeResult {
+  ok: boolean;
+  title: string;
+  questionCount: number; // จาก const ANS
+  domQuestionCount: number; // จาก .q[data-n] ในไฟล์
+  strippedCount: number; // จำนวนเฉลย (.sol/.ansBtn) ที่จะถูกถอดออก
+  katexOk: boolean; // heuristic: delimiter สมดุล
+  errors: string[]; // ปัญหาที่บล็อกการอัปโหลด
+  warnings: string[]; // เตือนแต่ยังอัปได้
+}
+
+/**
+ * วิเคราะห์ไฟล์ก่อนอัปโหลดจริง — ไม่ throw, เก็บปัญหาเป็น errors/warnings
+ * ใช้กับแถบสรุปผลในการ์ดอัปโหลด
+ */
+export function analyzeExam(rawHtml: string): AnalyzeResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  let questionCount = 0;
+  try {
+    questionCount = extractAnswers(rawHtml).length;
+  } catch (err) {
+    errors.push((err as Error).message);
+  }
+
+  const $ = cheerio.load(rawHtml);
+  const title =
+    $("title").first().text().trim() ||
+    $(".head h1").first().text().trim() ||
+    "ข้อสอบ";
+  const domQuestionCount = $(".q[data-n]").length;
+  const strippedCount = $(".sol").length;
+
+  if (questionCount > 0 && domQuestionCount > 0 && questionCount !== domQuestionCount) {
+    warnings.push(`เฉลยมี ${questionCount} ข้อ แต่พบโจทย์ในไฟล์ ${domQuestionCount} ข้อ`);
+  }
+  if (questionCount > 0 && strippedCount === 0) {
+    warnings.push("ไม่พบบล็อกเฉลย (.sol) ในไฟล์ — ตรวจสอบว่าใช้ไฟล์ฉบับเฉลยถูกต้อง");
+  }
+
+  // KaTeX heuristic — delimiter ต้องสมดุล
+  const open = (rawHtml.match(/\\\(/g) || []).length;
+  const close = (rawHtml.match(/\\\)/g) || []).length;
+  const dollar = (rawHtml.match(/\$\$/g) || []).length;
+  const katexOk = open === close && dollar % 2 === 0;
+  if (!katexOk) warnings.push("พบ KaTeX delimiter ไม่สมดุล — สูตรบางตัวอาจแสดงผลเพี้ยน");
+
+  return {
+    ok: errors.length === 0,
+    title,
+    questionCount,
+    domQuestionCount,
+    strippedCount,
+    katexOk,
+    errors,
+    warnings,
+  };
+}
+
 export function extractAnswers(rawHtml: string): number[] {
   const m = rawHtml.match(ANS_RE);
   if (!m) throw new Error("หาไม่เจอ const ANS=[...] ในไฟล์ข้อสอบ");
