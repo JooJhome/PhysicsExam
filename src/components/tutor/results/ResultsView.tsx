@@ -48,7 +48,7 @@ export default function ResultsView({ data }: { data: ResultsData }) {
   }
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-6 space-y-4">
       {/* tiles */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tile label="ส่งแล้ว" value={data.tiles.submitted} tone="green" />
@@ -75,9 +75,26 @@ export default function ResultsView({ data }: { data: ResultsData }) {
         </button>
       ))}
 
-      {/* view switcher + search */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-1 rounded-xl bg-canvas p-1">
+      {/* toolbar: search (flex-1) + view switcher */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </span>
+          <input
+            type="search"
+            inputMode="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="ค้นนักเรียน / ชุด"
+            aria-label="ค้นหา"
+            className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+          />
+        </div>
+        <div className="flex flex-none gap-1 rounded-xl bg-canvas p-1">
           {(
             [
               ["submissions", "รายการส่ง"],
@@ -98,14 +115,6 @@ export default function ResultsView({ data }: { data: ResultsData }) {
             </button>
           ))}
         </div>
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="ค้นนักเรียน/ชุด"
-          aria-label="ค้นหา"
-          className="w-full rounded-xl border border-line bg-white px-4 py-3 text-base focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:w-64"
-        />
       </div>
 
       {msg && <p className="rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700 ring-1 ring-green-200">{msg}</p>}
@@ -161,9 +170,9 @@ function Tile({ label, value, tone }: { label: string; value: number | string; t
   const valueCls =
     tone === "green" ? "text-green-700" : tone === "amber" ? "text-accent-700" : "text-ink";
   return (
-    <div className="rounded-2xl border border-line bg-white p-4 shadow-card">
+    <div className="rounded-2xl border border-line bg-white px-4 py-3 shadow-card">
       <p className="text-[13px] font-medium text-muted">{label}</p>
-      <p className={`mt-1 font-display text-3xl font-extrabold tabular-nums ${valueCls}`}>{value}</p>
+      <p className={`mt-0.5 font-display text-2xl font-extrabold tabular-nums ${valueCls}`}>{value}</p>
     </div>
   );
 }
@@ -223,7 +232,7 @@ function SubmissionList({
             key={r.attemptId}
             className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-line bg-white p-4 shadow-card"
           >
-            <span className="grid h-10 w-10 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
               {r.initials}
             </span>
             <div className="min-w-0 flex-1">
@@ -259,7 +268,7 @@ function StudentList({ rows }: { rows: StudentSummary[] }) {
     <div className="space-y-2.5">
       {rows.map((s) => (
         <article key={s.studentId} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-4 shadow-card">
-          <span className="grid h-10 w-10 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
+          <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
             {s.initials}
           </span>
           <div className="min-w-0 flex-1">
