@@ -184,7 +184,9 @@ export default {
       animation: {
         "fade-in": "fade-in 0.2s ease-out both",
         "dialog-in": "dialog-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both",
-        "rise-in": "rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
+        // fill-mode = backwards (ไม่ใช่ both): คง from-state ระหว่าง delay แต่ "ไม่" ทิ้ง
+        // transform ค้างหลังจบ → การ์ดไม่กลายเป็น stacking context ถาวร (เมนู ⋯ จะไม่ถูกการ์ดล่างทับ)
+        "rise-in": "rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards",
         shake: "shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both",
         float: "float 6s ease-in-out infinite",
         draw: "draw 0.8s ease-out 0.3s both",
