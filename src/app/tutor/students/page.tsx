@@ -4,7 +4,7 @@ import StudentManager from "@/components/tutor/StudentManager";
 export const dynamic = "force-dynamic";
 
 export default async function StudentsPage() {
-  const students = await getTutorStudents();
+  const { students, groups } = await getTutorStudents();
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-5">
@@ -16,7 +16,7 @@ export default async function StudentsPage() {
           เพิ่มบัญชีทีละคนหรือวาง CSV และจัดการรายชื่อ
         </p>
       </header>
-      <StudentManager students={students} />
+      <StudentManager students={students} groups={groups} />
     </main>
   );
 }

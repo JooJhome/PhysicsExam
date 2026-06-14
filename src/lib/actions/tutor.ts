@@ -367,6 +367,123 @@ export async function deleteStudent(studentId: string): Promise<ActionResult> {
   }
 }
 
+/* ---------------- กลุ่ม/ห้องเรียน ---------------- */
+
+function revalidateGroups() {
+  revalidatePath("/tutor/groups");
+  revalidatePath("/tutor/assign");
+  revalidatePath("/tutor/students");
+  revalidatePath("/tutor/results");
+}
+
+export async function createGroup(name: string, color?: string | null): Promise<ActionResult> {
+  try {
+    const { supabase, userId } = await assertTutor();
+    const trimmed = name.trim();
+    if (!trimmed) return { ok: false, message: "กรอกชื่อกลุ่ม" };
+    const { error } = await supabase
+      .from("groups")
+      .insert({ name: trimmed, color: color ?? null, created_by: userId });
+    if (error) return { ok: false, message: error.message };
+    revalidateGroups();
+    return { ok: true, message: `สร้างกลุ่ม “${trimmed}” แล้ว` };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+export async function renameGroup(
+  groupId: string,
+  name: string,
+  color?: string | null
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await assertTutor();
+    const trimmed = name.trim();
+    if (!trimmed) return { ok: false, message: "กรอกชื่อกลุ่ม" };
+    const patch: { name: string; color?: string | null } = { name: trimmed };
+    if (color !== undefined) patch.color = color;
+    const { error } = await supabase.from("groups").update(patch).eq("id", groupId);
+    if (error) return { ok: false, message: error.message };
+    revalidateGroups();
+    return { ok: true, message: "บันทึกแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+export async function deleteGroup(groupId: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await assertTutor();
+    // ลบกลุ่มเท่านั้น — assignments ที่มอบไปแล้วคงอยู่ (snapshot) ไม่กระทบนักเรียน
+    const { error } = await supabase.from("groups").delete().eq("id", groupId);
+    if (error) return { ok: false, message: error.message };
+    revalidateGroups();
+    return { ok: true, message: "ลบกลุ่มแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+/** ตั้งสมาชิกกลุ่มเป็นชุดใหม่ทั้งหมด (diff add/remove) */
+export async function setGroupMembers(
+  groupId: string,
+  studentIds: string[]
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await assertTutor();
+    const { data: cur } = await supabase
+      .from("group_members")
+      .select("student_id")
+      .eq("group_id", groupId);
+    const current = new Set((cur ?? []).map((m) => m.student_id));
+    const desired = new Set(studentIds);
+    const toAdd = [...desired].filter((id) => !current.has(id));
+    const toRemove = [...current].filter((id) => !desired.has(id));
+
+    if (toAdd.length > 0) {
+      const rows = toAdd.map((sid) => ({ group_id: groupId, student_id: sid }));
+      const { error } = await supabase.from("group_members").insert(rows);
+      if (error) return { ok: false, message: error.message };
+    }
+    if (toRemove.length > 0) {
+      const { error } = await supabase
+        .from("group_members")
+        .delete()
+        .eq("group_id", groupId)
+        .in("student_id", toRemove);
+      if (error) return { ok: false, message: error.message };
+    }
+    revalidateGroups();
+    return { ok: true, message: `เพิ่ม ${toAdd.length} · ออก ${toRemove.length} คน` };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+/** เพิ่มนักเรียนหลายคนเข้าหลายกลุ่ม (bulk จากหน้านักเรียน) — ไม่ถอนใคร */
+export async function addStudentsToGroups(
+  studentIds: string[],
+  groupIds: string[]
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await assertTutor();
+    if (studentIds.length === 0 || groupIds.length === 0)
+      return { ok: false, message: "เลือกนักเรียนและกลุ่มก่อน" };
+    const rows = groupIds.flatMap((gid) =>
+      studentIds.map((sid) => ({ group_id: gid, student_id: sid }))
+    );
+    const { error } = await supabase
+      .from("group_members")
+      .upsert(rows, { onConflict: "group_id,student_id", ignoreDuplicates: true });
+    if (error) return { ok: false, message: error.message };
+    revalidateGroups();
+    return { ok: true, message: `เพิ่ม ${studentIds.length} คนเข้า ${groupIds.length} กลุ่มแล้ว` };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
 /* ---------------- มอบหมาย ---------------- */
 
 export async function toggleAssignment(
@@ -421,12 +538,13 @@ export type ExamAssignmentDetail = {
     assigned: boolean;
     attemptState: AttemptState;
   }[];
+  groups: { id: string; name: string; color: string | null; memberIds: string[] }[];
 };
 
 /** รายละเอียดการมอบหมายของชุดหนึ่ง — ใช้เปิด drawer เลือกนักเรียน */
 export async function getExamAssignment(examId: string): Promise<ExamAssignmentDetail> {
   const { supabase } = await assertTutor();
-  const [examRes, studentsRes, assignRes, attemptRes] = await Promise.all([
+  const [examRes, studentsRes, assignRes, attemptRes, groupsRes, membersRes] = await Promise.all([
     supabase
       .from("exams")
       .select("id, title, exam_code, status, duration_minutes, kind")
@@ -438,6 +556,8 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
       .select("student_id, open_at, close_at, due_at, duration_override_min, untimed")
       .eq("exam_id", examId),
     supabase.from("attempts").select("student_id, status").eq("exam_id", examId),
+    supabase.from("groups").select("id, name, color").order("name"),
+    supabase.from("group_members").select("group_id, student_id"),
   ]);
 
   const exam = examRes.data;
@@ -452,6 +572,19 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
 
   // window/override ใช้ค่าร่วมของชุด (อ่านจากแถวแรกที่มอบหมายไว้)
   const first = assignRows[0];
+
+  const membersByGroup = new Map<string, string[]>();
+  for (const m of membersRes.data ?? []) {
+    const arr = membersByGroup.get(m.group_id) ?? [];
+    arr.push(m.student_id);
+    membersByGroup.set(m.group_id, arr);
+  }
+  const groups = (groupsRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    color: g.color ?? null,
+    memberIds: membersByGroup.get(g.id) ?? [],
+  }));
 
   return {
     exam: {
@@ -476,6 +609,7 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
       assigned: assignedSet.has(s.id),
       attemptState: attemptBy.get(s.id) ?? "none",
     })),
+    groups,
   };
 }
 
