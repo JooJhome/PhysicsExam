@@ -171,12 +171,12 @@ export default function UploadModal({
               <input type="hidden" name="kind" value={kind} />
             </div>
             <div className="sm:col-span-2">
-              <label htmlFor="subject" className="mb-1.5 block text-sm font-semibold text-ink-soft">
-                วิชา/หมวด <span className="font-normal text-muted">(ไม่บังคับ)</span>
+              <label htmlFor="subjects" className="mb-1.5 block text-sm font-semibold text-ink-soft">
+                ป้ายกำกับ <span className="font-normal text-muted">(ไม่บังคับ · หลายป้ายคั่นด้วย ,)</span>
               </label>
               <input
-                id="subject"
-                name="subject"
+                id="subjects"
+                name="subjects"
                 list="subject-options"
                 placeholder="เช่น CU-ATS, TBAT, ฟิสิกส์ ม.6"
                 autoComplete="off"
