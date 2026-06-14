@@ -12,6 +12,12 @@ export type StudentListItem = {
   completedCount: number;
   avgPercent: number | null; // คะแนนเฉลี่ยเป็น % (รองรับข้อสอบที่คะแนนเต็มต่างกัน)
   trend: "up" | "down" | "flat" | null; // พัฒนาการ (เทียบ % 2 ครั้งล่าสุด)
+  groupIds: string[]; // กลุ่มที่สังกัด
+};
+
+export type StudentsData = {
+  students: StudentListItem[];
+  groups: { id: string; name: string; color: string | null }[];
 };
 
 const DAY = 86_400_000;
@@ -28,17 +34,32 @@ function relativeThai(iso: string | null, now: number): string {
   return `${days} วันก่อน`;
 }
 
-export async function getTutorStudents(): Promise<StudentListItem[]> {
+export async function getTutorStudents(): Promise<StudentsData> {
   const supabase = await createClient();
   const admin = createAdminClient();
 
-  const [profilesRes, assignRes, attemptRes, examsRes, usersRes] = await Promise.all([
-    supabase.from("profiles").select("id, username, full_name").eq("role", "student"),
-    supabase.from("assignments").select("student_id, exam_id"),
-    supabase.from("attempts").select("student_id, exam_id, status, score, total, submitted_at"),
-    supabase.from("exams").select("id, kind"),
-    admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-  ]);
+  const [profilesRes, assignRes, attemptRes, examsRes, groupsRes, membersRes, usersRes] =
+    await Promise.all([
+      supabase.from("profiles").select("id, username, full_name").eq("role", "student"),
+      supabase.from("assignments").select("student_id, exam_id"),
+      supabase.from("attempts").select("student_id, exam_id, status, score, total, submitted_at"),
+      supabase.from("exams").select("id, kind"),
+      supabase.from("groups").select("id, name, color").order("name"),
+      supabase.from("group_members").select("group_id, student_id"),
+      admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    ]);
+
+  const groupsByStudent = new Map<string, string[]>();
+  for (const m of membersRes.data ?? []) {
+    const arr = groupsByStudent.get(m.student_id) ?? [];
+    arr.push(m.group_id);
+    groupsByStudent.set(m.student_id, arr);
+  }
+  const groups = (groupsRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    color: g.color ?? null,
+  }));
 
   const now = Date.now();
   const profiles = profilesRes.data ?? [];
@@ -71,7 +92,7 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
     completedBy.set(at.student_id, cur);
   }
 
-  return profiles
+  const students = profiles
     .map((p) => {
       const done = completedBy.get(p.id);
       const lastActiveAt = lastSignInById.get(p.id) ?? null;
@@ -103,7 +124,10 @@ export async function getTutorStudents(): Promise<StudentListItem[]> {
         completedCount: done?.count ?? 0,
         avgPercent,
         trend,
+        groupIds: groupsByStudent.get(p.id) ?? [],
       };
     })
     .sort((a, b) => a.username.localeCompare(b.username));
+
+  return { students, groups };
 }

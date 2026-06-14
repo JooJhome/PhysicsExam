@@ -8,6 +8,7 @@ export default function StudentCard({
   student,
   selected,
   pending,
+  groupNames = [],
   onSelect,
   onReset,
   onRename,
@@ -16,6 +17,7 @@ export default function StudentCard({
   student: StudentListItem;
   selected: boolean;
   pending: boolean;
+  groupNames?: string[];
   onSelect: (checked: boolean) => void;
   onReset: () => void;
   onRename: (name: string) => void;
@@ -119,6 +121,18 @@ export default function StudentCard({
               </>
             )}
           </p>
+          {groupNames.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {groupNames.map((name) => (
+                <span
+                  key={name}
+                  className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-semibold text-accent-700"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-none items-center gap-1">

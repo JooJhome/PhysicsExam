@@ -32,7 +32,7 @@ export const NAV: NavSection[] = [
     title: "คน",
     items: [
       { label: "นักเรียน", href: "/tutor/students", Icon: IconUsers },
-      { label: "กลุ่ม/ห้องเรียน", Icon: IconUsersGroup, soon: true },
+      { label: "กลุ่ม/ห้องเรียน", href: "/tutor/groups", Icon: IconUsersGroup },
       { label: "มอบหมาย", href: "/tutor/assign", Icon: IconClipboard },
     ],
   },

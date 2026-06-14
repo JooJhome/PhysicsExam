@@ -17,6 +17,9 @@ export default function ResultsView({ data }: { data: ResultsData }) {
   const router = useRouter();
   const [view, setView] = useState<View>("submissions");
   const [q, setQ] = useState("");
+  const [groupFilter, setGroupFilter] = useState<string>("all");
+  const inGroup = (studentId: string) =>
+    groupFilter === "all" || (data.studentGroups[studentId] ?? []).includes(groupFilter);
   const [pending, startTransition] = useTransition();
   const [breakdown, setBreakdown] = useState<{ id: string; code: string } | null>(null);
   const [survey, setSurvey] = useState<{ id: string; code: string } | null>(null);
@@ -27,19 +30,21 @@ export default function ResultsView({ data }: { data: ResultsData }) {
   const term = q.trim().toLowerCase();
   const submissions = useMemo(
     () =>
-      term
-        ? data.submissions.filter((s) =>
-            `${s.studentName} ${s.examCode}`.toLowerCase().includes(term)
-          )
-        : data.submissions,
-    [data.submissions, term]
+      data.submissions.filter(
+        (s) =>
+          inGroup(s.studentId) &&
+          (!term || `${s.studentName} ${s.examCode}`.toLowerCase().includes(term))
+      ),
+    [data.submissions, term, groupFilter]
   );
   const students = useMemo(
     () =>
-      term
-        ? data.students.filter((s) => `${s.username} ${s.displayName ?? ""}`.toLowerCase().includes(term))
-        : data.students,
-    [data.students, term]
+      data.students.filter(
+        (s) =>
+          inGroup(s.studentId) &&
+          (!term || `${s.username} ${s.displayName ?? ""}`.toLowerCase().includes(term))
+      ),
+    [data.students, term, groupFilter]
   );
   const anomalies = data.exams.filter((e) => e.anomalyFlag);
 
@@ -121,7 +126,44 @@ export default function ResultsView({ data }: { data: ResultsData }) {
         </div>
       </div>
 
+      {/* กรองตามกลุ่ม (มีผลกับ รายการส่ง + สรุปรายคน) */}
+      {data.groups.length > 0 && (
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          <button
+            type="button"
+            onClick={() => setGroupFilter("all")}
+            className={`flex-none rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+              groupFilter === "all"
+                ? "bg-brand-600 text-white"
+                : "border border-line bg-white text-ink-soft hover:border-brand-200"
+            }`}
+          >
+            ทุกกลุ่ม
+          </button>
+          {data.groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => setGroupFilter(g.id)}
+              className={`flex-none rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+                groupFilter === g.id
+                  ? "bg-brand-600 text-white"
+                  : "border border-line bg-white text-ink-soft hover:border-brand-200"
+              }`}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {msg && <p className="rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700 ring-1 ring-green-200">{msg}</p>}
+
+      {groupFilter !== "all" && view === "exams" && (
+        <p className="rounded-xl bg-sand-100 px-4 py-2.5 text-sm text-muted">
+          สรุปรายชุดแสดงทุกคน — ตัวกรองกลุ่มมีผลกับ “รายการส่ง” และ “สรุปรายคน”
+        </p>
+      )}
 
       {/* views */}
       {view === "submissions" && (

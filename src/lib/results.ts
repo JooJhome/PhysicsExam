@@ -61,6 +61,8 @@ export type ResultsData = {
   submissions: SubmissionRow[];
   exams: ExamSummary[];
   students: StudentSummary[];
+  groups: { id: string; name: string }[];
+  studentGroups: Record<string, string[]>; // studentId → groupId[]
 };
 
 function initialsOf(name: string): string {
@@ -69,7 +71,7 @@ function initialsOf(name: string): string {
 
 export async function getResults(): Promise<ResultsData> {
   const supabase = await createClient();
-  const [examsRes, studentsRes, assignRes, attemptRes] = await Promise.all([
+  const [examsRes, studentsRes, assignRes, attemptRes, groupsRes, membersRes] = await Promise.all([
     supabase
       .from("exams")
       .select("id, title, exam_code, kind, total_questions, passing_score, status"),
@@ -80,7 +82,15 @@ export async function getResults(): Promise<ResultsData> {
       .select("id, exam_id, student_id, status, score, total, started_at, submitted_at")
       .order("submitted_at", { ascending: false, nullsFirst: false })
       .order("started_at", { ascending: false }),
+    supabase.from("groups").select("id, name").order("name"),
+    supabase.from("group_members").select("group_id, student_id"),
   ]);
+
+  const studentGroups: Record<string, string[]> = {};
+  for (const m of membersRes.data ?? []) {
+    (studentGroups[m.student_id] ??= []).push(m.group_id);
+  }
+  const groupCatalog = (groupsRes.data ?? []).map((g) => ({ id: g.id, name: g.name }));
 
   const students = studentsRes.data ?? [];
   // ผลสอบ = สถิติ graded เท่านั้น → ตัดแบบฝึกหัด (kind='practice') ออกทั้งหมด
@@ -222,5 +232,7 @@ export async function getResults(): Promise<ResultsData> {
     submissions,
     exams: examSummaries,
     students: studentSummaries,
+    groups: groupCatalog,
+    studentGroups,
   };
 }

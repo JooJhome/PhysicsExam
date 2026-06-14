@@ -3,7 +3,12 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { deleteStudent, resetStudentPassword, renameStudent } from "@/lib/actions/tutor";
+import {
+  deleteStudent,
+  resetStudentPassword,
+  renameStudent,
+  addStudentsToGroups,
+} from "@/lib/actions/tutor";
 import { generatePassword } from "@/lib/password";
 import type { StudentListItem } from "@/lib/students";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -12,24 +17,42 @@ import StudentCard from "@/components/tutor/students/StudentCard";
 import CredentialHandoff, { type Credential } from "@/components/tutor/students/CredentialHandoff";
 import StudentsToolbar, { type StudentSortKey } from "@/components/tutor/students/StudentsToolbar";
 
-export default function StudentManager({ students }: { students: StudentListItem[] }) {
+type GroupRef = { id: string; name: string; color: string | null };
+
+export default function StudentManager({
+  students,
+  groups = [],
+}: {
+  students: StudentListItem[];
+  groups?: GroupRef[];
+}) {
   const router = useRouter();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<StudentSortKey>("recent");
+  const [groupFilter, setGroupFilter] = useState<string>("all");
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; label: string } | null>(null);
   const [resetCred, setResetCred] = useState<Credential | null>(null);
+  const [addToGroupOpen, setAddToGroupOpen] = useState(false);
+  const [pickedGroups, setPickedGroups] = useState<Set<string>>(new Set());
+
+  const groupNameById = useMemo(
+    () => new Map(groups.map((g) => [g.id, g.name])),
+    [groups]
+  );
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
+    let base = students;
+    if (groupFilter !== "all") base = base.filter((s) => s.groupIds.includes(groupFilter));
     const out = term
-      ? students.filter((s) =>
+      ? base.filter((s) =>
           `${s.username} ${s.displayName ?? ""}`.toLowerCase().includes(term)
         )
-      : [...students];
+      : [...base];
     switch (sort) {
       case "name":
         out.sort((a, b) =>
@@ -48,10 +71,24 @@ export default function StudentManager({ students }: { students: StudentListItem
         break;
     }
     return out;
-  }, [students, q, sort]);
+  }, [students, q, sort, groupFilter]);
 
   // นักเรียนที่ยังไม่มีชื่อจริง (displayName=null คือยังเป็น username/ว่าง) → ลายน้ำใช้ username
   const needNameCount = students.filter((s) => !s.displayName).length;
+
+  function doAddToGroups() {
+    const ids = [...selected];
+    const gids = [...pickedGroups];
+    setAddToGroupOpen(false);
+    setPickedGroups(new Set());
+    if (ids.length === 0 || gids.length === 0) return;
+    startTransition(async () => {
+      const r = await addStudentsToGroups(ids, gids);
+      setMsg({ ok: r.ok, text: r.message });
+      setSelected(new Set());
+      router.refresh();
+    });
+  }
 
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
     startTransition(async () => {
@@ -107,6 +144,37 @@ export default function StudentManager({ students }: { students: StudentListItem
         onAdd={() => setAddOpen(true)}
       />
 
+      {/* กรองตามกลุ่ม */}
+      {groups.length > 0 && (
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          <button
+            type="button"
+            onClick={() => setGroupFilter("all")}
+            className={`flex-none rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+              groupFilter === "all"
+                ? "bg-brand-600 text-white"
+                : "border border-line bg-white text-ink-soft hover:border-brand-200"
+            }`}
+          >
+            ทุกกลุ่ม
+          </button>
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => setGroupFilter(g.id)}
+              className={`flex-none rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+                groupFilter === g.id
+                  ? "bg-brand-600 text-white"
+                  : "border border-line bg-white text-ink-soft hover:border-brand-200"
+              }`}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {msg && (
         <p
           className={`rounded-xl px-4 py-3 text-sm font-medium ring-1 ${
@@ -124,7 +192,7 @@ export default function StudentManager({ students }: { students: StudentListItem
           <p>
             มี <b className="font-display tabular-nums">{needNameCount}</b>{" "}
             คนยังไม่ได้ตั้งชื่อจริง — ลายน้ำตอนทำข้อสอบจะใช้ username ไปก่อน
-            กดเมนู ⋯ → แก้ไขชื่อ เพื่อเติมชื่อ-สกุล
+            กดเมนู <b>⋯ → แก้ไขชื่อ</b> เพื่อเติมชื่อ-สกุล
           </p>
         </div>
       )}
@@ -158,6 +226,7 @@ export default function StudentManager({ students }: { students: StudentListItem
               student={s}
               selected={selected.has(s.id)}
               pending={pending}
+              groupNames={s.groupIds.map((id) => groupNameById.get(id)).filter((n): n is string => !!n)}
               onSelect={(checked) => toggleSelect(s.id, checked)}
               onReset={() => onReset(s)}
               onRename={(name) => act(() => renameStudent(s.id, name))}
@@ -192,6 +261,18 @@ export default function StudentManager({ students }: { students: StudentListItem
               ล้าง
             </button>
             <div className="ml-auto flex flex-wrap gap-2">
+              {groups.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickedGroups(new Set());
+                    setAddToGroupOpen(true);
+                  }}
+                  className="rounded-lg border border-accent-200 px-4 py-2 text-sm font-bold text-accent-700 transition-colors hover:bg-accent-50"
+                >
+                  เพิ่มเข้ากลุ่ม
+                </button>
+              )}
               <Link
                 href="/tutor/assign"
                 className="rounded-lg border border-brand-200 px-4 py-2 text-sm font-bold text-brand-700 transition-colors hover:bg-brand-50"
@@ -217,6 +298,49 @@ export default function StudentManager({ students }: { students: StudentListItem
         open={addOpen}
         onClose={() => setAddOpen(false)}
         existingUsernames={students.map((s) => s.username)}
+      />
+
+      {/* เพิ่มเข้ากลุ่ม (bulk) */}
+      <ConfirmDialog
+        open={addToGroupOpen}
+        title={`เพิ่ม ${selected.size} คนเข้ากลุ่ม`}
+        body={
+          <div>
+            <p className="mb-3 text-sm text-muted">เลือกกลุ่มที่จะเพิ่มนักเรียนเข้าไป (เลือกได้หลายกลุ่ม)</p>
+            <div className="max-h-64 space-y-1 overflow-y-auto">
+              {groups.map((g) => {
+                const on = pickedGroups.has(g.id);
+                return (
+                  <label
+                    key={g.id}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-canvas"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() =>
+                        setPickedGroups((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(g.id)) next.delete(g.id);
+                          else next.add(g.id);
+                          return next;
+                        })
+                      }
+                      className="h-4 w-4 accent-brand-600"
+                    />
+                    <span className="font-display font-semibold text-ink">{g.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        }
+        confirmLabel="เพิ่มเข้ากลุ่ม"
+        cancelLabel="ยกเลิก"
+        tone="brand"
+        busy={pending}
+        onConfirm={doAddToGroups}
+        onCancel={() => setAddToGroupOpen(false)}
       />
 
       {/* ลบ */}
