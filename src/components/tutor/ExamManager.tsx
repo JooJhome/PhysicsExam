@@ -14,6 +14,7 @@ import FilterBar from "@/components/tutor/exams/FilterBar";
 import ExamsToolbar from "@/components/tutor/exams/ExamsToolbar";
 import UploadModal from "@/components/tutor/exams/UploadModal";
 import ExamCard from "@/components/tutor/exams/ExamCard";
+import ExamTableView from "@/components/tutor/exams/ExamTableView";
 import { useExamList } from "@/components/tutor/exams/useExamList";
 
 export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
@@ -65,23 +66,36 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         <span className="font-display font-bold tabular-nums text-ink-soft">{published}</span> เผยแพร่
       </h2>
 
-      <div className="space-y-3">
-        {list.map((e) => (
-          <ExamCard
-            key={e.id}
-            exam={e}
-            pending={pending}
-            onToggleStatus={() =>
-              act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
-            }
-            onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
-            onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
-            onDelete={() => setToDelete(e)}
-          />
-        ))}
+      {list.length > 0 && view === "table" ? (
+        <ExamTableView
+          exams={list}
+          pending={pending}
+          sort={sort}
+          onSort={setSort}
+          onToggleStatus={(e) =>
+            act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
+          }
+          onToggleReview={(e, checked) => act(() => setAllowReview(e.id, checked))}
+          onDelete={(e) => setToDelete(e)}
+        />
+      ) : (
+        <div className="space-y-3">
+          {list.map((e) => (
+            <ExamCard
+              key={e.id}
+              exam={e}
+              pending={pending}
+              onToggleStatus={() =>
+                act(() => setExamStatus(e.id, e.status === "published" ? "draft" : "published"))
+              }
+              onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
+              onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
+              onDelete={() => setToDelete(e)}
+            />
+          ))}
 
-        {list.length === 0 && (
-          <div className="rounded-2xl border border-line bg-white px-5 py-14 text-center shadow-card">
+          {list.length === 0 && (
+            <div className="rounded-2xl border border-line bg-white px-5 py-14 text-center shadow-card">
             <p className="text-2xl">{exams.length === 0 ? "📄" : "🔍"}</p>
             <p className="mt-2 font-semibold text-ink">
               {exams.length === 0 ? "ยังไม่มีชุดข้อสอบ" : "ไม่พบชุดที่ตรงกับตัวกรอง"}
@@ -112,7 +126,8 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
             )}
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       <UploadModal
         open={uploadOpen}
