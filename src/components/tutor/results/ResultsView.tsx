@@ -9,6 +9,7 @@ import ExamMenu, { type MenuItem } from "@/components/tutor/exams/ExamMenu";
 import ExamSummaryView from "./ExamSummaryView";
 import BreakdownDrawer from "./BreakdownDrawer";
 import SurveyDrawer from "./SurveyDrawer";
+import StudentScoresDrawer from "./StudentScoresDrawer";
 
 type View = "submissions" | "exams" | "students";
 
@@ -19,6 +20,7 @@ export default function ResultsView({ data }: { data: ResultsData }) {
   const [pending, startTransition] = useTransition();
   const [breakdown, setBreakdown] = useState<{ id: string; code: string } | null>(null);
   const [survey, setSurvey] = useState<{ id: string; code: string } | null>(null);
+  const [studentDrill, setStudentDrill] = useState<StudentSummary | null>(null);
   const [toReset, setToReset] = useState<SubmissionRow | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -138,7 +140,9 @@ export default function ResultsView({ data }: { data: ResultsData }) {
           onOpenSurvey={(id, code) => setSurvey({ id, code })}
         />
       )}
-      {view === "students" && <StudentList rows={students} />}
+      {view === "students" && (
+        <StudentList rows={students} onOpen={(id) => setStudentDrill(id)} />
+      )}
 
       {breakdown && (
         <BreakdownDrawer examId={breakdown.id} examCode={breakdown.code} onClose={() => setBreakdown(null)} />
@@ -146,6 +150,14 @@ export default function ResultsView({ data }: { data: ResultsData }) {
 
       {survey && (
         <SurveyDrawer examId={survey.id} examCode={survey.code} onClose={() => setSurvey(null)} />
+      )}
+
+      {studentDrill && (
+        <StudentScoresDrawer
+          studentName={studentDrill.displayName || studentDrill.username}
+          rows={data.submissions.filter((r) => r.studentId === studentDrill.studentId)}
+          onClose={() => setStudentDrill(null)}
+        />
       )}
 
       <ConfirmDialog
@@ -260,7 +272,13 @@ function SubmissionList({
   );
 }
 
-function StudentList({ rows }: { rows: StudentSummary[] }) {
+function StudentList({
+  rows,
+  onOpen,
+}: {
+  rows: StudentSummary[];
+  onOpen: (s: StudentSummary) => void;
+}) {
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl border border-line bg-white px-5 py-14 text-center shadow-card">
@@ -274,7 +292,13 @@ function StudentList({ rows }: { rows: StudentSummary[] }) {
   return (
     <div className="space-y-2.5">
       {rows.map((s) => (
-        <article key={s.studentId} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-4 shadow-card">
+        <button
+          key={s.studentId}
+          type="button"
+          onClick={() => onOpen(s)}
+          aria-label={`ดูคะแนนรายชุดของ ${s.displayName || s.username}`}
+          className="flex w-full items-center gap-3 rounded-2xl border border-line bg-white p-4 text-left shadow-card transition-shadow hover:shadow-lift"
+        >
           <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-brand-50 font-display text-sm font-bold uppercase text-brand-700">
             {s.initials}
           </span>
@@ -294,7 +318,10 @@ function StudentList({ rows }: { rows: StudentSummary[] }) {
             </p>
             <p className="text-xs text-muted">เฉลี่ย</p>
           </div>
-        </article>
+          <svg viewBox="0 0 24 24" className="h-4 w-4 flex-none text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
       ))}
     </div>
   );
