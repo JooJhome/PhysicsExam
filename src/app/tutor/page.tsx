@@ -19,12 +19,12 @@ export default async function TutorDashboard() {
   const taskCount = o.actionItems.length;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5">
+    <main className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-5">
       {/* B. แถบ setup */}
       <SetupProgressBar done={o.setup.done} steps={o.setup.steps} />
 
       {/* C. หัวเรื่อง + สรุป dynamic */}
-      <header className="mt-5">
+      <header>
         <h1 className="font-display text-h1 font-extrabold text-ink">
           ภาพรวมระบบ
         </h1>

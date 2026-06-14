@@ -7,7 +7,7 @@ export default async function AssignPage() {
   const data = await getAssignExams();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
+    <main className="mx-auto max-w-6xl px-4 pb-10 pt-6 sm:px-5">
       <header>
         <h1 className="font-display text-h1 font-extrabold text-ink">
           มอบหมายชุดสอบ

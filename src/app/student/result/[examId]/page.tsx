@@ -53,7 +53,7 @@ export default async function ResultPage({
         title="BSIINK Physics"
         name={profile.full_name || profile.username}
       />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-5">
+      <main className="mx-auto max-w-4xl px-4 pb-10 pt-6 sm:px-5">
         {/* ── การ์ดคะแนน (ช่วงพีคของ flow) ── */}
         <section className="relative overflow-hidden rounded-3xl bg-brand-600 p-7 text-white sm:p-8">
           <ChalkDoodles className="absolute -right-4 -top-4 h-48 w-48 text-white/15" />
