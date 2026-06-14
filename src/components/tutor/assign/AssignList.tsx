@@ -65,7 +65,7 @@ export default function AssignList({ data }: { data: AssignOverview }) {
     const u = toast.undo;
     setToast(null);
     startTransition(async () => {
-      await saveAssignment(u.examId, u.studentIds, u.window, u.durationOverride);
+      await saveAssignment(u.examId, u.studentIds, u.window, u.durationOverride, u.untimed);
       router.refresh();
     });
   }
