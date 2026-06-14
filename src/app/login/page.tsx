@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { usernameToEmail } from "@/lib/constants";
@@ -13,7 +13,14 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // นับครั้งที่ล็อกอินผิด — ใช้เป็น key เพื่อ re-trigger แอนิเมชัน shake ทุกครั้ง
+  const [shakeKey, setShakeKey] = useState(0);
   const usernameRef = useRef<HTMLInputElement>(null);
+
+  // หลัง login ผิด (shakeKey เปลี่ยน) ย้ายโฟกัสกลับช่องแรกเพื่อลองใหม่ได้ทันที
+  useEffect(() => {
+    if (shakeKey > 0) usernameRef.current?.focus();
+  }, [shakeKey]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -28,9 +35,9 @@ export default function LoginPage() {
 
     if (signInError || !data.user) {
       setError("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      // bump key → re-trigger shake ; โฟกัสจัดการใน effect หลัง re-render
+      setShakeKey((k) => k + 1);
       setLoading(false);
-      // ย้ายโฟกัสกลับช่องแรกเพื่อให้ลองใหม่ได้ทันที (focus management)
-      usernameRef.current?.focus();
       return;
     }
 
@@ -60,25 +67,28 @@ export default function LoginPage() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent-400/20 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-accent-400/20 blur-3xl motion-safe:animate-float"
         />
 
         <Wordmark className="relative" onDark />
 
-        <div className="relative my-auto mx-auto flex max-w-xl flex-col items-center py-10 text-center">
-          <Sparkle className="mb-5 h-10 w-10 text-accent-300" />
+        <div className="relative my-auto mx-auto flex max-w-xl flex-col items-center py-10 text-center -translate-y-16">
+          <Sparkle className="mb-8 h-10 w-10 text-accent-300 motion-safe:animate-float" />
           <h2 className="font-display text-hero font-extrabold">
             ตั้งใจสอบ
             <br />
             <span className="relative inline-block text-accent-300">
               เต็มที่นะ
-              <Underline className="absolute -bottom-3 left-0 w-full text-accent-400" />
+              <Underline
+                draw
+                className="absolute -bottom-3 left-0 w-full text-accent-400"
+              />
             </span>
           </h2>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-white/85">
+          <p className="mt-8 max-w-md text-lg leading-relaxed text-white/85">
             พื้นที่สอบที่สงบ โปร่งใส และยุติธรรม — ให้คุณโฟกัสกับข้อสอบได้เต็มที่
           </p>
-          <ul className="mt-8 space-y-4 text-left">
+          <ul className="mt-12 space-y-6 text-left">
             {[
               "โฟกัสได้เต็มที่ ระบบดูแลเวลาและบันทึกคำตอบให้เอง",
               "ยุติธรรมกับทุกคน — แต่ละชุดทำได้ครั้งเดียว",
@@ -111,10 +121,10 @@ export default function LoginPage() {
       {/* ── ฟอร์มเข้าสู่ระบบ (พื้นขาวเต็มความสูง) ── */}
       <div className="flex flex-col justify-center bg-white px-6 py-12 sm:px-12 lg:px-16">
         <div className="mx-auto w-full max-w-md">
-          <div className="lg:hidden">
+          <div className="motion-safe:animate-rise-in lg:hidden">
             <Wordmark />
           </div>
-          <div className="mt-8 lg:mt-0">
+          <div className="mt-8 motion-safe:animate-rise-in lg:mt-0">
             <h1 className="font-display text-h1 font-extrabold text-ink">
               เข้าสู่ระบบ
             </h1>
@@ -123,14 +133,22 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="mt-8 space-y-5">
-            <div>
-              <label
-                htmlFor="login-username"
-                className="block text-sm font-semibold text-ink-soft"
-              >
-                ชื่อผู้ใช้ (Username)
-              </label>
+          <form
+            onSubmit={handleLogin}
+            className="mt-8 space-y-5 motion-safe:animate-rise-in [animation-delay:120ms]"
+          >
+            {/* key={shakeKey} → remount เพื่อ re-run animate-shake ทุกครั้งที่ผิด */}
+            <div
+              key={shakeKey}
+              className={`space-y-5 ${shakeKey > 0 ? "motion-safe:animate-shake" : ""}`}
+            >
+              <div>
+                <label
+                  htmlFor="login-username"
+                  className="block text-sm font-semibold text-ink-soft"
+                >
+                  ชื่อผู้ใช้ (Username)
+                </label>
               <input
                 id="login-username"
                 ref={usernameRef}
@@ -175,12 +193,13 @@ export default function LoginPage() {
                   {showPw ? <EyeOff /> : <Eye />}
                 </button>
               </div>
+              </div>
             </div>
 
             {error && (
               <p
                 role="alert"
-                className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-100"
+                className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-100 motion-safe:animate-fade-in"
               >
                 {error}
               </p>
@@ -189,7 +208,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 py-3.5 text-base font-bold text-white shadow-sm transition-all hover:bg-brand-700 hover:shadow-lift motion-safe:hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:translate-y-0 disabled:opacity-60 disabled:shadow-sm"
             >
               {loading && (
                 <span
