@@ -83,7 +83,10 @@ export default function BreakdownDrawer({
                       <div className={`h-full rounded-full ${tone}`} style={{ width: `${it.pctCorrect}%` }} />
                     </div>
                     <p className="mt-1.5 text-xs text-muted">
-                      ตอบถูก {it.correct}/{it.answered} คน
+                      ตอบถูก {it.correct}/{data.submitted} คน
+                      {data.submitted - it.answered > 0 && (
+                        <> · ไม่ตอบ {data.submitted - it.answered} คน</>
+                      )}
                       {it.topWrongChoice != null && (
                         <>
                           {" "}

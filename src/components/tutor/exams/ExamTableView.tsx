@@ -14,6 +14,7 @@ export default function ExamTableView({
   onToggleStatus,
   onToggleReview,
   onSaveTitle,
+  onEditLabels,
   onDelete,
 }: {
   exams: ExamListItem[];
@@ -23,6 +24,7 @@ export default function ExamTableView({
   onToggleStatus: (e: ExamListItem) => void;
   onToggleReview: (e: ExamListItem, checked: boolean) => void;
   onSaveTitle: (e: ExamListItem, title: string) => void;
+  onEditLabels: (e: ExamListItem) => void;
   onDelete: (e: ExamListItem) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,6 +66,7 @@ export default function ExamTableView({
                   setEditingId(e.id);
                 },
               },
+              { kind: "button", label: "แก้ป้ายกำกับ", onClick: () => onEditLabels(e) },
               { kind: "soon", label: "คัดลอกชุด" },
               { kind: "button", label: "ลบชุดนี้", onClick: () => onDelete(e), danger: true },
             ];
@@ -95,12 +98,16 @@ export default function ExamTableView({
                         แบบฝึกหัด
                       </span>
                     )}
-                    {e.subject ? (
-                      <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
-                        {e.subject}
+                    {e.subjects.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line"
+                      >
+                        {s}
                       </span>
-                    ) : (
-                      e.kind !== "practice" && <span className="text-muted">—</span>
+                    ))}
+                    {e.subjects.length === 0 && e.kind !== "practice" && (
+                      <span className="text-muted">—</span>
                     )}
                   </div>
                 </td>

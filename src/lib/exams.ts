@@ -8,8 +8,7 @@ export type ExamListItem = {
   title: string;
   code: string;
   kind: ExamKind;
-  subject: string | null; // วิชา/หมวด อิสระ (เช่น CU-ATS, TBAT, ฟิสิกส์ ม.6)
-  type: ExamType; // คงไว้ให้ตัวกรอง CU-ATS/TBAT เดิม — derive จาก subject
+  subjects: string[]; // ป้ายกำกับ/หมวด หลายอันได้ (เช่น ["CU-ATS","TBAT"], ["ฟิสิกส์ ม.6"])
   status: "draft" | "published";
   questionCount: number;
   durationMin: number;
@@ -36,7 +35,7 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
     supabase
       .from("exams")
       .select(
-        "id, title, exam_code, kind, subject, duration_minutes, total_questions, status, allow_review, created_at"
+        "id, title, exam_code, kind, subjects, duration_minutes, total_questions, status, allow_review, created_at"
       )
       .order("created_at", { ascending: false }),
     supabase.from("assignments").select("exam_id"),
@@ -64,14 +63,16 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
   return exams.map((e) => {
     const sub = submittedBy.get(e.id);
     const avg = sub && sub.count > 0 ? sub.sum / sub.count : null;
-    const subject = (e.subject as string | null) ?? deriveType(e.exam_code);
+    // ใช้ subjects[] ; ถ้าว่าง fallback เป็นวิชาที่เดาจากรหัส (ของชุดเก่า)
+    const raw = (e.subjects as string[] | null) ?? [];
+    const derived = deriveType(e.exam_code);
+    const subjects = raw.length > 0 ? raw : derived ? [derived] : [];
     return {
       id: e.id,
       title: e.title,
       code: e.exam_code,
       kind: (e.kind as ExamKind) ?? "exam",
-      subject,
-      type: subject === "CU-ATS" || subject === "TBAT" ? (subject as ExamType) : null,
+      subjects,
       status: e.status as "draft" | "published",
       questionCount: e.total_questions,
       durationMin: e.duration_minutes,

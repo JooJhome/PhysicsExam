@@ -30,6 +30,7 @@ export default function ExamCard({
   onToggleReview,
   onSaveDuration,
   onSaveTitle,
+  onEditLabels,
   onDelete,
 }: {
   exam: ExamListItem;
@@ -38,6 +39,7 @@ export default function ExamCard({
   onToggleReview: (checked: boolean) => void;
   onSaveDuration: (mins: number) => void;
   onSaveTitle: (title: string) => void;
+  onEditLabels: () => void;
   onDelete: () => void;
 }) {
   const [editingDuration, setEditingDuration] = useState(false);
@@ -81,6 +83,7 @@ export default function ExamCard({
         setEditingDuration(true);
       },
     },
+    { kind: "button", label: "แก้ป้ายกำกับ", onClick: onEditLabels },
     { kind: "soon", label: "คัดลอกชุด" },
     { kind: "button", label: "ลบชุดนี้", onClick: onDelete, danger: true },
   ];
@@ -123,11 +126,14 @@ export default function ExamCard({
                 แบบฝึกหัด
               </span>
             )}
-            {exam.subject && (
-              <span className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
-                {exam.subject}
+            {exam.subjects.map((s) => (
+              <span
+                key={s}
+                className="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line"
+              >
+                {s}
               </span>
-            )}
+            ))}
           </div>
 
           <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted">

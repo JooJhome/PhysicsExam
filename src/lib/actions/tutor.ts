@@ -77,7 +77,7 @@ export async function createExam(formData: FormData): Promise<ActionResult> {
     const examCode = String(formData.get("exam_code") || "").trim();
     const duration = Number(formData.get("duration_minutes") || 30);
     const kind = String(formData.get("kind") || "exam") === "practice" ? "practice" : "exam";
-    const subject = String(formData.get("subject") || "").trim() || null;
+    const subjects = parseLabels(String(formData.get("subjects") || ""));
     if (!file || file.size === 0) return { ok: false, message: "กรุณาเลือกไฟล์ HTML" };
     if (!examCode) return { ok: false, message: "กรุณาใส่รหัสชุด (exam_code)" };
 
@@ -90,7 +90,7 @@ export async function createExam(formData: FormData): Promise<ActionResult> {
         title: t.title,
         exam_code: examCode,
         kind,
-        subject,
+        subjects,
         duration_minutes: duration,
         total_questions: t.totalQuestions,
         exam_html: t.examHtml,
@@ -140,6 +140,35 @@ export async function setExamDuration(
   return error
     ? { ok: false, message: error.message }
     : { ok: true, message: `ตั้งเวลาเป็น ${duration} นาทีแล้ว` };
+}
+
+/** แปลงสตริง label (คั่นด้วย comma) → array สะอาด: trim, ตัดว่าง, ตัดซ้ำ (case-insensitive), สูงสุด 6 */
+function parseLabels(raw: string): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const part of raw.split(",")) {
+    const v = part.trim();
+    if (!v) continue;
+    const key = v.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(v);
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+
+export async function setExamSubjects(
+  examId: string,
+  subjects: string[]
+): Promise<ActionResult> {
+  const { supabase } = await assertTutor();
+  const clean = parseLabels(subjects.join(","));
+  const { error } = await supabase.from("exams").update({ subjects: clean }).eq("id", examId);
+  revalidatePath("/tutor/exams");
+  return error
+    ? { ok: false, message: error.message }
+    : { ok: true, message: clean.length ? `อัปเดตป้ายเป็น ${clean.join(", ")}` : "ล้างป้ายแล้ว" };
 }
 
 export async function renameExam(
@@ -630,7 +659,8 @@ export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
       n: i + 1,
       answered,
       correct,
-      pctCorrect: answered ? Math.round((correct / answered) * 100) : 0,
+      // ตัวหาร = จำนวนคนที่ "ส่ง" ทั้งหมด (เว้นว่าง/ตอบผิด = ไม่ถูก) ไม่ใช่เฉพาะคนที่ตอบข้อนั้น
+      pctCorrect: submissions.length ? Math.round((correct / submissions.length) * 100) : 0,
       topWrongChoice,
       topWrongCount,
     });

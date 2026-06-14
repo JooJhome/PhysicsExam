@@ -7,6 +7,7 @@ import {
   setExamDuration,
   setAllowReview,
   renameExam,
+  setExamSubjects,
   deleteExam,
 } from "@/lib/actions/tutor";
 import type { ExamListItem } from "@/lib/exams";
@@ -14,6 +15,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import FilterBar from "@/components/tutor/exams/FilterBar";
 import ExamsToolbar from "@/components/tutor/exams/ExamsToolbar";
 import UploadModal from "@/components/tutor/exams/UploadModal";
+import LabelEditorModal from "@/components/tutor/exams/LabelEditorModal";
 import ExamCard from "@/components/tutor/exams/ExamCard";
 import ExamTableView from "@/components/tutor/exams/ExamTableView";
 import { useExamList } from "@/components/tutor/exams/useExamList";
@@ -25,6 +27,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [toDelete, setToDelete] = useState<ExamListItem | null>(null);
+  const [toEditLabels, setToEditLabels] = useState<ExamListItem | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
@@ -36,8 +39,8 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   }
 
   const published = exams.filter((e) => e.status === "published").length;
-  const subjects = ([...new Set(exams.map((e) => e.subject).filter(Boolean))] as string[]).sort(
-    (a, b) => a.localeCompare(b, "th")
+  const subjects = [...new Set(exams.flatMap((e) => e.subjects))].sort((a, b) =>
+    a.localeCompare(b, "th")
   );
 
   return (
@@ -81,6 +84,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
           }
           onToggleReview={(e, checked) => act(() => setAllowReview(e.id, checked))}
           onSaveTitle={(e, title) => act(() => renameExam(e.id, title))}
+          onEditLabels={(e) => setToEditLabels(e)}
           onDelete={(e) => setToDelete(e)}
         />
       ) : (
@@ -100,6 +104,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
                 onToggleReview={(checked) => act(() => setAllowReview(e.id, checked))}
                 onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
                 onSaveTitle={(title) => act(() => renameExam(e.id, title))}
+                onEditLabels={() => setToEditLabels(e)}
                 onDelete={() => setToDelete(e)}
               />
             </div>
@@ -145,6 +150,17 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
         onClose={() => setUploadOpen(false)}
         onUploaded={(m) => setMsg(m)}
         subjects={subjects}
+      />
+
+      <LabelEditorModal
+        exam={toEditLabels}
+        allSubjects={subjects}
+        onClose={() => setToEditLabels(null)}
+        onSave={(labels) => {
+          const e = toEditLabels;
+          setToEditLabels(null);
+          if (e) act(() => setExamSubjects(e.id, labels));
+        }}
       />
 
       <ConfirmDialog

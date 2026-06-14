@@ -67,7 +67,7 @@ export function useExamList(exams: ExamListItem[]) {
     const q = filters.q.trim().toLowerCase();
     const out = exams.filter((e) => {
       if (filters.status !== "all" && e.status !== filters.status) return false;
-      if (filters.subject && e.subject !== filters.subject) return false;
+      if (filters.subject && !e.subjects.includes(filters.subject)) return false;
       if (q && !`${e.title} ${e.code}`.toLowerCase().includes(q)) return false;
       return true;
     });
