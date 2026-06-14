@@ -79,15 +79,15 @@ export default function UploadCard() {
   return (
     <form
       onSubmit={onUpload}
-      className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-7"
+      className="rounded-2xl border border-line bg-white p-4 shadow-card sm:p-5"
     >
-      <h2 className="font-display text-xl font-bold text-ink">อัปโหลดข้อสอบ (HTML)</h2>
+      <h2 className="font-display text-lg font-bold text-ink">อัปโหลดข้อสอบ (HTML)</h2>
       <p className="mt-1 text-sm text-muted">
         ระบบจะถอดเฉลย ลบปุ่มเฉลย/แอนิเมชันออกจากฉบับสอบให้อัตโนมัติ
       </p>
 
       {/* labels ถาวร: รหัสชุด + เวลาสอบ */}
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2">
           <label htmlFor="exam_code" className="mb-1.5 block text-sm font-semibold text-ink-soft">
             รหัสชุด
@@ -142,17 +142,22 @@ export default function UploadCard() {
         role="button"
         tabIndex={0}
         aria-label="ลากไฟล์ .html มาวาง หรือเลือกไฟล์"
-        className={`mt-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
+        className={`mt-3 flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-4 py-3.5 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
           dragOver ? "border-brand-500 bg-brand-50" : "border-line bg-canvas/40 hover:border-brand-300"
         }`}
-    >
-        <span className="grid h-11 w-11 place-items-center rounded-full bg-brand-50 text-brand-600">
+      >
+        <span className="grid h-10 w-10 flex-none place-items-center rounded-full bg-brand-50 text-brand-600">
           <UploadIcon className="h-5 w-5" />
         </span>
-        <p className="text-sm font-semibold text-ink">
-          {file ? file.name : "ลากไฟล์ .html มาวาง หรือเลือกไฟล์"}
-        </p>
-        <p className="text-xs text-muted">รองรับฉบับ Interactive ไฟล์เดียว</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-ink">
+            {file ? file.name : "ลากไฟล์ .html มาวาง หรือเลือกไฟล์"}
+          </p>
+          <p className="text-xs text-muted">รองรับฉบับ Interactive ไฟล์เดียว</p>
+        </div>
+        <span className="hidden flex-none rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-ink-soft sm:inline-block">
+          เลือกไฟล์
+        </span>
         <input
           ref={inputRef}
           name="file"
