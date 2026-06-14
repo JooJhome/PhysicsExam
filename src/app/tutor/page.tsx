@@ -24,7 +24,7 @@ export default async function TutorDashboard() {
       <SetupProgressBar done={o.setup.done} steps={o.setup.steps} />
 
       {/* C. หัวเรื่อง + สรุป dynamic */}
-      <header className="mt-5">
+      <header>
         <h1 className="font-display text-h1 font-extrabold text-ink">
           ภาพรวมระบบ
         </h1>
