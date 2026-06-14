@@ -47,7 +47,7 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-dvh md:grid-cols-2">
       {/* ── แผงแบรนด์ (เทียลเต็มความสูง) ── */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-600 p-10 text-white md:flex lg:p-14">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-brand-600 px-10 py-8 text-white md:flex lg:px-14 lg:py-10">
         {/* พื้นหลัง composed: กระดาษกราฟ (ธีมฟิสิกส์) + แสงอำพันนุ่ม */}
         <div
           aria-hidden
@@ -65,20 +65,20 @@ export default function LoginPage() {
 
         <Wordmark className="relative" onDark />
 
-        <div className="relative my-auto mx-auto flex max-w-xl flex-col items-center py-10 text-center">
-          <Sparkle className="mb-6 h-12 w-12 text-accent-300" />
-          <h2 className="font-display text-6xl font-extrabold leading-[1.05] lg:text-7xl">
+        <div className="relative my-auto mx-auto flex max-w-xl flex-col items-center py-6 text-center">
+          <Sparkle className="mb-4 h-10 w-10 text-accent-300" />
+          <h2 className="font-display text-5xl font-extrabold leading-[1.05] lg:text-6xl">
             ตั้งใจสอบ
             <br />
             <span className="relative inline-block text-accent-300">
               เต็มที่นะ
-              <Underline className="absolute -bottom-4 left-0 w-full text-accent-400" />
+              <Underline className="absolute -bottom-3 left-0 w-full text-accent-400" />
             </span>
           </h2>
-          <p className="mt-8 max-w-lg text-xl leading-relaxed text-white/85 lg:text-2xl">
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-white/85 lg:text-xl">
             พื้นที่สอบที่สงบ โปร่งใส และยุติธรรม — ให้คุณโฟกัสกับข้อสอบได้เต็มที่
           </p>
-          <ul className="mt-10 space-y-5 text-left">
+          <ul className="mt-8 space-y-4 text-left">
             {[
               "โฟกัสได้เต็มที่ ระบบดูแลเวลาและบันทึกคำตอบให้เอง",
               "ยุติธรรมกับทุกคน — แต่ละชุดทำได้ครั้งเดียว",
