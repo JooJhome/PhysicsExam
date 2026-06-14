@@ -8,7 +8,7 @@ export default async function ResultsPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-5">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+      <header className="flex flex-wrap items-start justify-between gap-4 motion-safe:animate-rise-in">
         <div>
           <h1 className="font-display text-h1 font-extrabold text-ink">ผลสอบ</h1>
           <p className="mt-2 text-muted sm:text-lg">

@@ -52,7 +52,7 @@ export default async function StudentHome() {
       <main className="mx-auto max-w-5xl px-4 pb-10 pt-6 sm:px-5">
         {/* ── Hero ── */}
         <section className="grid items-center gap-6 md:grid-cols-[1.4fr_1fr]">
-          <div className="relative">
+          <div className="relative motion-safe:animate-rise-in">
             <Sparkle className="absolute -left-2 -top-5 h-6 w-6 text-accent-400" />
             <h1 className="font-display text-h1 font-extrabold leading-[1.12] text-ink">
               ชุดข้อสอบ{" "}
@@ -69,7 +69,7 @@ export default async function StudentHome() {
           </div>
 
           {totalCount > 0 && (
-            <div className="relative overflow-hidden rounded-3xl bg-brand-600 p-6 text-white">
+            <div className="relative overflow-hidden rounded-3xl bg-brand-600 p-6 text-white motion-safe:animate-rise-in [animation-delay:90ms]">
               <ChalkDoodles className="absolute inset-0 h-full w-full text-white/15" />
               <p className="relative text-sm font-medium text-white/80">
                 ความคืบหน้าของคุณ
@@ -120,10 +120,11 @@ export default async function StudentHome() {
             </div>
           ) : (
             <ul className="mt-5 grid gap-4 sm:grid-cols-2">
-              {exams.map((e) => (
+              {exams.map((e, i) => (
                 <li
                   key={e.exam_id}
-                  className="group flex flex-col rounded-3xl border border-line bg-white p-5 shadow-card transition-transform hover:-translate-y-0.5"
+                  style={{ animationDelay: `${Math.min(i * 70, 350)}ms` }}
+                  className="group flex flex-col rounded-3xl border border-line bg-white p-5 shadow-card transition-all motion-safe:animate-rise-in motion-safe:hover:-translate-y-0.5 hover:shadow-lift"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-1.5">

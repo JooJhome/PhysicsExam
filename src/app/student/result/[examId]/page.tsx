@@ -57,7 +57,7 @@ export default async function ResultPage({
       />
       <main className="mx-auto max-w-4xl px-4 pb-10 pt-6 sm:px-5">
         {/* ── การ์ดคะแนน (ช่วงพีคของ flow) ── */}
-        <section className="relative overflow-hidden rounded-3xl bg-brand-600 p-7 text-white sm:p-8">
+        <section className="relative overflow-hidden rounded-3xl bg-brand-600 p-7 text-white motion-safe:animate-rise-in sm:p-8">
           <ChalkDoodles className="absolute -right-4 -top-4 h-48 w-48 text-white/15" />
           <Sparkle className="absolute right-8 top-8 h-6 w-6 text-accent-300" />
           <p className="relative text-sm font-medium text-white/80">
