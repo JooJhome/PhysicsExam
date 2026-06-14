@@ -71,38 +71,47 @@ export default function AssignList({ data }: { data: AssignOverview }) {
   }
 
   return (
-    <div className="mt-8">
-      {/* chips + search */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
-          {CHIPS.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => setFilter(c.key)}
-              aria-pressed={filter === c.key}
-              className={`min-h-[40px] flex-none rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                filter === c.key
-                  ? "border-brand-600 bg-brand-600 text-white"
-                  : "border-line bg-white text-ink-soft hover:border-brand-200 hover:text-brand-700"
-              }`}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
+    <div className="mt-6 space-y-4">
+      {/* toolbar: search (flex-1) */}
+      <div className="relative">
+        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        </span>
         <input
           type="search"
+          inputMode="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="ค้นหาชุด"
+          placeholder="ค้นหาชื่อชุดหรือรหัส"
           aria-label="ค้นหาชุดสอบ"
-          className="w-full rounded-xl border border-line bg-white px-4 py-3 text-base focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:w-64"
+          className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
         />
       </div>
 
+      {/* filter chips */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
+        {CHIPS.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => setFilter(c.key)}
+            aria-pressed={filter === c.key}
+            className={`min-h-[40px] flex-none rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+              filter === c.key
+                ? "border-brand-600 bg-brand-600 text-white"
+                : "border-line bg-white text-ink-soft hover:border-brand-200 hover:text-brand-700"
+            }`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
       {/* list */}
-      <div className="mt-5 space-y-3">
+      <div className="space-y-3">
         {exams.map((e) => (
           <div key={e.id} className={loadingId === e.id ? "opacity-60" : ""}>
             <ExamAssignRow exam={e} totalStudents={data.totalStudents} onOpen={() => openDrawer(e)} />
