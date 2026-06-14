@@ -15,10 +15,10 @@ export default function ExamAssignRow({
   const pct = totalStudents > 0 ? Math.round((exam.assignedCount / totalStudents) * 100) : 0;
 
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-5 shadow-card sm:flex-row sm:items-center">
+    <article className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-4 shadow-card sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-display text-lg font-bold text-ink">{exam.name}</h3>
+          <h3 className="font-display text-base font-bold text-ink">{exam.name}</h3>
           {isDraft && (
             <span className="rounded-full bg-sand-100 px-2.5 py-0.5 text-xs font-bold text-muted">
               ฉบับร่าง
