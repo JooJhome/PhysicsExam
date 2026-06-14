@@ -62,10 +62,10 @@ export default async function ResultPage({
             ผลคะแนน · {review.title}
           </p>
           <div className="relative mt-3 flex items-end gap-3">
-            <span className="font-display text-6xl font-extrabold leading-none tabular-nums">
+            <span className="font-display text-hero font-extrabold leading-none tabular-nums">
               {review.score}
             </span>
-            <span className="mb-2 font-display text-2xl font-bold text-white/60">
+            <span className="mb-1 font-display text-h2 font-bold text-white/60">
               / {review.total}
             </span>
             <span className="mb-2.5 ml-1 text-sm font-medium text-white/70">

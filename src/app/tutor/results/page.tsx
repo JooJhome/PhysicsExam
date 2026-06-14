@@ -10,7 +10,7 @@ export default async function ResultsPage() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">ผลสอบ</h1>
+          <h1 className="font-display text-h1 font-extrabold text-ink">ผลสอบ</h1>
           <p className="mt-2 text-muted sm:text-lg">
             ติดตามคะแนนเรียลไทม์ · วิเคราะห์รายข้อ · ดาวน์โหลด CSV
           </p>

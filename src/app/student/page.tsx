@@ -53,7 +53,7 @@ export default async function StudentHome() {
         <section className="grid items-center gap-6 md:grid-cols-[1.4fr_1fr]">
           <div className="relative">
             <Sparkle className="absolute -left-2 -top-5 h-6 w-6 text-accent-400" />
-            <h1 className="font-display text-3xl font-extrabold leading-[1.12] text-ink sm:text-4xl">
+            <h1 className="font-display text-h1 font-extrabold leading-[1.12] text-ink">
               ชุดข้อสอบ{" "}
               <span className="relative inline-block">
                 ของคุณ
@@ -74,7 +74,7 @@ export default async function StudentHome() {
                 ความคืบหน้าของคุณ
               </p>
               <div className="relative mt-2 flex items-end gap-2">
-                <span className="font-display text-5xl font-extrabold tabular-nums">
+                <span className="font-display text-display font-extrabold tabular-nums">
                   {doneCount}
                 </span>
                 <span className="mb-1.5 text-lg font-semibold text-white/70">

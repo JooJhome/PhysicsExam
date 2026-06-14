@@ -25,7 +25,7 @@ export default async function TutorDashboard() {
 
       {/* C. หัวเรื่อง + สรุป dynamic */}
       <header className="mt-5">
-        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
+        <h1 className="font-display text-h1 font-extrabold text-ink">
           ภาพรวมระบบ
         </h1>
         <p className="mt-2 text-muted">
