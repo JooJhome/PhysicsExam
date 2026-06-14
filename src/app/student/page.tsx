@@ -15,6 +15,7 @@ interface StudentExam {
   title: string;
   exam_code: string;
   description: string | null;
+  kind: "exam" | "practice";
   duration_minutes: number;
   total_questions: number;
   score: number | null;
@@ -33,9 +34,9 @@ export default async function StudentHome() {
   ]);
   const all = (data as StudentExam[] | null) ?? [];
   // ซ่อนชุดที่ "ส่งแล้ว + กดออกจากเฉลยแล้ว" (ดูซ้ำไม่ได้)
-  // ชุดที่ส่งแล้วแต่ยังไม่กดออก → ยังเหลือสิทธิ์ดูเฉลยครั้งเดียว
+  // — ยกเว้นแบบฝึกหัด: คงไว้เสมอ (ทำใหม่/ดูเฉลยซ้ำได้)
   const exams = all.filter(
-    (e) => !(e.attempt_status === "submitted" && e.reviewed_at)
+    (e) => e.kind === "practice" || !(e.attempt_status === "submitted" && e.reviewed_at)
   );
   // สถิติคืบหน้า (มาจากข้อมูลเดิม ไม่ใช่ฟีเจอร์ใหม่)
   const doneCount = all.filter((e) => e.attempt_status === "submitted").length;
@@ -125,9 +126,16 @@ export default async function StudentHome() {
                   className="group flex flex-col rounded-3xl border border-line bg-white p-5 shadow-card transition-transform hover:-translate-y-0.5"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="rounded-full bg-brand-50 px-3 py-1 font-display text-xs font-bold tracking-wide text-brand-700">
-                      {e.exam_code}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-full bg-brand-50 px-3 py-1 font-display text-xs font-bold tracking-wide text-brand-700">
+                        {e.exam_code}
+                      </span>
+                      {e.kind === "practice" && (
+                        <span className="rounded-full bg-accent-50 px-2.5 py-1 text-xs font-bold text-accent-700 ring-1 ring-accent-200">
+                          แบบฝึกหัด
+                        </span>
+                      )}
+                    </div>
                     <span className="grid h-9 w-9 place-items-center rounded-full bg-sand-100 text-ink transition-colors group-hover:bg-brand-600 group-hover:text-white">
                       <ArrowUpRight className="h-4 w-4" />
                     </span>
@@ -141,10 +149,16 @@ export default async function StudentHome() {
                       {e.total_questions}
                     </span>{" "}
                     ข้อ ·{" "}
-                    <span className="font-display font-semibold tabular-nums">
-                      {e.duration_minutes}
-                    </span>{" "}
-                    นาที
+                    {e.kind === "practice" ? (
+                      "ไม่จับเวลา"
+                    ) : (
+                      <>
+                        <span className="font-display font-semibold tabular-nums">
+                          {e.duration_minutes}
+                        </span>{" "}
+                        นาที
+                      </>
+                    )}
                   </p>
 
                   <div className="mt-5 flex items-center justify-between gap-3">
@@ -162,7 +176,7 @@ export default async function StudentHome() {
                           href={`/student/result/${e.exam_id}`}
                           className="text-sm font-bold text-brand-700 hover:text-brand-800"
                         >
-                          ดูเฉลย →
+                          {e.kind === "practice" ? "ดูเฉลย / ทำใหม่ →" : "ดูเฉลย →"}
                         </Link>
                       </>
                     ) : e.attempt_status === "in_progress" ? (

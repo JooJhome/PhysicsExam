@@ -25,14 +25,16 @@ export default async function ResultPage({
   const { examId } = await params;
   const supabase = await createClient();
 
-  // 3 คำขอนี้อิสระต่อกัน → ยิงขนาน (เลี่ยง request waterfall)
-  const [profile, reviewRes, surveyRes] = await Promise.all([
+  // คำขอเหล่านี้อิสระต่อกัน → ยิงขนาน (เลี่ยง request waterfall)
+  const [profile, reviewRes, surveyRes, examRes] = await Promise.all([
     getProfile(),
     supabase.rpc("get_review", { p_exam_id: examId }),
     supabase.rpc("has_survey", { p_exam_id: examId }),
+    supabase.from("exams").select("kind").eq("id", examId).single(),
   ]);
 
   const { data, error } = reviewRes;
+  const isPractice = examRes.data?.kind === "practice";
 
   // ยังไม่ส่ง → กลับไปทำต่อ ; error อื่น → กลับหน้าหลัก
   if (error) {
@@ -41,11 +43,11 @@ export default async function ResultPage({
   }
   const review = data as Review;
 
-  // ต้องตอบแบบสอบถามก่อนจึงดูเฉลยได้ (กันข้ามขั้น)
-  if (!surveyRes.data) redirect(`/student/exam/${examId}`);
+  // ข้อสอบจริง: ต้องตอบแบบสอบถามก่อนจึงดูเฉลยได้ (แบบฝึกหัดข้าม)
+  if (!isPractice && !surveyRes.data) redirect(`/student/exam/${examId}`);
 
-  // ★ ดูได้ครั้งเดียว — เคยกดออกแล้ว เข้ามาดูซ้ำไม่ได้
-  if (review.reviewed_at) redirect("/student");
+  // ข้อสอบจริง: ดูเฉลยได้ครั้งเดียว (แบบฝึกหัดดูได้ไม่จำกัด + ทำใหม่ได้)
+  if (!isPractice && review.reviewed_at) redirect("/student");
 
   return (
     <>
@@ -83,13 +85,22 @@ export default async function ResultPage({
           ) : null}
         </section>
 
-        <div className="mt-4 flex items-start gap-2 rounded-xl bg-accent-50 px-4 py-3 text-sm text-accent-900 ring-1 ring-accent-200">
-          <span aria-hidden>⚠️</span>
-          <p>
-            หน้านี้ดูได้ <b>ครั้งเดียว</b> — เมื่อกด “ออก”
-            จะกลับมาดูเฉลยชุดนี้ไม่ได้อีก
-          </p>
-        </div>
+        {isPractice ? (
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800 ring-1 ring-brand-200">
+            <span aria-hidden>🔁</span>
+            <p>
+              <b>แบบฝึกหัด</b> — ดูเฉลยได้ไม่จำกัด และกลับมาทำใหม่ได้ทุกเมื่อ
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-accent-50 px-4 py-3 text-sm text-accent-900 ring-1 ring-accent-200">
+            <span aria-hidden>⚠️</span>
+            <p>
+              หน้านี้ดูได้ <b>ครั้งเดียว</b> — เมื่อกด “ออก”
+              จะกลับมาดูเฉลยชุดนี้ไม่ได้อีก
+            </p>
+          </div>
+        )}
 
         {review.allow_review && review.review_html ? (
           <div className="mt-4">
@@ -104,8 +115,16 @@ export default async function ResultPage({
           </p>
         )}
 
-        <div className="mt-6 flex justify-end">
-          <ReviewExitButton examId={examId} />
+        <div className="mt-6 flex justify-end gap-3">
+          {isPractice && (
+            <a
+              href={`/student/exam/${examId}`}
+              className="rounded-lg border border-brand-200 px-5 py-2 text-sm font-bold text-brand-700 transition-colors hover:bg-brand-50"
+            >
+              ทำใหม่อีกครั้ง
+            </a>
+          )}
+          <ReviewExitButton examId={examId} isPractice={isPractice} />
         </div>
       </main>
     </>

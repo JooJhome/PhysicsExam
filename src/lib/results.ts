@@ -71,7 +71,7 @@ export async function getResults(): Promise<ResultsData> {
   const [examsRes, studentsRes, assignRes, attemptRes] = await Promise.all([
     supabase
       .from("exams")
-      .select("id, title, exam_code, total_questions, passing_score, status"),
+      .select("id, title, exam_code, kind, total_questions, passing_score, status"),
     supabase.from("profiles").select("id, username, full_name").eq("role", "student"),
     supabase.from("assignments").select("exam_id, student_id"),
     supabase
@@ -81,10 +81,12 @@ export async function getResults(): Promise<ResultsData> {
       .order("started_at", { ascending: false }),
   ]);
 
-  const exams = examsRes.data ?? [];
   const students = studentsRes.data ?? [];
-  const assignments = assignRes.data ?? [];
-  const attempts = attemptRes.data ?? [];
+  // ผลสอบ = สถิติ graded เท่านั้น → ตัดแบบฝึกหัด (kind='practice') ออกทั้งหมด
+  const exams = (examsRes.data ?? []).filter((e) => e.kind !== "practice");
+  const gradedIds = new Set(exams.map((e) => e.id));
+  const assignments = (assignRes.data ?? []).filter((a) => gradedIds.has(a.exam_id));
+  const attempts = (attemptRes.data ?? []).filter((a) => gradedIds.has(a.exam_id));
 
   const examById = new Map(exams.map((e) => [e.id, e]));
   const studentById = new Map(students.map((s) => [s.id, s]));
