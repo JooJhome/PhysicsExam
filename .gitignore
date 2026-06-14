@@ -33,3 +33,6 @@ supabase/.temp/
 # ระบบ
 .DS_Store
 *.log
+
+# playwright MCP (screenshots/artifacts ชั่วคราว)
+.playwright-mcp/
