@@ -640,3 +640,82 @@ export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
     items,
   };
 }
+
+/* ---------- แบบสอบถามหลังสอบ (อ่านฝั่งติวเตอร์ — RLS เปิดให้ tutor) ---------- */
+
+export type SurveyResponse = {
+  studentName: string;
+  initials: string;
+  difficulty: number;
+  timeAdequacy: number;
+  confidence: number;
+  stress: number;
+  hardestTopics: string | null;
+  comment: string | null;
+};
+
+export type ExamSurveys = {
+  examCode: string;
+  count: number;
+  avg: { difficulty: number; timeAdequacy: number; confidence: number; stress: number } | null;
+  responses: SurveyResponse[];
+};
+
+function surveyInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "—";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return ((parts[0][0] ?? "") + (parts[1][0] ?? "")).toUpperCase();
+}
+
+/** รวมผลแบบสอบถามของชุดเดียว — ค่าเฉลี่ย 4 ด้าน + รายการตอบรายคน */
+export async function getExamSurveys(examId: string): Promise<ExamSurveys> {
+  const { supabase } = await assertTutor();
+  const [examRes, surveyRes] = await Promise.all([
+    supabase.from("exams").select("exam_code").eq("id", examId).single(),
+    supabase
+      .from("exam_surveys")
+      .select("student_id, difficulty, time_adequacy, confidence, stress, hardest_topics, comment, created_at")
+      .eq("exam_id", examId)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const rows = surveyRes.data ?? [];
+  const ids = [...new Set(rows.map((r) => r.student_id))];
+  const profRes = ids.length
+    ? await supabase.from("profiles").select("id, username, full_name").in("id", ids)
+    : { data: [] as { id: string; username: string; full_name: string | null }[] };
+  const nameById = new Map(
+    (profRes.data ?? []).map((p) => [p.id, p.full_name?.trim() || p.username])
+  );
+
+  const responses: SurveyResponse[] = rows.map((r) => {
+    const name = nameById.get(r.student_id) ?? "ไม่ทราบชื่อ";
+    return {
+      studentName: name,
+      initials: surveyInitials(name),
+      difficulty: r.difficulty,
+      timeAdequacy: r.time_adequacy,
+      confidence: r.confidence,
+      stress: r.stress,
+      hardestTopics: r.hardest_topics,
+      comment: r.comment,
+    };
+  });
+
+  const avg =
+    rows.length === 0
+      ? null
+      : {
+          difficulty: round1(rows.reduce((s, r) => s + r.difficulty, 0) / rows.length),
+          timeAdequacy: round1(rows.reduce((s, r) => s + r.time_adequacy, 0) / rows.length),
+          confidence: round1(rows.reduce((s, r) => s + r.confidence, 0) / rows.length),
+          stress: round1(rows.reduce((s, r) => s + r.stress, 0) / rows.length),
+        };
+
+  return { examCode: examRes.data?.exam_code ?? "—", count: rows.length, avg, responses };
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
