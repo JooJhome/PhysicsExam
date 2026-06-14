@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { logout } from "@/lib/actions/auth";
 import { Wordmark } from "@/components/Decor";
+import HelpButton from "@/components/tutor/help/HelpButton";
 
 export default function AppHeader({
   title,
@@ -31,6 +32,7 @@ export default function AppHeader({
           </nav>
         )}
         <div className="ml-auto flex items-center gap-3 text-sm">
+          <HelpButton />
           {name && (
             <span className="hidden font-medium text-ink-soft sm:inline">
               {name}
