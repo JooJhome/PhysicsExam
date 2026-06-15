@@ -17,14 +17,18 @@ export type UndoSnapshot = {
   untimed: boolean;
 };
 
-function isoToLocal(iso: string | null): string {
+// กำหนดเป็น "วัน" (ตัดเที่ยงคืนกรุงเทพฯ) — ไม่โชว์เวลาให้นักเรียน
+// เปิด = ต้นวัน 00:00 · ปิด = สิ้นวัน 23:59:59 (ปิดเที่ยงคืนเข้าวันถัดไปพอดี)
+const BKK = "+07:00";
+function isoToBkkDate(iso: string | null): string {
   if (!iso) return "";
-  const d = new Date(iso);
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" }); // yyyy-MM-dd
 }
-function localToIso(s: string): string | null {
-  return s ? new Date(s).toISOString() : null;
+function openDateToIso(day: string): string | null {
+  return day ? new Date(`${day}T00:00:00.000${BKK}`).toISOString() : null;
+}
+function closeDateToIso(day: string): string | null {
+  return day ? new Date(`${day}T23:59:59.999${BKK}`).toISOString() : null;
 }
 
 export default function AssignDrawer({
@@ -49,8 +53,10 @@ export default function AssignDrawer({
   const [selected, setSelected] = useState<Set<string>>(() => new Set(assignedSet));
   const [q, setQ] = useState("");
   const [freeFirst, setFreeFirst] = useState(false);
-  const [open, setOpen] = useState(isoToLocal(detail.window.open));
-  const [close, setClose] = useState(isoToLocal(detail.window.close));
+  const initOpen = isoToBkkDate(detail.window.open);
+  const initClose = isoToBkkDate(detail.window.close);
+  const [open, setOpen] = useState(initOpen);
+  const [close, setClose] = useState(initClose);
   const [duration, setDuration] = useState(String(detail.durationOverride ?? detail.exam.durationMin));
   // นักเรียนที่เพิ่งรีเซ็ตในเซสชันนี้ → ปลดล็อก (กลับมาทำใหม่ได้)
   const [resetIds, setResetIds] = useState<Set<string>>(new Set());
@@ -112,8 +118,8 @@ export default function AssignDrawer({
   }
   function hasWindowChange() {
     return (
-      localToIso(open) !== detail.window.open ||
-      localToIso(close) !== detail.window.close ||
+      open !== initOpen ||
+      close !== initClose ||
       currentOverride() !== (detail.durationOverride ?? null) ||
       untimed !== detail.untimed
     );
@@ -177,7 +183,7 @@ export default function AssignDrawer({
     const result = await saveAssignment(
       detail.exam.id,
       [...selected],
-      { open: localToIso(open), close: localToIso(close), due: detail.window.due },
+      { open: openDateToIso(open), close: closeDateToIso(close), due: detail.window.due },
       overrideVal,
       untimed
     );
@@ -241,15 +247,18 @@ export default function AssignDrawer({
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
           {/* ช่วงเวลา */}
           <div className="rounded-2xl border border-line bg-canvas/50 p-4">
-            <p className="mb-2 text-sm font-semibold text-ink">ช่วงเวลาทำข้อสอบ</p>
+            <p className="mb-1 text-sm font-semibold text-ink">ช่วงวันทำข้อสอบ</p>
+            <p className="mb-2 text-xs text-hint">
+              เปิด = เที่ยงคืนของวันเปิด · ปิด = สิ้นวันของวันปิด (นักเรียนเห็นเฉพาะวัน)
+            </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <label className="text-xs font-medium text-muted">
-                เปิดให้ทำ
-                <input type="datetime-local" value={open} onChange={(e) => setOpen(e.target.value)} className={`mt-1 ${field}`} />
+                เปิดให้ทำวันที่
+                <input type="date" value={open} max={close || undefined} onChange={(e) => setOpen(e.target.value)} className={`mt-1 ${field}`} />
               </label>
               <label className="text-xs font-medium text-muted">
-                ปิด
-                <input type="datetime-local" value={close} onChange={(e) => setClose(e.target.value)} className={`mt-1 ${field}`} />
+                ทำได้ถึงวันที่
+                <input type="date" value={close} min={open || undefined} onChange={(e) => setClose(e.target.value)} className={`mt-1 ${field}`} />
               </label>
               <label className={`text-xs font-medium ${untimed ? "text-hint" : "text-muted"}`}>
                 เวลาสอบ (นาที)

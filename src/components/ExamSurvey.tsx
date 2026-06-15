@@ -74,13 +74,14 @@ export default function ExamSurvey({
           {RATINGS.map((r) => (
             <div key={r.key}>
               <p className="text-sm font-semibold text-gray-800">{r.label}</p>
-              <div className="mt-2 flex items-center gap-2">
+              {/* ปุ่มเต็มความกว้างแบบ grid 5 ช่อง → label ใต้สุดตรงกับเลข 1 และ 5 พอดี */}
+              <div className="mt-2 grid grid-cols-5 gap-2">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
                     type="button"
                     onClick={() => setRatings((s) => ({ ...s, [r.key]: n }))}
-                    className={`h-10 w-10 rounded-lg text-sm font-semibold ring-1 transition ${
+                    className={`h-10 rounded-lg text-sm font-semibold ring-1 transition ${
                       ratings[r.key] === n
                         ? "bg-blue-600 text-white ring-blue-600"
                         : "bg-white text-gray-700 ring-gray-300 hover:bg-gray-50"
@@ -90,9 +91,9 @@ export default function ExamSurvey({
                   </button>
                 ))}
               </div>
-              <div className="mt-1 flex justify-between text-xs text-gray-400">
-                <span>{r.low}</span>
-                <span>{r.high}</span>
+              <div className="mt-1 grid grid-cols-5 gap-2 text-xs text-gray-400">
+                <span className="text-center">{r.low}</span>
+                <span className="col-start-5 text-center">{r.high}</span>
               </div>
             </div>
           ))}
