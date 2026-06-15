@@ -377,6 +377,38 @@ export async function deleteStudent(studentId: string): Promise<ActionResult> {
   }
 }
 
+/* ---------------- โปรไฟล์/ตั้งค่าติวเตอร์ ---------------- */
+
+export async function updateTutorName(fullName: string): Promise<ActionResult> {
+  try {
+    const { userId } = await assertTutor();
+    const name = fullName.trim();
+    if (!name) return { ok: false, message: "กรอกชื่อ-สกุล" };
+    if (name.length > 120) return { ok: false, message: "ชื่อยาวเกินไป" };
+    // profiles แก้ได้ผ่าน service-role เท่านั้น (RLS)
+    const admin = createAdminClient();
+    const { error } = await admin.from("profiles").update({ full_name: name }).eq("id", userId);
+    if (error) return { ok: false, message: error.message };
+    revalidatePath("/tutor/settings");
+    revalidatePath("/tutor");
+    return { ok: true, message: "บันทึกชื่อแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
+export async function changeOwnPassword(newPassword: string): Promise<ActionResult> {
+  try {
+    const { supabase } = await assertTutor(); // ใช้ session ปัจจุบัน → เปลี่ยนรหัสตัวเอง
+    if (newPassword.length < 6) return { ok: false, message: "รหัสผ่านอย่างน้อย 6 ตัวอักษร" };
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) return { ok: false, message: error.message };
+    return { ok: true, message: "เปลี่ยนรหัสผ่านแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
 /* ---------------- กลุ่ม/ห้องเรียน ---------------- */
 
 function revalidateGroups() {
