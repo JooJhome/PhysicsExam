@@ -982,19 +982,25 @@ export type BreakdownItem = {
   topWrongChoice: number | null; // ตัวเลือกลวงที่คนเลือกบ่อยสุด
   topWrongCount: number;
 };
+export type TopicStat = {
+  topic: string;
+  questionCount: number; // จำนวนข้อในหัวข้อนี้
+  avgPercent: number; // % ถูกเฉลี่ยของหัวข้อ (ทั้งห้อง)
+};
 export type ExamBreakdown = {
   examId: string;
   examCode: string;
   submitted: number;
   choices: number; // จำนวนตัวเลือก (เดาจากเฉลย, อย่างน้อย 5)
   items: BreakdownItem[];
+  topicStats: TopicStat[]; // สรุปรายหัวข้อ (อ่อนสุดก่อน) — ว่างถ้ายังไม่แท็ก
 };
 
 /** วิเคราะห์รายข้อของชุด — รวมคำตอบผู้ส่งทุกคนเทียบเฉลย (ติวเตอร์เท่านั้น) */
 export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
   const { supabase } = await assertTutor();
   const [examRes, keyRes, attemptRes] = await Promise.all([
-    supabase.from("exams").select("exam_code, total_questions").eq("id", examId).single(),
+    supabase.from("exams").select("exam_code, total_questions, question_topics").eq("id", examId).single(),
     supabase.from("exam_answer_keys").select("answers").eq("exam_id", examId).single(),
     supabase
       .from("attempts")
@@ -1004,6 +1010,7 @@ export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
   ]);
 
   const key = (keyRes.data?.answers as number[] | null) ?? [];
+  const topics = (examRes.data?.question_topics as string[] | null) ?? [];
   const total = examRes.data?.total_questions ?? key.length;
   const submissions = (attemptRes.data ?? [])
     .map((a) => a.answers as (number | null)[] | null)
@@ -1046,12 +1053,33 @@ export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
 
   const choices = Math.max(5, ...key.filter((k): k is number => k != null));
 
+  // สรุปรายหัวข้อ — รวม correct ของข้อในหัวข้อเดียวกัน / (ผู้ส่ง × จำนวนข้อ)
+  const topicAgg = new Map<string, { correct: number; q: number }>();
+  for (const it of items) {
+    const topic = (topics[it.n - 1] ?? "").trim();
+    if (!topic) continue;
+    const cur = topicAgg.get(topic) ?? { correct: 0, q: 0 };
+    cur.correct += it.correct;
+    cur.q += 1;
+    topicAgg.set(topic, cur);
+  }
+  const topicStats: TopicStat[] = [...topicAgg.entries()]
+    .map(([topic, v]) => ({
+      topic,
+      questionCount: v.q,
+      avgPercent: submissions.length
+        ? Math.round((v.correct / (submissions.length * v.q)) * 100)
+        : 0,
+    }))
+    .sort((a, b) => a.avgPercent - b.avgPercent); // อ่อนสุดก่อน
+
   return {
     examId,
     examCode: examRes.data?.exam_code ?? "—",
     submitted: submissions.length,
     choices,
     items,
+    topicStats,
   };
 }
 

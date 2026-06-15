@@ -105,6 +105,35 @@ export default function BreakdownDrawer({
             <p className="py-10 text-center text-sm text-muted">กำลังวิเคราะห์…</p>
           ) : (
             <>
+              {/* สรุปรายหัวข้อ (mastery) — อ่อนสุดก่อน */}
+              {data.topicStats.length > 0 && (
+                <div className="mb-4 rounded-xl border border-line p-3">
+                  <p className="mb-2 text-sm font-bold text-ink">สรุปรายหัวข้อ · ทั้งห้อง</p>
+                  <ul className="space-y-2">
+                    {data.topicStats.map((t) => {
+                      const tone =
+                        t.avgPercent >= 70 ? "bg-green-500" : t.avgPercent >= 40 ? "bg-accent-400" : "bg-red-500";
+                      return (
+                        <li key={t.topic}>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-semibold text-ink">
+                              {t.topic}{" "}
+                              <span className="text-xs font-normal text-muted">({t.questionCount} ข้อ)</span>
+                            </span>
+                            <span className="font-display font-bold tabular-nums text-ink-soft">
+                              {t.avgPercent}% ถูก
+                            </span>
+                          </div>
+                          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-sand-100">
+                            <div className={`h-full rounded-full ${tone}`} style={{ width: `${t.avgPercent}%` }} />
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
               <p className="mb-3 rounded-xl bg-sand-100 px-3 py-2 text-xs text-ink-soft">
                 ถ้าเฉลยข้อไหนผิด แตะตัวเลือกที่ถูกต้องเพื่อแก้ แล้วกด “บันทึก + คิดคะแนนใหม่” ด้านล่าง —
                 ระบบจะคิดคะแนนของคนที่ส่งแล้วใหม่ทั้งหมด
