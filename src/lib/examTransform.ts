@@ -177,7 +177,8 @@ const EXAM_CLIENT = `
     ul.querySelectorAll('li[data-v]').forEach(function(x){ x.classList.remove('sel'); });
     li.classList.add('sel');
     updateChip();
-    post({type:'EXAM_PROGRESS', answered: answeredCount(), total: TOTAL});
+    // ส่ง answers ออกมาด้วย → parent autosave (กันคำตอบหายถ้าเน็ตหลุด/ปิดแท็บ)
+    post({type:'EXAM_PROGRESS', answered: answeredCount(), total: TOTAL, answers: collect()});
   });
 
   function updateChip(){

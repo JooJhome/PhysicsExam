@@ -61,6 +61,7 @@ type Row = {
   untimed: boolean;
   open_at: string | null;
   close_at: string | null;
+  answered: number;
 };
 
 const DAY_MS = 86_400_000;
@@ -121,16 +122,20 @@ function normalize(r: Row, now: number): StudentExamCard {
     else if (openDay) availabilityLabel = `เปิดตั้งแต่ ${openDay}`;
   }
 
-  // เวลาที่เหลือของ in_progress (จาก started_at + duration) — untimed = null
+  // in_progress: เหลือกี่ข้อ (จาก autosave) + เหลือกี่นาที (จาก started_at + duration)
   let remainingMin: number | null = null;
   let remainingLabel: string | null = null;
   if (status === "in_progress") {
+    const remainingQ = Math.max(0, (r.total_questions ?? 0) - (r.answered ?? 0));
+    const qPart = `เหลือ ${remainingQ} ข้อ`;
     if (r.untimed) {
-      remainingLabel = "ไม่จับเวลา";
+      remainingLabel = qPart;
     } else if (r.started_at) {
       const end = new Date(r.started_at).getTime() + r.duration_minutes * 60_000;
       remainingMin = Math.max(0, Math.ceil((end - now) / 60_000));
-      remainingLabel = remainingMin > 0 ? `เหลือ ${remainingMin} นาที` : "หมดเวลา — ส่งได้เลย";
+      remainingLabel = remainingMin > 0 ? `${qPart} · ${remainingMin} นาที` : `${qPart} · หมดเวลา`;
+    } else {
+      remainingLabel = qPart;
     }
   }
 
