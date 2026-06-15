@@ -42,6 +42,15 @@ export type ExamSummary = {
   anomalyFlag: boolean;
   passingScore: number;
   isDefault: boolean;
+  groupStats: GroupStat[]; // สรุปรายกลุ่ม (เฉพาะกลุ่มที่มีคนส่ง) — เทียบห้อง A vs B
+};
+
+export type GroupStat = {
+  groupId: string;
+  name: string;
+  submitted: number;
+  avgPercent: number;
+  passRate: number;
 };
 
 export type StudentSummary = {
@@ -174,6 +183,28 @@ export async function getResults(): Promise<ResultsData> {
         if ((a.score ?? 0) >= pass) passCount++;
       }
       const avgPercent = subs.length ? Math.round(sumPct / subs.length) : null;
+
+      // สรุปรายกลุ่ม — เฉพาะกลุ่มที่มีคนส่งชุดนี้ (เทียบห้อง A vs B)
+      const groupStats: GroupStat[] = groupCatalog
+        .map((g) => {
+          const gsubs = subs.filter((a) => (studentGroups[a.student_id] ?? []).includes(g.id));
+          if (gsubs.length === 0) return null;
+          let gSum = 0;
+          let gPass = 0;
+          for (const a of gsubs) {
+            gSum += ((a.score ?? 0) / (a.total || total)) * 100;
+            if ((a.score ?? 0) >= pass) gPass++;
+          }
+          return {
+            groupId: g.id,
+            name: g.name,
+            submitted: gsubs.length,
+            avgPercent: Math.round(gSum / gsubs.length),
+            passRate: Math.round((gPass / gsubs.length) * 100),
+          };
+        })
+        .filter((x): x is GroupStat => x !== null);
+
       return {
         examId: e.id,
         examCode: e.exam_code,
@@ -189,6 +220,7 @@ export async function getResults(): Promise<ResultsData> {
         anomalyFlag: subs.length >= 2 && avgPercent != null && avgPercent < ANOMALY_PERCENT,
         passingScore: pass,
         isDefault: e.passing_score == null,
+        groupStats,
       };
     })
     .filter((s) => s.submitted > 0 || s.assigned > 0);

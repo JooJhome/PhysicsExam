@@ -117,6 +117,27 @@ function ExamSummaryCard({
         <span className="self-end pb-4 text-[9px] tabular-nums text-hint sm:text-[10px]">100</span>
       </div>
 
+      {/* สรุปรายกลุ่ม — เทียบห้อง A vs B */}
+      {exam.groupStats.length > 0 && (
+        <div className="mt-4 border-t border-line pt-3">
+          <p className="mb-2 text-xs font-semibold text-muted">รายกลุ่ม</p>
+          <div className="flex flex-wrap gap-2">
+            {exam.groupStats.map((g) => (
+              <div
+                key={g.groupId}
+                className="rounded-xl border border-line bg-canvas/50 px-3 py-2 text-sm"
+                title={`${g.name} · ส่ง ${g.submitted} คน · เฉลี่ย ${g.avgPercent}% · ผ่าน ${g.passRate}%`}
+              >
+                <span className="font-display font-bold text-ink">{g.name}</span>
+                <span className="ml-2 text-xs text-muted">{g.submitted} คน</span>
+                <span className="ml-2 font-display font-bold tabular-nums text-ink-soft">{g.avgPercent}%</span>
+                <span className="ml-1.5 text-xs text-muted">เฉลี่ย · ผ่าน {g.passRate}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted">เกณฑ์ผ่าน:</span>
