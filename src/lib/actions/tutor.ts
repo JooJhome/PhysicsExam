@@ -748,6 +748,7 @@ export async function setPassingScore(
 
 export type BreakdownItem = {
   n: number; // ข้อที่ (1-based)
+  key: number | null; // เฉลยปัจจุบันของข้อนี้ (1..5)
   answered: number;
   correct: number;
   pctCorrect: number;
@@ -755,8 +756,10 @@ export type BreakdownItem = {
   topWrongCount: number;
 };
 export type ExamBreakdown = {
+  examId: string;
   examCode: string;
   submitted: number;
+  choices: number; // จำนวนตัวเลือก (เดาจากเฉลย, อย่างน้อย 5)
   items: BreakdownItem[];
 };
 
@@ -801,6 +804,7 @@ export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
     }
     items.push({
       n: i + 1,
+      key: key[i] ?? null,
       answered,
       correct,
       // ตัวหาร = จำนวนคนที่ "ส่ง" ทั้งหมด (เว้นว่าง/ตอบผิด = ไม่ถูก) ไม่ใช่เฉพาะคนที่ตอบข้อนั้น
@@ -813,11 +817,67 @@ export async function getExamBreakdown(examId: string): Promise<ExamBreakdown> {
   // ยากสุด (ตอบถูกน้อยสุด) ขึ้นก่อน
   items.sort((a, b) => a.pctCorrect - b.pctCorrect);
 
+  const choices = Math.max(5, ...key.filter((k): k is number => k != null));
+
   return {
+    examId,
     examCode: examRes.data?.exam_code ?? "—",
     submitted: submissions.length,
+    choices,
     items,
   };
+}
+
+/**
+ * แก้เฉลย + คิดคะแนน attempts ที่ส่งแล้วใหม่อัตโนมัติ (fix key + re-grade)
+ * RLS อนุญาตให้ tutor อัปเดต exam_answer_keys + attempts.score ได้ → ไม่ต้อง RPC/migration
+ */
+export async function updateAnswerKey(
+  examId: string,
+  answers: number[]
+): Promise<ActionResult & { regraded: number }> {
+  try {
+    const { supabase } = await assertTutor();
+    if (!Array.isArray(answers) || answers.length === 0)
+      return { ok: false, message: "เฉลยไม่ถูกต้อง", regraded: 0 };
+
+    // 1) อัปเดตเฉลย
+    const { error: keyErr } = await supabase
+      .from("exam_answer_keys")
+      .update({ answers })
+      .eq("exam_id", examId);
+    if (keyErr) return { ok: false, message: keyErr.message, regraded: 0 };
+
+    // 2) คิดคะแนนใหม่ทุก attempt ที่ส่งแล้ว
+    const { data: atts } = await supabase
+      .from("attempts")
+      .select("id, answers")
+      .eq("exam_id", examId)
+      .eq("status", "submitted");
+
+    let regraded = 0;
+    for (const a of atts ?? []) {
+      const ans = (a.answers as (number | null)[] | null) ?? [];
+      let score = 0;
+      for (let i = 0; i < answers.length; i++) {
+        if (ans[i] != null && ans[i] === answers[i]) score++;
+      }
+      const { error } = await supabase
+        .from("attempts")
+        .update({ score, total: answers.length })
+        .eq("id", a.id);
+      if (!error) regraded++;
+    }
+
+    revalidatePath("/tutor/results");
+    return {
+      ok: true,
+      message: `บันทึกเฉลยแล้ว · คิดคะแนนใหม่ ${regraded} คน`,
+      regraded,
+    };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message, regraded: 0 };
+  }
 }
 
 /* ---------- แบบสอบถามหลังสอบ (อ่านฝั่งติวเตอร์ — RLS เปิดให้ tutor) ---------- */
