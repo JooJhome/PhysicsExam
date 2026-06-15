@@ -44,7 +44,7 @@ export default function TutorShell({
     <div className="min-h-dvh">
       {/* ── Sidebar (md+) ── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 hidden flex-col bg-side-bg text-side-text transition-[width] duration-200 ease-out md:flex ${
+        className={`fixed inset-y-0 left-0 z-40 hidden flex-col bg-side-bg text-side-text transition-[width] duration-200 ease-out md:flex print:!hidden ${
           expanded ? "w-56" : "w-16"
         }`}
       >
@@ -57,7 +57,7 @@ export default function TutorShell({
       </aside>
 
       {/* ── Mobile top bar (<md) ── */}
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-canvas/90 px-3 backdrop-blur md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-canvas/90 px-3 backdrop-blur md:hidden print:!hidden">
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
@@ -77,7 +77,7 @@ export default function TutorShell({
 
       {/* ── Content ── */}
       <div
-        className={`transition-[padding] duration-200 ease-out ${
+        className={`transition-[padding] duration-200 ease-out print:!pl-0 ${
           expanded ? "md:pl-56" : "md:pl-16"
         }`}
       >
