@@ -97,20 +97,24 @@ function ExamSummaryCard({
         </button>
       )}
 
-      {/* การกระจายคะแนน */}
-      <div className="mt-4 flex items-end gap-1.5">
+      {/* การกระจายคะแนน — 10 แท่ง ช่วงละ 10% */}
+      <div className="mt-4 flex items-end gap-1">
         {exam.distribution.map((count, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-1">
+            <span className="font-display text-[10px] font-bold tabular-nums text-ink-soft">
+              {count > 0 ? count : ""}
+            </span>
             <div className="flex h-16 w-full items-end">
               <div
                 className="w-full rounded-t bg-brand-200"
                 style={{ height: `${(count / maxBucket) * 100}%` }}
-                title={`${count} คน`}
+                title={`${i * 10}–${i * 10 + 10}% · ${count} คน`}
               />
             </div>
-            <span className="text-[10px] text-hint">{i * 20}–{i * 20 + 20}</span>
+            <span className="text-[9px] tabular-nums text-hint sm:text-[10px]">{i * 10}</span>
           </div>
         ))}
+        <span className="self-end pb-4 text-[9px] tabular-nums text-hint sm:text-[10px]">100</span>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3">
