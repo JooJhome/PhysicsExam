@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/actions/auth";
 import { HELP, helpKeyForPath } from "@/lib/help/content";
@@ -84,8 +85,8 @@ export default function AccountMenu({
           role="menu"
           className="absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-2xl border border-line bg-white p-1.5 shadow-lift"
         >
-          <MenuRow Icon={IconUser} label="โปรไฟล์" soon />
-          <MenuRow Icon={IconSettings} label="ตั้งค่า" soon />
+          <MenuRow Icon={IconUser} label="โปรไฟล์" href="/tutor/settings" onNavigate={() => setOpen(false)} />
+          <MenuRow Icon={IconSettings} label="ตั้งค่า" href="/tutor/settings" onNavigate={() => setOpen(false)} />
           {helpKey && (
             <MenuRow
               Icon={IconHelp}
@@ -121,11 +122,15 @@ function MenuRow({
   Icon,
   label,
   onClick,
+  href,
+  onNavigate,
   soon = false,
 }: {
   Icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick?: () => void;
+  href?: string;
+  onNavigate?: () => void;
   soon?: boolean;
 }) {
   if (soon) {
@@ -143,13 +148,18 @@ function MenuRow({
       </div>
     );
   }
+  const cls =
+    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink transition-colors hover:bg-brand-50 hover:text-brand-700";
+  if (href) {
+    return (
+      <Link href={href} role="menuitem" onClick={onNavigate} className={cls}>
+        <Icon className="h-[18px] w-[18px]" />
+        {label}
+      </Link>
+    );
+  }
   return (
-    <button
-      type="button"
-      role="menuitem"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink transition-colors hover:bg-brand-50 hover:text-brand-700"
-    >
+    <button type="button" role="menuitem" onClick={onClick} className={cls}>
       <Icon className="h-[18px] w-[18px]" />
       {label}
     </button>
