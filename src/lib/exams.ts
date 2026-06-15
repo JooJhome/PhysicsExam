@@ -11,6 +11,7 @@ export type ExamListItem = {
   subjects: string[]; // ป้ายกำกับ/หมวด หลายอันได้ (เช่น ["CU-ATS","TBAT"], ["ฟิสิกส์ ม.6"])
   status: "draft" | "published" | "archived";
   questionCount: number;
+  questionTopics: string[]; // หัวข้อต่อข้อ (index = ข้อ-1, "" = ยังไม่แท็ก)
   durationMin: number;
   solutionVisible: boolean;
   assignedCount: number;
@@ -35,7 +36,7 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
     supabase
       .from("exams")
       .select(
-        "id, title, exam_code, kind, subjects, duration_minutes, total_questions, status, allow_review, created_at"
+        "id, title, exam_code, kind, subjects, question_topics, duration_minutes, total_questions, status, allow_review, created_at"
       )
       .order("created_at", { ascending: false }),
     supabase.from("assignments").select("exam_id"),
@@ -75,6 +76,7 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
       subjects,
       status: e.status as "draft" | "published" | "archived",
       questionCount: e.total_questions,
+      questionTopics: (e.question_topics as string[] | null) ?? [],
       durationMin: e.duration_minutes,
       solutionVisible: e.allow_review,
       assignedCount: assignedBy.get(e.id) ?? 0,

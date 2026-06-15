@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   setExamStatus,
@@ -8,6 +8,7 @@ import {
   setAllowReview,
   renameExam,
   setExamSubjects,
+  setExamTopics,
   deleteExam,
   duplicateExam,
 } from "@/lib/actions/tutor";
@@ -17,6 +18,7 @@ import FilterBar from "@/components/tutor/exams/FilterBar";
 import ExamsToolbar from "@/components/tutor/exams/ExamsToolbar";
 import UploadModal from "@/components/tutor/exams/UploadModal";
 import LabelEditorModal from "@/components/tutor/exams/LabelEditorModal";
+import TopicTagModal from "@/components/tutor/exams/TopicTagModal";
 import ExamCard from "@/components/tutor/exams/ExamCard";
 import ExamTableView from "@/components/tutor/exams/ExamTableView";
 import { useExamList } from "@/components/tutor/exams/useExamList";
@@ -29,7 +31,17 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
   const [pending, startTransition] = useTransition();
   const [toDelete, setToDelete] = useState<ExamListItem | null>(null);
   const [toEditLabels, setToEditLabels] = useState<ExamListItem | null>(null);
+  const [toTagTopics, setToTagTopics] = useState<ExamListItem | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  // หัวข้อที่เคยใช้ทั้งหมด → datalist แนะนำ
+  const topicSuggestions = useMemo(
+    () =>
+      [...new Set(exams.flatMap((e) => e.questionTopics).map((t) => t.trim()).filter(Boolean))].sort(
+        (a, b) => a.localeCompare(b, "th")
+      ),
+    [exams]
+  );
 
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
     startTransition(async () => {
@@ -87,6 +99,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
           onToggleReview={(e, checked) => act(() => setAllowReview(e.id, checked))}
           onSaveTitle={(e, title) => act(() => renameExam(e.id, title))}
           onEditLabels={(e) => setToEditLabels(e)}
+          onEditTopics={(e) => setToTagTopics(e)}
           onDelete={(e) => setToDelete(e)}
           onDuplicate={(e) => act(() => duplicateExam(e.id))}
           onArchive={(e) => act(() => setExamStatus(e.id, "archived"))}
@@ -110,6 +123,7 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
                 onSaveDuration={(mins) => act(() => setExamDuration(e.id, mins))}
                 onSaveTitle={(title) => act(() => renameExam(e.id, title))}
                 onEditLabels={() => setToEditLabels(e)}
+                onEditTopics={() => setToTagTopics(e)}
                 onDelete={() => setToDelete(e)}
                 onDuplicate={() => act(() => duplicateExam(e.id))}
                 onArchive={() => act(() => setExamStatus(e.id, "archived"))}
@@ -168,6 +182,17 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
           const e = toEditLabels;
           setToEditLabels(null);
           if (e) act(() => setExamSubjects(e.id, labels));
+        }}
+      />
+
+      <TopicTagModal
+        exam={toTagTopics}
+        suggestions={topicSuggestions}
+        onClose={() => setToTagTopics(null)}
+        onSave={(topics) => {
+          const e = toTagTopics;
+          setToTagTopics(null);
+          if (e) act(() => setExamTopics(e.id, topics));
         }}
       />
 

@@ -15,6 +15,7 @@ export default function ExamTableView({
   onToggleReview,
   onSaveTitle,
   onEditLabels,
+  onEditTopics,
   onDelete,
   onDuplicate,
   onArchive,
@@ -28,6 +29,7 @@ export default function ExamTableView({
   onToggleReview: (e: ExamListItem, checked: boolean) => void;
   onSaveTitle: (e: ExamListItem, title: string) => void;
   onEditLabels: (e: ExamListItem) => void;
+  onEditTopics: (e: ExamListItem) => void;
   onDelete: (e: ExamListItem) => void;
   onDuplicate: (e: ExamListItem) => void;
   onArchive: (e: ExamListItem) => void;
@@ -73,6 +75,7 @@ export default function ExamTableView({
                 },
               },
               { kind: "button", label: "แก้ป้ายกำกับ", onClick: () => onEditLabels(e) },
+              { kind: "button", label: "แท็กหัวข้อรายข้อ", onClick: () => onEditTopics(e) },
               { kind: "button", label: "คัดลอกชุด", onClick: () => onDuplicate(e) },
               e.status === "archived"
                 ? { kind: "button", label: "เรียกคืนจากคลัง", onClick: () => onUnarchive(e) }
