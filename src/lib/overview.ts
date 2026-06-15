@@ -16,6 +16,7 @@ export type ActionItem = {
   id: string;
   text: string;
   cta?: { label: string; href: string };
+  copyText?: string; // ข้อความเตือนให้คัดลอกส่งนักเรียน (ยังไม่มี push/email infra)
 };
 export type ActivityRow = {
   id: string;
@@ -145,10 +146,12 @@ export async function getTutorOverview(): Promise<Overview> {
     .forEach(([studentId, created]) => {
       const days = Math.max(0, Math.floor((now - new Date(created).getTime()) / DAY));
       const when = days === 0 ? "วันนี้" : `${days} วันก่อน`;
+      const sName = nameOf(studentId);
       actionItems.push({
         id: `notopened-${studentId}`,
-        text: `${nameOf(studentId)} ยังไม่เปิดลิงก์ (มอบหมาย ${when})`,
+        text: `${sName} ยังไม่เปิดลิงก์ (มอบหมาย ${when})`,
         cta: { label: "ดูการมอบหมาย", href: "/tutor/assign" },
+        copyText: `สวัสดีครับ/ค่ะ ${sName} 🙌 มีชุดข้อสอบที่ครูมอบหมายให้ใน BSIINK รออยู่นะ — เข้าระบบแล้วกดเริ่มทำได้เลย ถ้าติดตรงไหนทักครูได้เลยนะครับ/คะ`,
       });
     });
 

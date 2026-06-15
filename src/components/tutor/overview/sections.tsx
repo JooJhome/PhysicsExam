@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ActionItem, ActivityRow } from "@/lib/overview";
+import CopyButton from "./CopyButton";
 
 /* ---------------- ไอคอน (Lucide-style outline) ---------------- */
 
@@ -147,6 +148,7 @@ export function ActionItems({ items }: { items: ActionItem[] }) {
                 <AlertIcon className="h-4 w-4" />
               </span>
               <p className="min-w-0 flex-1 text-sm text-ink-soft">{it.text}</p>
+              {it.copyText && <CopyButton text={it.copyText} />}
               {it.cta && (
                 <Link
                   href={it.cta.href}
