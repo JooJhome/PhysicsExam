@@ -107,13 +107,18 @@ function normalize(r: Row, now: number): StudentExamCard {
     new Date(deadline).getTime() - now < DAY_MS &&
     status !== "submitted";
 
-  // ป้ายช่วงเวลา (ไม่ใช้กับ practice — ทำซ้ำได้ ไม่มีกรอบเวลา)
+  // ป้ายช่วงวัน — โชว์เฉพาะวัน (ไม่โชว์เวลา) + บอกทั้งวันเปิดและวันปิด
+  // (ไม่ใช้กับ practice — ทำซ้ำได้ ไม่มีกรอบเวลา)
   let availabilityLabel: string | null = null;
   if (!isPractice && status !== "submitted") {
-    if (notYetOpen && openAt) availabilityLabel = `เปิด ${fmtThai(openAt, true)}`;
-    else if (closed) availabilityLabel = "ปิดรับแล้ว";
-    else if (deadline)
-      availabilityLabel = `ปิดใน ${relativeUntil(deadline, now)} · ${fmtThai(deadline, true)}`;
+    const openDay = openAt ? fmtThai(openAt, false) : null;
+    const closeDay = deadline ? fmtThai(deadline, false) : null;
+    if (closed) availabilityLabel = "ปิดรับแล้ว";
+    else if (notYetOpen)
+      availabilityLabel = `เปิด ${openDay}${closeDay ? ` · ถึง ${closeDay}` : ""}`;
+    else if (openDay && closeDay) availabilityLabel = `ทำได้ ${openDay} – ${closeDay}`;
+    else if (closeDay) availabilityLabel = `ทำได้ถึง ${closeDay}`;
+    else if (openDay) availabilityLabel = `เปิดตั้งแต่ ${openDay}`;
   }
 
   // เวลาที่เหลือของ in_progress (จาก started_at + duration) — untimed = null
