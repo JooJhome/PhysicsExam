@@ -233,6 +233,24 @@ export async function setExamSubjects(
     : { ok: true, message: clean.length ? `อัปเดตป้ายเป็น ${clean.join(", ")}` : "ล้างป้ายแล้ว" };
 }
 
+/** แท็กหัวข้อรายข้อ — array ยาว = จำนวนข้อ (trim, "" = ยังไม่แท็ก) */
+export async function setExamTopics(
+  examId: string,
+  topics: string[]
+): Promise<ActionResult> {
+  const { supabase } = await assertTutor();
+  const clean = topics.map((t) => (t ?? "").trim());
+  const { error } = await supabase
+    .from("exams")
+    .update({ question_topics: clean })
+    .eq("id", examId);
+  revalidatePath("/tutor/exams");
+  const tagged = clean.filter(Boolean).length;
+  return error
+    ? { ok: false, message: error.message }
+    : { ok: true, message: tagged > 0 ? `แท็กหัวข้อ ${tagged} ข้อแล้ว` : "ล้างหัวข้อแล้ว" };
+}
+
 export async function renameExam(
   examId: string,
   title: string

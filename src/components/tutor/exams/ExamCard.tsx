@@ -31,6 +31,7 @@ export default function ExamCard({
   onSaveDuration,
   onSaveTitle,
   onEditLabels,
+  onEditTopics,
   onDelete,
   onDuplicate,
   onArchive,
@@ -43,6 +44,7 @@ export default function ExamCard({
   onSaveDuration: (mins: number) => void;
   onSaveTitle: (title: string) => void;
   onEditLabels: () => void;
+  onEditTopics: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
   onArchive: () => void;
@@ -90,6 +92,7 @@ export default function ExamCard({
       },
     },
     { kind: "button", label: "แก้ป้ายกำกับ", onClick: onEditLabels },
+    { kind: "button", label: "แท็กหัวข้อรายข้อ", onClick: onEditTopics },
     { kind: "button", label: "คัดลอกชุด", onClick: onDuplicate },
     exam.status === "archived"
       ? { kind: "button", label: "เรียกคืนจากคลัง", onClick: onUnarchive }
