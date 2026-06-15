@@ -196,6 +196,7 @@ export default function ResultsView({ data }: { data: ResultsData }) {
 
       {studentDrill && (
         <StudentScoresDrawer
+          studentId={studentDrill.studentId}
           studentName={studentDrill.displayName || studentDrill.username}
           rows={data.submissions.filter((r) => r.studentId === studentDrill.studentId)}
           onClose={() => setStudentDrill(null)}
