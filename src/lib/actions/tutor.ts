@@ -116,12 +116,74 @@ export async function createExam(formData: FormData): Promise<ActionResult> {
 
 export async function setExamStatus(
   examId: string,
-  status: "draft" | "published"
+  status: "draft" | "published" | "archived"
 ): Promise<ActionResult> {
   const { supabase } = await assertTutor();
   const { error } = await supabase.from("exams").update({ status }).eq("id", examId);
   revalidatePath("/tutor/exams");
-  return error ? { ok: false, message: error.message } : { ok: true, message: "อัปเดตแล้ว" };
+  const msg =
+    status === "archived" ? "เก็บเข้าคลังแล้ว" : status === "draft" ? "เรียกคืนเป็นฉบับร่างแล้ว" : "เผยแพร่แล้ว";
+  return error ? { ok: false, message: error.message } : { ok: true, message: msg };
+}
+
+/** คัดลอกชุด (duplicate) — copy exam + answer key เป็นชุดใหม่สถานะ draft */
+export async function duplicateExam(examId: string): Promise<ActionResult> {
+  try {
+    const { supabase, userId } = await assertTutor();
+    const { data: src, error: e0 } = await supabase
+      .from("exams")
+      .select(
+        "title, exam_code, description, kind, subjects, duration_minutes, total_questions, exam_html, review_html, allow_review"
+      )
+      .eq("id", examId)
+      .single();
+    if (e0 || !src) return { ok: false, message: e0?.message ?? "ไม่พบชุดต้นฉบับ" };
+
+    // หา exam_code ใหม่ที่ไม่ชน (base-copy, base-copy-2, …)
+    const base = `${src.exam_code}-copy`;
+    const { data: existing } = await supabase
+      .from("exams")
+      .select("exam_code")
+      .like("exam_code", `${base}%`);
+    const taken = new Set((existing ?? []).map((r) => r.exam_code));
+    let code = base;
+    for (let n = 2; taken.has(code); n++) code = `${base}-${n}`;
+
+    const { data: created, error: e1 } = await supabase
+      .from("exams")
+      .insert({
+        title: `${src.title} (สำเนา)`,
+        exam_code: code,
+        description: src.description,
+        kind: src.kind,
+        subjects: src.subjects,
+        duration_minutes: src.duration_minutes,
+        total_questions: src.total_questions,
+        exam_html: src.exam_html,
+        review_html: src.review_html,
+        allow_review: src.allow_review,
+        status: "draft",
+        created_by: userId,
+      })
+      .select("id")
+      .single();
+    if (e1 || !created) return { ok: false, message: e1?.message ?? "สร้างสำเนาไม่สำเร็จ" };
+
+    // copy answer key
+    const { data: key } = await supabase
+      .from("exam_answer_keys")
+      .select("answers")
+      .eq("exam_id", examId)
+      .single();
+    if (key) {
+      await supabase.from("exam_answer_keys").insert({ exam_id: created.id, answers: key.answers });
+    }
+
+    revalidatePath("/tutor/exams");
+    return { ok: true, message: `คัดลอกเป็น “${src.title} (สำเนา)” (ฉบับร่าง) แล้ว` };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
 }
 
 export async function setExamDuration(

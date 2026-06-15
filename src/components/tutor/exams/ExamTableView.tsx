@@ -16,6 +16,9 @@ export default function ExamTableView({
   onSaveTitle,
   onEditLabels,
   onDelete,
+  onDuplicate,
+  onArchive,
+  onUnarchive,
 }: {
   exams: ExamListItem[];
   pending: boolean;
@@ -26,6 +29,9 @@ export default function ExamTableView({
   onSaveTitle: (e: ExamListItem, title: string) => void;
   onEditLabels: (e: ExamListItem) => void;
   onDelete: (e: ExamListItem) => void;
+  onDuplicate: (e: ExamListItem) => void;
+  onArchive: (e: ExamListItem) => void;
+  onUnarchive: (e: ExamListItem) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [titleDraft, setTitleDraft] = useState("");
@@ -67,7 +73,10 @@ export default function ExamTableView({
                 },
               },
               { kind: "button", label: "แก้ป้ายกำกับ", onClick: () => onEditLabels(e) },
-              { kind: "soon", label: "คัดลอกชุด" },
+              { kind: "button", label: "คัดลอกชุด", onClick: () => onDuplicate(e) },
+              e.status === "archived"
+                ? { kind: "button", label: "เรียกคืนจากคลัง", onClick: () => onUnarchive(e) }
+                : { kind: "button", label: "เก็บเข้าคลัง", onClick: () => onArchive(e) },
               { kind: "button", label: "ลบชุดนี้", onClick: () => onDelete(e), danger: true },
             ];
             return (

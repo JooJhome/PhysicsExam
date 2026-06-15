@@ -25,7 +25,7 @@ export const NAV: NavSection[] = [
     title: "เนื้อหา",
     items: [
       { label: "ข้อสอบ", href: "/tutor/exams", Icon: IconFiles },
-      { label: "คลังข้อสอบ", Icon: IconArchive, soon: true },
+      { label: "คลังข้อสอบ", href: "/tutor/exams?status=archived", Icon: IconArchive },
     ],
   },
   {
