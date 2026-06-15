@@ -49,6 +49,31 @@ export default function ExamRunner({
   const startedRef = useRef(false);
   const practiceRef = useRef(false); // อ่านใน doSubmit (เลี่ยง stale closure)
 
+  // ---- autosave คำตอบระหว่างทำ (debounce) — กันคำตอบหายถ้าเน็ตหลุด/ปิดแท็บ ----
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingAnswers = useRef<(number | null)[] | null>(null);
+
+  const flushSave = useCallback(() => {
+    const answers = pendingAnswers.current;
+    if (!answers || submittedRef.current) return;
+    pendingAnswers.current = null;
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    // fire-and-forget — ถ้าเซฟไม่ติด ยังส่งจริงตอนกดส่งอยู่ดี
+    createClient().rpc("save_progress", { p_exam_id: examId, p_answers: answers });
+  }, [examId]);
+
+  const queueSave = useCallback(
+    (answers: (number | null)[]) => {
+      pendingAnswers.current = answers;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(flushSave, 2000);
+    },
+    [flushSave]
+  );
+
   // ---- เริ่ม/กลับเข้าทำข้อสอบ ----
   useEffect(() => {
     // กันยิงซ้ำ (React Strict Mode รัน effect 2 รอบ → 2 RPC ชนกัน)
@@ -117,12 +142,17 @@ export default function ExamRunner({
     function onMsg(e: MessageEvent) {
       const d = e.data || {};
       if (d.source !== "bsiink-exam") return;
-      if (d.type === "EXAM_PROGRESS") setAnswered(d.answered ?? 0);
-      else if (d.type === "EXAM_ANSWERS") doSubmit(d.answers);
+      if (d.type === "EXAM_PROGRESS") {
+        setAnswered(d.answered ?? 0);
+        if (Array.isArray(d.answers)) queueSave(d.answers);
+      } else if (d.type === "EXAM_ANSWERS") doSubmit(d.answers);
     }
     window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, [doSubmit]);
+    return () => {
+      window.removeEventListener("message", onMsg);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [doSubmit, queueSave]);
 
   // ---- timer (ข้ามเมื่อไม่จับเวลา — practice หรือ assignment.untimed) ----
   useEffect(() => {
@@ -172,6 +202,7 @@ export default function ExamRunner({
   // (router.push เป็น SPA nav จึงไม่ trigger beforeunload; unmount แล้ว effect cleanup ถอด listener เอง)
   function confirmExit() {
     setDialog(null);
+    flushSave(); // เซฟคำตอบล่าสุดก่อนออก (กันค้างใน debounce)
     router.push("/student");
     router.refresh();
   }
