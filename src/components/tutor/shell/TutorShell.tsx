@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { Wordmark } from "@/components/Decor";
 import { NAV, isActive, type NavItem } from "./nav";
 import { IconChevronLeft, IconMenu, IconClose, IconLock } from "./icons";
@@ -199,7 +199,7 @@ function NavLink({
       href={item.href}
       aria-current={active ? "page" : undefined}
       title={showLabel ? undefined : item.label}
-      className={`${base} ${
+      className={`relative ${base} ${
         active
           ? "bg-side-active font-bold text-white"
           : "text-side-text hover:bg-side-hover"
@@ -207,7 +207,27 @@ function NavLink({
     >
       <item.Icon className="h-[22px] w-[22px] flex-none" />
       {showLabel && <span className="truncate">{item.label}</span>}
+      <NavPending showLabel={showLabel} />
     </Link>
+  );
+}
+
+/** spinner ที่โผล่เฉพาะตอนเมนูนี้กำลังพาไปหน้าใหม่ — บอกว่า "กดติดแล้ว กำลังโหลด" */
+function NavPending({ showLabel }: { showLabel: boolean }) {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      className={`animate-spin text-current ${
+        showLabel ? "ml-auto h-4 w-4 flex-none" : "absolute right-1 top-1 h-3.5 w-3.5"
+      }`}
+    >
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+      <path d="M12 2a10 10 0 0 1 10 10h-3a7 7 0 0 0-7-7V2z" fill="currentColor" className="opacity-90" />
+    </svg>
   );
 }
 
