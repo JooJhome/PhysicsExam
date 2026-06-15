@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { SubmissionRow } from "@/lib/results";
+import { saveAttemptFeedback } from "@/lib/actions/tutor";
 import ProgressChart from "./ProgressChart";
 
 /** drawer แสดงคะแนนทุกชุดของนักเรียนคนเดียว (drill-down จาก "สรุปรายคน") */
@@ -94,8 +96,9 @@ export default function StudentScoresDrawer({
               {rows.map((r) => (
                 <li
                   key={r.attemptId}
-                  className="flex items-center gap-3 rounded-xl border border-line p-3"
+                  className="rounded-xl border border-line p-3"
                 >
+                  <div className="flex items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-ink">{r.examTitle}</p>
                     <p className="truncate text-xs text-muted">
@@ -124,11 +127,71 @@ export default function StudentScoresDrawer({
                       </span>
                     </div>
                   )}
+                  </div>
+                  {r.status === "submitted" && (
+                    <FeedbackEditor
+                      examId={r.examId}
+                      studentId={studentId}
+                      initial={r.tutorFeedback}
+                    />
+                  )}
                 </li>
               ))}
             </ul>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** ช่องคอมเมนต์ของติวเตอร์ต่อการทำครั้งนั้น — นักเรียนเห็นในหน้าผล */
+function FeedbackEditor({
+  examId,
+  studentId,
+  initial,
+}: {
+  examId: string;
+  studentId: string;
+  initial: string | null;
+}) {
+  const router = useRouter();
+  const [text, setText] = useState(initial ?? "");
+  const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+  const dirty = text.trim() !== (initial ?? "").trim();
+
+  function save() {
+    startTransition(async () => {
+      const r = await saveAttemptFeedback(examId, studentId, text);
+      if (r.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1800);
+        router.refresh();
+      }
+    });
+  }
+
+  return (
+    <div className="mt-2.5 border-t border-line pt-2.5">
+      <label className="text-xs font-semibold text-muted">ฟีดแบ็กถึงนักเรียน (เห็นในหน้าผล)</label>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={2}
+        placeholder="เช่น ครั้งนี้ดีขึ้นมาก ลองทบทวนเรื่องไฟฟ้าข้อ 12 นะ"
+        className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+      />
+      <div className="mt-1.5 flex items-center justify-end gap-2">
+        {saved && <span className="text-xs font-semibold text-green-700">บันทึกแล้ว ✓</span>}
+        <button
+          type="button"
+          onClick={save}
+          disabled={pending || !dirty}
+          className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
+        >
+          {pending ? "กำลังบันทึก…" : "บันทึกฟีดแบ็ก"}
+        </button>
       </div>
     </div>
   );

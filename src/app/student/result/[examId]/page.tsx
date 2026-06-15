@@ -13,6 +13,7 @@ interface Review {
   submitted_at: string | null;
   reviewed_at: string | null;
   allow_review: boolean;
+  tutor_feedback: string | null;
   answers: number[] | null;
   review_html: string | null;
 }
@@ -84,6 +85,18 @@ export default async function ResultPage({
             </p>
           ) : null}
         </section>
+
+        {/* ฟีดแบ็กจากติวเตอร์ (ถ้ามี) */}
+        {review.tutor_feedback && (
+          <section className="mt-4 rounded-2xl border border-brand-200 bg-brand-50/60 px-4 py-3.5">
+            <p className="flex items-center gap-1.5 text-sm font-bold text-brand-800">
+              <span aria-hidden>💬</span> ข้อความจากติวเตอร์
+            </p>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+              {review.tutor_feedback}
+            </p>
+          </section>
+        )}
 
         {isPractice ? (
           <div className="mt-4 flex items-start gap-2 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800 ring-1 ring-brand-200">
