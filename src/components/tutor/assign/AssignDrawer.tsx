@@ -66,6 +66,9 @@ export default function AssignDrawer({
   const [untimed, setUntimed] = useState(detail.exam.kind === "practice" || detail.untimed);
   const [saving, setSaving] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<number | null>(null);
+  // กลุ่มที่ "มอบต่อเนื่อง" (คนเข้าใหม่ได้ชุดนี้อัตโนมัติ)
+  const initLive = useMemo(() => new Set(detail.liveGroupIds), [detail.liveGroupIds]);
+  const [liveGroups, setLiveGroups] = useState<Set<string>>(() => new Set(initLive));
 
   useEffect(() => {
     panelRef.current?.focus();
@@ -110,7 +113,9 @@ export default function AssignDrawer({
   const inProgressRemovals = detail.students.filter(
     (s) => toRemoveIds.includes(s.id) && s.attemptState === "in_progress"
   ).length;
-  const dirty = toAdd > 0 || toRemoveIds.length > 0 || hasWindowChange();
+  const liveChanged =
+    liveGroups.size !== initLive.size || [...liveGroups].some((g) => !initLive.has(g));
+  const dirty = toAdd > 0 || toRemoveIds.length > 0 || hasWindowChange() || liveChanged;
 
   function currentOverride(): number | null {
     const n = Math.round(Number(duration));
@@ -154,6 +159,18 @@ export default function AssignDrawer({
       return next;
     });
   }
+  // toggle "มอบต่อเนื่อง" — เปิด = บันทึกว่ากลุ่มนี้ได้ชุดนี้ตลอด + เลือกสมาชิกทั้งกลุ่มด้วย
+  function toggleLive(groupId: string, memberIds: string[]) {
+    setLiveGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else {
+        next.add(groupId);
+        if (!groupFullySelected(memberIds)) toggleGroup(memberIds); // เปิด → มอบให้ทั้งกลุ่มทันที
+      }
+      return next;
+    });
+  }
   function clearAll() {
     // คงคนที่ส่งแล้ว (ยังไม่รีเซ็ต) ไว้ — ล็อก ถอนไม่ได้
     setSelected(
@@ -185,7 +202,8 @@ export default function AssignDrawer({
       [...selected],
       { open: openDateToIso(open), close: closeDateToIso(close), due: detail.window.due },
       overrideVal,
-      untimed
+      untimed,
+      [...liveGroups]
     );
     const undo: UndoSnapshot = {
       examId: detail.exam.id,
@@ -335,6 +353,33 @@ export default function AssignDrawer({
                       <span className={`ml-1 text-xs font-normal ${on ? "text-white/80" : "text-brand-600/80"}`}>
                         ({g.memberIds.length})
                       </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* มอบต่อเนื่อง — คนเข้ากลุ่มทีหลังจะได้ชุดนี้อัตโนมัติ */}
+              <p className="mb-1.5 mt-3 text-xs font-medium text-muted">
+                🔄 มอบต่อเนื่อง <span className="text-hint">(คนเข้ากลุ่มทีหลังได้ชุดนี้อัตโนมัติ)</span>
+              </p>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                {detail.groups.map((g) => {
+                  const live = liveGroups.has(g.id);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => toggleLive(g.id, g.memberIds)}
+                      disabled={g.memberIds.length === 0}
+                      aria-pressed={live}
+                      className={`flex-none rounded-full border px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-40 min-h-[40px] ${
+                        live
+                          ? "border-accent-400 bg-accent-400 text-ink hover:bg-accent-500"
+                          : "border-line bg-white text-ink-soft hover:border-accent-200"
+                      }`}
+                    >
+                      {live ? "🔄 " : ""}
+                      {g.name}
                     </button>
                   );
                 })}
