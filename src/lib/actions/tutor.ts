@@ -530,6 +530,46 @@ export async function deleteGroup(groupId: string): Promise<ActionResult> {
 }
 
 /** ตั้งสมาชิกกลุ่มเป็นชุดใหม่ทั้งหมด (diff add/remove) */
+// live assignment: เมื่อมีคนเข้ากลุ่ม → สร้าง assignments รายคนจาก group_assignments
+// (เฉพาะชุดที่ยัง published + ยังไม่ปิดรับ · ไม่ทับของเดิม) — additive ปลอดภัย
+async function expandGroupAssignments(
+  supabase: Awaited<ReturnType<typeof assertTutor>>["supabase"],
+  groupId: string,
+  studentIds: string[]
+): Promise<number> {
+  if (studentIds.length === 0) return 0;
+  const { data: gas } = await supabase
+    .from("group_assignments")
+    .select("exam_id, open_at, close_at, due_at, duration_override_min, untimed")
+    .eq("group_id", groupId);
+  if (!gas || gas.length === 0) return 0;
+
+  const examIds = gas.map((g) => g.exam_id);
+  const { data: exs } = await supabase.from("exams").select("id, status").in("id", examIds);
+  const published = new Set((exs ?? []).filter((e) => e.status === "published").map((e) => e.id));
+  const now = Date.now();
+
+  const rows = gas
+    .filter((g) => published.has(g.exam_id))
+    .filter((g) => !g.close_at || new Date(g.close_at).getTime() >= now) // ปิดรับแล้ว ไม่ auto-มอบ
+    .flatMap((g) =>
+      studentIds.map((sid) => ({
+        exam_id: g.exam_id,
+        student_id: sid,
+        open_at: g.open_at,
+        close_at: g.close_at,
+        due_at: g.due_at,
+        duration_override_min: g.duration_override_min,
+        untimed: g.untimed,
+      }))
+    );
+  if (rows.length === 0) return 0;
+  await supabase
+    .from("assignments")
+    .upsert(rows, { onConflict: "exam_id,student_id", ignoreDuplicates: true });
+  return rows.length;
+}
+
 export async function setGroupMembers(
   groupId: string,
   studentIds: string[]
@@ -558,8 +598,16 @@ export async function setGroupMembers(
         .in("student_id", toRemove);
       if (error) return { ok: false, message: error.message };
     }
+    // live: คนเข้าใหม่ได้ชุดที่กลุ่มมอบต่อเนื่องอัตโนมัติ
+    const auto = await expandGroupAssignments(supabase, groupId, toAdd);
+    revalidatePath("/tutor/assign");
     revalidateGroups();
-    return { ok: true, message: `เพิ่ม ${toAdd.length} · ออก ${toRemove.length} คน` };
+    return {
+      ok: true,
+      message:
+        `เพิ่ม ${toAdd.length} · ออก ${toRemove.length} คน` +
+        (auto > 0 ? ` · มอบชุดต่อเนื่องอัตโนมัติ ${auto} รายการ` : ""),
+    };
   } catch (err) {
     return { ok: false, message: (err as Error).message };
   }
@@ -581,8 +629,17 @@ export async function addStudentsToGroups(
       .from("group_members")
       .upsert(rows, { onConflict: "group_id,student_id", ignoreDuplicates: true });
     if (error) return { ok: false, message: error.message };
+    // live: มอบชุดต่อเนื่องของแต่ละกลุ่มให้คนที่เพิ่งเข้า
+    let auto = 0;
+    for (const gid of groupIds) auto += await expandGroupAssignments(supabase, gid, studentIds);
+    revalidatePath("/tutor/assign");
     revalidateGroups();
-    return { ok: true, message: `เพิ่ม ${studentIds.length} คนเข้า ${groupIds.length} กลุ่มแล้ว` };
+    return {
+      ok: true,
+      message:
+        `เพิ่ม ${studentIds.length} คนเข้า ${groupIds.length} กลุ่มแล้ว` +
+        (auto > 0 ? ` · มอบชุดต่อเนื่องอัตโนมัติ ${auto} รายการ` : ""),
+    };
   } catch (err) {
     return { ok: false, message: (err as Error).message };
   }
@@ -643,26 +700,29 @@ export type ExamAssignmentDetail = {
     attemptState: AttemptState;
   }[];
   groups: { id: string; name: string; color: string | null; memberIds: string[] }[];
+  liveGroupIds: string[]; // กลุ่มที่มอบชุดนี้แบบต่อเนื่อง (group_assignments)
 };
 
 /** รายละเอียดการมอบหมายของชุดหนึ่ง — ใช้เปิด drawer เลือกนักเรียน */
 export async function getExamAssignment(examId: string): Promise<ExamAssignmentDetail> {
   const { supabase } = await assertTutor();
-  const [examRes, studentsRes, assignRes, attemptRes, groupsRes, membersRes] = await Promise.all([
-    supabase
-      .from("exams")
-      .select("id, title, exam_code, status, duration_minutes, kind")
-      .eq("id", examId)
-      .single(),
-    supabase.from("profiles").select("id, username, full_name").eq("role", "student").order("username"),
-    supabase
-      .from("assignments")
-      .select("student_id, open_at, close_at, due_at, duration_override_min, untimed")
-      .eq("exam_id", examId),
-    supabase.from("attempts").select("student_id, status").eq("exam_id", examId),
-    supabase.from("groups").select("id, name, color").order("name"),
-    supabase.from("group_members").select("group_id, student_id"),
-  ]);
+  const [examRes, studentsRes, assignRes, attemptRes, groupsRes, membersRes, liveRes] =
+    await Promise.all([
+      supabase
+        .from("exams")
+        .select("id, title, exam_code, status, duration_minutes, kind")
+        .eq("id", examId)
+        .single(),
+      supabase.from("profiles").select("id, username, full_name").eq("role", "student").order("username"),
+      supabase
+        .from("assignments")
+        .select("student_id, open_at, close_at, due_at, duration_override_min, untimed")
+        .eq("exam_id", examId),
+      supabase.from("attempts").select("student_id, status").eq("exam_id", examId),
+      supabase.from("groups").select("id, name, color").order("name"),
+      supabase.from("group_members").select("group_id, student_id"),
+      supabase.from("group_assignments").select("group_id").eq("exam_id", examId),
+    ]);
 
   const exam = examRes.data;
   if (!exam) throw new Error("ไม่พบชุดข้อสอบ");
@@ -714,6 +774,7 @@ export async function getExamAssignment(examId: string): Promise<ExamAssignmentD
       attemptState: attemptBy.get(s.id) ?? "none",
     })),
     groups,
+    liveGroupIds: (liveRes.data ?? []).map((r) => r.group_id),
   };
 }
 
@@ -729,7 +790,8 @@ export async function saveAssignment(
   studentIds: string[],
   window: AssignWindow,
   durationOverrideMin: number | null,
-  untimed: boolean = false
+  untimed: boolean = false,
+  liveGroupIds: string[] = [] // กลุ่มที่ "มอบต่อเนื่อง" (คนเข้าใหม่ได้อัตโนมัติ)
 ): Promise<SaveAssignmentResult> {
   try {
     const { supabase } = await assertTutor();
@@ -777,10 +839,40 @@ export async function saveAssignment(
         return { ok: false, message: error.message, added: toAdd.length, removed: 0, blocked };
     }
 
+    // ----- live assignment: บันทึก/ยกเลิก group_assignments ของชุดนี้ -----
+    const { data: prevLive } = await supabase
+      .from("group_assignments")
+      .select("group_id")
+      .eq("exam_id", examId);
+    const prevSet = new Set((prevLive ?? []).map((r) => r.group_id));
+    const liveSet = new Set(liveGroupIds);
+    const liveToAdd = liveGroupIds.filter((g) => !prevSet.has(g));
+    const liveToRemove = [...prevSet].filter((g) => !liveSet.has(g));
+    if (liveToAdd.length > 0) {
+      await supabase.from("group_assignments").upsert(
+        liveToAdd.map((gid) => ({ group_id: gid, exam_id: examId, ...win })),
+        { onConflict: "group_id,exam_id" }
+      );
+    } else if (liveGroupIds.length > 0) {
+      // อัปเดต window ของกลุ่ม live เดิมให้ตรงกับที่บันทึกล่าสุด
+      await supabase.from("group_assignments").upsert(
+        liveGroupIds.map((gid) => ({ group_id: gid, exam_id: examId, ...win })),
+        { onConflict: "group_id,exam_id" }
+      );
+    }
+    if (liveToRemove.length > 0) {
+      await supabase
+        .from("group_assignments")
+        .delete()
+        .eq("exam_id", examId)
+        .in("group_id", liveToRemove);
+    }
+
     revalidatePath("/tutor/assign");
     const msg =
       `เพิ่ม ${toAdd.length} · ถอน ${toRemove.length} คน` +
-      (blocked > 0 ? ` · ข้าม ${blocked} คน (ส่งแล้ว)` : "");
+      (blocked > 0 ? ` · ข้าม ${blocked} คน (ส่งแล้ว)` : "") +
+      (liveGroupIds.length > 0 ? ` · มอบต่อเนื่อง ${liveGroupIds.length} กลุ่ม` : "");
     return { ok: true, message: msg, added: toAdd.length, removed: toRemove.length, blocked };
   } catch (err) {
     return { ok: false, message: (err as Error).message, added: 0, removed: 0, blocked: 0 };
