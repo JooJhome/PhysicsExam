@@ -9,6 +9,7 @@ import {
   renameExam,
   setExamSubjects,
   deleteExam,
+  duplicateExam,
 } from "@/lib/actions/tutor";
 import type { ExamListItem } from "@/lib/exams";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -87,6 +88,9 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
           onSaveTitle={(e, title) => act(() => renameExam(e.id, title))}
           onEditLabels={(e) => setToEditLabels(e)}
           onDelete={(e) => setToDelete(e)}
+          onDuplicate={(e) => act(() => duplicateExam(e.id))}
+          onArchive={(e) => act(() => setExamStatus(e.id, "archived"))}
+          onUnarchive={(e) => act(() => setExamStatus(e.id, "draft"))}
         />
       ) : (
         <div className="space-y-3">
@@ -107,6 +111,9 @@ export default function ExamManager({ exams }: { exams: ExamListItem[] }) {
                 onSaveTitle={(title) => act(() => renameExam(e.id, title))}
                 onEditLabels={() => setToEditLabels(e)}
                 onDelete={() => setToDelete(e)}
+                onDuplicate={() => act(() => duplicateExam(e.id))}
+                onArchive={() => act(() => setExamStatus(e.id, "archived"))}
+                onUnarchive={() => act(() => setExamStatus(e.id, "draft"))}
               />
             </div>
           ))}

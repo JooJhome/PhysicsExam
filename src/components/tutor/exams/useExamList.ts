@@ -22,7 +22,9 @@ function parse(sp: URLSearchParams) {
   return {
     filters: {
       status:
-        status === "published" || status === "draft" ? (status as StatusFilter) : "all",
+        status === "published" || status === "draft" || status === "archived"
+          ? (status as StatusFilter)
+          : "all",
       subject: sp.get("subject") ?? "",
       kind: sp.get("kind") === "practice" ? "practice" : "",
       q: sp.get("q") ?? "",
@@ -68,7 +70,10 @@ export function useExamList(exams: ExamListItem[]) {
   const list = useMemo(() => {
     const q = filters.q.trim().toLowerCase();
     const out = exams.filter((e) => {
-      if (filters.status !== "all" && e.status !== filters.status) return false;
+      // ค่าเริ่มต้น (all) ซ่อนชุดในคลัง — ดูได้เฉพาะเมื่อเลือก filter "คลัง"
+      if (filters.status === "all") {
+        if (e.status === "archived") return false;
+      } else if (e.status !== filters.status) return false;
       if (filters.kind === "practice" && e.kind !== "practice") return false;
       if (filters.subject && !e.subjects.includes(filters.subject)) return false;
       if (q && !`${e.title} ${e.code}`.toLowerCase().includes(q)) return false;

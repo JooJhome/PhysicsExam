@@ -1,6 +1,6 @@
 "use client";
 
-export type StatusFilter = "all" | "published" | "draft";
+export type StatusFilter = "all" | "published" | "draft" | "archived";
 
 /** subject = "" หมายถึงทั้งหมด (ไม่กรองวิชา) ; kind = "" หมายถึงทุกประเภท */
 export type Filters = { status: StatusFilter; subject: string; kind: "" | "practice"; q: string };
@@ -9,6 +9,7 @@ const STATUS_CHIPS: { key: StatusFilter; label: string }[] = [
   { key: "all", label: "ทั้งหมด" },
   { key: "published", label: "เผยแพร่แล้ว" },
   { key: "draft", label: "ฉบับร่าง" },
+  { key: "archived", label: "คลัง" },
 ];
 
 export default function FilterBar({

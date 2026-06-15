@@ -32,6 +32,9 @@ export default function ExamCard({
   onSaveTitle,
   onEditLabels,
   onDelete,
+  onDuplicate,
+  onArchive,
+  onUnarchive,
 }: {
   exam: ExamListItem;
   pending: boolean;
@@ -41,6 +44,9 @@ export default function ExamCard({
   onSaveTitle: (title: string) => void;
   onEditLabels: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
+  onArchive: () => void;
+  onUnarchive: () => void;
 }) {
   const [editingDuration, setEditingDuration] = useState(false);
   const [draft, setDraft] = useState(String(exam.durationMin));
@@ -84,7 +90,10 @@ export default function ExamCard({
       },
     },
     { kind: "button", label: "แก้ป้ายกำกับ", onClick: onEditLabels },
-    { kind: "soon", label: "คัดลอกชุด" },
+    { kind: "button", label: "คัดลอกชุด", onClick: onDuplicate },
+    exam.status === "archived"
+      ? { kind: "button", label: "เรียกคืนจากคลัง", onClick: onUnarchive }
+      : { kind: "button", label: "เก็บเข้าคลัง", onClick: onArchive },
     { kind: "button", label: "ลบชุดนี้", onClick: onDelete, danger: true },
   ];
 

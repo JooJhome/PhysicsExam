@@ -9,7 +9,7 @@ export type ExamListItem = {
   code: string;
   kind: ExamKind;
   subjects: string[]; // ป้ายกำกับ/หมวด หลายอันได้ (เช่น ["CU-ATS","TBAT"], ["ฟิสิกส์ ม.6"])
-  status: "draft" | "published";
+  status: "draft" | "published" | "archived";
   questionCount: number;
   durationMin: number;
   solutionVisible: boolean;
@@ -73,7 +73,7 @@ export async function getTutorExams(): Promise<ExamListItem[]> {
       code: e.exam_code,
       kind: (e.kind as ExamKind) ?? "exam",
       subjects,
-      status: e.status as "draft" | "published",
+      status: e.status as "draft" | "published" | "archived",
       questionCount: e.total_questions,
       durationMin: e.duration_minutes,
       solutionVisible: e.allow_review,
