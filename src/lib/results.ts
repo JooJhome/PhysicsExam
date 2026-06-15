@@ -35,7 +35,7 @@ export type ExamSummary = {
   total: number;
   avg: number | null;
   avgPercent: number | null;
-  distribution: number[]; // 5 ช่วง: 0-20,20-40,40-60,60-80,80-100 %
+  distribution: number[]; // 10 ช่วงละ 10%: 0-10,10-20,…,90-100 %
   submitted: number;
   assigned: number;
   passRate: number | null;
@@ -162,14 +162,14 @@ export async function getResults(): Promise<ResultsData> {
     .map((e) => {
       const subs = submittedAttempts.filter((a) => a.exam_id === e.id);
       const total = e.total_questions ?? 30;
-      const dist = [0, 0, 0, 0, 0];
+      const dist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 10 ช่วงละ 10%
       let sumPct = 0;
       let passCount = 0;
       const pass = e.passing_score ?? defaultPassingFor(total);
       for (const a of subs) {
         const pct = ((a.score ?? 0) / (a.total || total)) * 100;
         sumPct += pct;
-        const bucket = Math.min(4, Math.floor(pct / 20));
+        const bucket = Math.min(9, Math.floor(pct / 10));
         dist[bucket]++;
         if ((a.score ?? 0) >= pass) passCount++;
       }
