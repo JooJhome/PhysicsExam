@@ -25,6 +25,7 @@ export type SubmissionRow = {
   startedAt: string;
   effectivePassing: number;
   passed: boolean | null;
+  tutorFeedback: string | null;
 };
 
 export type ExamSummary = {
@@ -88,7 +89,7 @@ export async function getResults(): Promise<ResultsData> {
     supabase.from("assignments").select("exam_id, student_id"),
     supabase
       .from("attempts")
-      .select("id, exam_id, student_id, status, score, total, started_at, submitted_at")
+      .select("id, exam_id, student_id, status, score, total, started_at, submitted_at, tutor_feedback")
       .order("submitted_at", { ascending: false, nullsFirst: false })
       .order("started_at", { ascending: false }),
     supabase.from("groups").select("id, name").order("name"),
@@ -146,6 +147,7 @@ export async function getResults(): Promise<ResultsData> {
         startedAt: a.started_at,
         effectivePassing: pass,
         passed: a.status === "submitted" && a.score != null ? a.score >= pass : null,
+        tutorFeedback: (a as { tutor_feedback?: string | null }).tutor_feedback ?? null,
       };
     });
 

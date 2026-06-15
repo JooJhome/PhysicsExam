@@ -439,6 +439,29 @@ export async function deleteStudent(studentId: string): Promise<ActionResult> {
   }
 }
 
+/* ---------------- ฟีดแบ็กถึงนักเรียนต่อ attempt ---------------- */
+
+export async function saveAttemptFeedback(
+  examId: string,
+  studentId: string,
+  feedback: string
+): Promise<ActionResult> {
+  try {
+    const { supabase } = await assertTutor(); // RLS attempts_tutor_all ให้ tutor เขียนได้
+    const text = feedback.trim();
+    const { error } = await supabase
+      .from("attempts")
+      .update({ tutor_feedback: text || null })
+      .eq("exam_id", examId)
+      .eq("student_id", studentId);
+    if (error) return { ok: false, message: error.message };
+    revalidatePath("/tutor/results");
+    return { ok: true, message: text ? "บันทึกฟีดแบ็กแล้ว" : "ลบฟีดแบ็กแล้ว" };
+  } catch (err) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
 /* ---------------- โปรไฟล์/ตั้งค่าติวเตอร์ ---------------- */
 
 export async function updateTutorName(fullName: string): Promise<ActionResult> {
