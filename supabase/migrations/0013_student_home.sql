@@ -12,7 +12,7 @@ create or replace function public.list_student_exams()
 returns table (
   exam_id uuid, title text, exam_code text, description text, kind text,
   duration_minutes int, total_questions int, passing_score int,
-  status text, score int, total int, submitted_at timestamptz, started_at timestamptz,
+  score int, total int, submitted_at timestamptz, started_at timestamptz,
   attempt_status text, reviewed_at timestamptz, allow_review boolean,
   untimed boolean, open_at timestamptz, close_at timestamptz
 )

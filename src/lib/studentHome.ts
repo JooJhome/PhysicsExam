@@ -51,7 +51,6 @@ type Row = {
   duration_minutes: number;
   total_questions: number;
   passing_score: number | null;
-  status: string;
   score: number | null;
   total: number | null;
   submitted_at: string | null;
