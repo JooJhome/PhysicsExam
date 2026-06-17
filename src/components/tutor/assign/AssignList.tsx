@@ -13,10 +13,16 @@ import ExamAssignRow from "./ExamAssignRow";
 import AssignDrawer, { type UndoSnapshot } from "./AssignDrawer";
 
 type Lifecycle = "active" | "archived";
+type SortKey = "recent" | "name";
 
 const LIFECYCLE_CHIPS: { key: Lifecycle; label: string }[] = [
   { key: "active", label: "กำลังใช้" },
   { key: "archived", label: "คลัง" },
+];
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "recent", label: "ล่าสุด" },
+  { key: "name", label: "ชื่อ A–Z" },
 ];
 
 function chipClass(active: boolean) {
@@ -32,6 +38,7 @@ export default function AssignList({ data }: { data: AssignOverview }) {
   const [lifecycle, setLifecycle] = useState<Lifecycle>("active");
   const [subject, setSubject] = useState(""); // "" = ทุกป้าย
   const [practiceOnly, setPracticeOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>("recent");
   const [q, setQ] = useState("");
   const [detail, setDetail] = useState<ExamAssignmentDetail | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -47,7 +54,7 @@ export default function AssignList({ data }: { data: AssignOverview }) {
 
   const exams = useMemo(() => {
     const term = q.trim().toLowerCase();
-    return data.exams.filter((e) => {
+    const out = data.exams.filter((e) => {
       const archived = e.status === "archived";
       if (lifecycle === "archived" ? !archived : archived) return false;
       if (practiceOnly && e.kind !== "practice") return false;
@@ -55,7 +62,9 @@ export default function AssignList({ data }: { data: AssignOverview }) {
       if (term && !`${e.name} ${e.code}`.toLowerCase().includes(term)) return false;
       return true;
     });
-  }, [data.exams, lifecycle, practiceOnly, subject, q]);
+    if (sort === "name") out.sort((a, b) => a.name.localeCompare(b.name, "th"));
+    return out;
+  }, [data.exams, lifecycle, practiceOnly, subject, sort, q]);
 
   async function openDrawer(exam: AssignExam) {
     setLoadingId(exam.id);
@@ -84,23 +93,44 @@ export default function AssignList({ data }: { data: AssignOverview }) {
 
   return (
     <div className="mt-6 space-y-4">
-      {/* toolbar: search (flex-1) */}
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-        </span>
-        <input
-          type="search"
-          inputMode="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="ค้นหาชื่อชุดหรือรหัส"
-          aria-label="ค้นหาชุดสอบ"
-          className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-        />
+      {/* toolbar: search (flex-1) + sort */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+          </span>
+          <input
+            type="search"
+            inputMode="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="ค้นหาชื่อชุดหรือรหัส"
+            aria-label="ค้นหาชุดสอบ"
+            className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-base transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+          />
+        </div>
+        <label className="relative flex-none">
+          <span className="sr-only">เรียงลำดับ</span>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className="h-11 w-full cursor-pointer appearance-none rounded-xl border border-line bg-white pl-3.5 pr-9 text-sm font-semibold text-ink-soft transition-colors hover:border-brand-200 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:w-auto"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>
+                เรียง: {o.label}
+              </option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </label>
       </div>
 
       {/* filter chips — สถานะ (lifecycle) + ป้ายกำกับ dynamic (เหมือนหน้าข้อสอบ) */}
