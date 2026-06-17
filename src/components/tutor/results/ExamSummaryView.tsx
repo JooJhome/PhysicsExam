@@ -192,6 +192,17 @@ function ExamSummaryCard({
             </svg>
             ดูตัวอย่าง
           </Link>
+          <Link
+            href={`/tutor/exams/review/${exam.examId}`}
+            target="_blank"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas"
+          >
+            <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M9 11l3 3 8-8" />
+              <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" />
+            </svg>
+            ดูเฉลย
+          </Link>
           <button
             type="button"
             onClick={() => onOpenSurvey(exam.examId, exam.examCode)}

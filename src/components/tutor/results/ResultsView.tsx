@@ -16,6 +16,7 @@ type View = "submissions" | "exams" | "students";
 export default function ResultsView({ data }: { data: ResultsData }) {
   const router = useRouter();
   const [view, setView] = useState<View>("submissions");
+  const [examSort, setExamSort] = useState<"recent" | "name">("recent");
   const [q, setQ] = useState("");
   const [groupFilter, setGroupFilter] = useState<string>("all");
   const inGroup = (studentId: string) =>
@@ -47,6 +48,13 @@ export default function ResultsView({ data }: { data: ResultsData }) {
     [data.students, term, groupFilter]
   );
   const anomalies = data.exams.filter((e) => e.anomalyFlag);
+  const sortedExams = useMemo(
+    () =>
+      examSort === "name"
+        ? [...data.exams].sort((a, b) => a.examTitle.localeCompare(b.examTitle, "th"))
+        : data.exams,
+    [data.exams, examSort]
+  );
 
   function act(fn: () => Promise<{ ok: boolean; message: string }>) {
     startTransition(async () => {
@@ -174,13 +182,35 @@ export default function ResultsView({ data }: { data: ResultsData }) {
         />
       )}
       {view === "exams" && (
-        <ExamSummaryView
-          exams={data.exams}
-          pending={pending}
-          onSavePassing={(id, score) => act(() => setPassingScore(id, score))}
-          onOpenBreakdown={(id, code) => setBreakdown({ id, code })}
-          onOpenSurvey={(id, code) => setSurvey({ id, code })}
-        />
+        <>
+          {data.exams.length > 1 && (
+            <div className="flex justify-end">
+              <label className="relative">
+                <span className="sr-only">เรียงลำดับ</span>
+                <select
+                  value={examSort}
+                  onChange={(e) => setExamSort(e.target.value as "recent" | "name")}
+                  className="h-10 cursor-pointer appearance-none rounded-xl border border-line bg-white pl-3.5 pr-9 text-sm font-semibold text-ink-soft transition-colors hover:border-brand-200 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                >
+                  <option value="recent">เรียง: ล่าสุด</option>
+                  <option value="name">เรียง: ชื่อ A–Z</option>
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </span>
+              </label>
+            </div>
+          )}
+          <ExamSummaryView
+            exams={sortedExams}
+            pending={pending}
+            onSavePassing={(id, score) => act(() => setPassingScore(id, score))}
+            onOpenBreakdown={(id, code) => setBreakdown({ id, code })}
+            onOpenSurvey={(id, code) => setSurvey({ id, code })}
+          />
+        </>
       )}
       {view === "students" && (
         <StudentList rows={students} onOpen={(id) => setStudentDrill(id)} />
