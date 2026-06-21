@@ -48,7 +48,7 @@ export default function ExamCard({ exam }: { exam: StudentExamCard }) {
   }
 
   return (
-    <li className="flex flex-col rounded-[14px] border border-line bg-white p-5 shadow-card transition-shadow hover:shadow-lift">
+    <li className="flex flex-col rounded-[14px] border border-line bg-white p-4 shadow-card transition-all hover:border-brand-200 hover:shadow-lift motion-safe:hover:-translate-y-0.5">
       {/* header: tag + practice badge */}
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="rounded-full bg-brand-50 px-3 py-1 font-display text-xs font-bold tracking-wide text-brand-700">
@@ -79,17 +79,12 @@ export default function ExamCard({ exam }: { exam: StudentExamCard }) {
       </p>
 
       {/* แถบสถานะกลาง — ต่างกันตาม status */}
-      <div className="mt-3 min-h-[1.75rem]">
-        {/* not_started: ช่วงเวลา/deadline */}
-        {exam.status === "not_started" && exam.availabilityLabel && (
-          <span
-            className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-              exam.closed || exam.urgent ? "bg-red-50 text-red-600" : "bg-sand-100 text-ink-soft"
-            }`}
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            {exam.urgent && "⚠ "}
-            {exam.availabilityLabel}
+      <div className="mt-2.5 min-h-[1.75rem]">
+        {/* not_started: โชว์ป้ายเวลาเฉพาะเมื่อใกล้กำหนด (urgent) — ที่เหลือซ่อนไว้ ลด noise
+            (สถานะ "ยังไม่เปิด"/"ปิดรับแล้ว" สื่อผ่านปุ่มด้านล่างแล้ว) */}
+        {exam.status === "not_started" && exam.urgent && exam.availabilityLabel && (
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
+            <CalendarIcon className="h-3.5 w-3.5" />⚠ {exam.availabilityLabel}
           </span>
         )}
 
