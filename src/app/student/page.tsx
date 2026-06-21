@@ -2,7 +2,7 @@ import AppHeader from "@/components/AppHeader";
 import RefreshOnShow from "@/components/RefreshOnShow";
 import { getProfile } from "@/lib/profile";
 import { getStudentHome } from "@/lib/studentHome";
-import ProgressRing from "@/components/student/ProgressRing";
+import ProgressCard from "@/components/student/ProgressCard";
 import SortableExamGroup from "@/components/student/SortableExamGroup";
 import { Sparkle } from "@/components/Decor";
 
@@ -19,28 +19,29 @@ export default async function StudentHome() {
       <AppHeader title="BSIINK Physics" name={firstName} />
       <RefreshOnShow />
       <main className="mx-auto max-w-5xl px-4 pb-12 pt-6 sm:px-5">
-        {/* ── หัว + ความคืบหน้า ── */}
-        <section className="grid items-start gap-5 md:grid-cols-[1.5fr_1fr]">
-          <div className="relative motion-safe:animate-rise-in">
-            <Sparkle className="absolute -left-2 -top-4 h-5 w-5 text-accent-400" />
-            <h1 className="font-display text-h1 font-extrabold leading-tight text-ink">
-              สวัสดี {firstName} <span className="align-middle">👋</span>
-            </h1>
-            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink-soft">
-              เลือกชุดที่อยากทำได้เลย · <b className="text-ink">กดเริ่มแล้วเวลาจะเดินทันที และทำได้ครั้งเดียว</b>
-            </p>
-          </div>
-
-          {home.assignedCount > 0 && (
-            <div className="motion-safe:animate-rise-in [animation-delay:90ms]">
-              <ProgressRing
-                doneCount={home.doneCount}
-                assignedCount={home.assignedCount}
-                percent={home.percent}
-              />
-            </div>
-          )}
+        {/* ── หัวทักทาย ── */}
+        <section className="relative motion-safe:animate-rise-in">
+          <Sparkle className="absolute -left-2 -top-4 h-5 w-5 text-accent-400" />
+          <h1 className="font-display text-h1 font-extrabold leading-tight text-ink">
+            สวัสดี {firstName} <span className="align-middle">👋</span>
+          </h1>
+          <p className="mt-3 max-w-md text-[15px] leading-relaxed text-ink-soft">
+            เลือกชุดที่อยากทำได้เลย · <b className="text-ink">กดเริ่มแล้วเวลาจะเดินทันที และทำได้ครั้งเดียว</b>
+          </p>
         </section>
+
+        {/* ── ความคืบหน้า (เปิดหัวด้วยภาพรวม — Progress-forward) ── */}
+        {home.assignedCount > 0 && (
+          <div className="mt-6 motion-safe:animate-rise-in [animation-delay:90ms]">
+            <ProgressCard
+              doneCount={home.doneCount}
+              assignedCount={home.assignedCount}
+              percent={home.percent}
+              avgPct={home.avgPct}
+              passedCount={home.passedCount}
+            />
+          </div>
+        )}
 
         {!hasAny ? (
           <div className="mt-10 rounded-2xl border border-dashed border-line bg-white/60 px-6 py-16 text-center">
@@ -50,9 +51,13 @@ export default async function StudentHome() {
           </div>
         ) : (
           <>
-            {/* ── ต้องทำ ── */}
+            {/* ── ต้องทำ (ดึงชุดถัดไปเป็นการ์ดเด่นบนสุด) ── */}
             {home.todo.length > 0 && (
-              <SortableExamGroup title="ต้องทำ" exams={home.todo} />
+              <SortableExamGroup
+                title="ต้องทำ"
+                exams={home.todo}
+                nextExamId={home.nextExamId}
+              />
             )}
 
             {/* ── ทำเสร็จแล้ว ── */}

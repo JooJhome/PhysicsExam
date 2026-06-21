@@ -41,6 +41,9 @@ export type StudentHomeData = {
   doneCount: number;
   assignedCount: number;
   percent: number;
+  avgPct: number | null; // เฉลี่ย % จากชุดที่ทำเสร็จ (exam เท่านั้น) — null = ยังไม่มี
+  passedCount: number; // จำนวนชุด exam ที่ผ่านเกณฑ์
+  nextExamId: string | null; // ชุดที่แนะนำให้ทำต่อ (ใกล้กำหนด/ทำค้าง) — ไฮไลต์เป็นการ์ดเด่น
 };
 
 type Row = {
@@ -105,7 +108,7 @@ function normalize(r: Row, now: number): StudentExamCard {
   const urgent =
     !!deadline &&
     !closed &&
-    new Date(deadline).getTime() - now < DAY_MS &&
+    new Date(deadline).getTime() - now < 3 * DAY_MS && // ใกล้กำหนด ≤ 3 วัน
     status !== "submitted";
 
   // ป้ายช่วงวัน — โชว์เฉพาะวัน (ไม่โชว์เวลา) + บอกทั้งวันเปิดและวันปิด
@@ -211,8 +214,29 @@ export async function getStudentHome(): Promise<StudentHomeData> {
   // ความคืบหน้า = เฉพาะชุดสอบ (exam) — แบบฝึกหัดทำซ้ำได้ ไม่นับเป็น "เสร็จ"
   const gradedCards = cards.filter((c) => c.kind === "exam");
   const assignedCount = gradedCards.length;
-  const doneCount = gradedCards.filter((c) => c.status === "submitted").length;
+  const doneExams = gradedCards.filter((c) => c.status === "submitted");
+  const doneCount = doneExams.length;
   const percent = assignedCount ? Math.round((doneCount / assignedCount) * 100) : 0;
 
-  return { todo, done, doneCount, assignedCount, percent };
+  // เฉลี่ย/ผ่าน — คิดจากชุด exam ที่ทำเสร็จเท่านั้น (ข้อมูลมาจาก normalize ไม่แตะ answer key)
+  const pcts = doneExams.map((c) => c.percent).filter((p): p is number => p != null);
+  const avgPct = pcts.length ? Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length) : null;
+  const passedCount = doneExams.filter((c) => c.passed === true).length;
+
+  // ชุดถัดไปที่แนะนำให้ทำ — ตัวแรกใน todo (เรียงใกล้ deadline/ทำค้างก่อน) ที่เริ่มได้จริง
+  // เลือก exam ก่อน แล้วค่อย fallback เป็นแบบฝึกหัด
+  const startable = (c: StudentExamCard) => !c.closed && !c.notYetOpen;
+  const nextCard =
+    todo.find((c) => c.kind === "exam" && startable(c)) ?? todo.find(startable) ?? null;
+
+  return {
+    todo,
+    done,
+    doneCount,
+    assignedCount,
+    percent,
+    avgPct,
+    passedCount,
+    nextExamId: nextCard ? nextCard.examId : null,
+  };
 }
