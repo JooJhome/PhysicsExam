@@ -36,7 +36,8 @@ export type ExamSummary = {
   total: number;
   avg: number | null;
   avgPercent: number | null;
-  distribution: number[]; // 10 ช่วงละ 10%: 0-10,10-20,…,90-100 %
+  distribution: number[]; // 10 ช่วงละ 10%: 0-10,10-20,…,90-100 % (คงไว้เผื่อใช้ที่อื่น)
+  scores: number[]; // คะแนนดิบรายคน (เฉพาะที่ส่งแล้ว) — สำหรับ dot plot
   submitted: number;
   assigned: number;
   passRate: number | null;
@@ -216,6 +217,7 @@ export async function getResults(): Promise<ResultsData> {
         avg: subs.length ? Math.round((sumPct / subs.length / 100) * total) : null,
         avgPercent,
         distribution: dist,
+        scores: subs.map((a) => a.score ?? 0),
         submitted: subs.length,
         assigned: assignedBy.get(e.id) ?? 0,
         passRate: subs.length ? Math.round((passCount / subs.length) * 100) : null,

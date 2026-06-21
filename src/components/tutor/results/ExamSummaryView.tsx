@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ExamSummary } from "@/lib/results";
+import ScoreDotPlot from "./ScoreDotPlot";
 
 export default function ExamSummaryView({
   exams,
@@ -17,21 +18,40 @@ export default function ExamSummaryView({
   onOpenBreakdown: (examId: string, examCode: string) => void;
   onOpenSurvey: (examId: string, examCode: string) => void;
 }) {
-  if (exams.length === 0) {
-    return <Empty />;
-  }
+  if (exams.length === 0) return <Empty />;
+
+  // จัดลำดับตามการมีข้อมูลจริง: ชุดที่มีการส่งลอยขึ้นบน · ชุดที่ยังว่างยุบเป็นแถว
+  const active = exams.filter((e) => e.submitted > 0);
+  const empty = exams.filter((e) => e.submitted === 0);
+
   return (
     <div className="space-y-3">
-      {exams.map((e) => (
-        <ExamSummaryCard
-          key={e.examId}
-          exam={e}
-          pending={pending}
-          onSavePassing={onSavePassing}
-          onOpenBreakdown={onOpenBreakdown}
-          onOpenSurvey={onOpenSurvey}
-        />
-      ))}
+      {active.length > 0 && (
+        <>
+          <SectionHeader label={`มีการส่งแล้ว · ${active.length} ชุด`} />
+          {active.map((e) => (
+            <ExamSummaryCard
+              key={e.examId}
+              exam={e}
+              pending={pending}
+              onSavePassing={onSavePassing}
+              onOpenBreakdown={onOpenBreakdown}
+              onOpenSurvey={onOpenSurvey}
+            />
+          ))}
+        </>
+      )}
+
+      {empty.length > 0 && <EmptyGroup exams={empty} />}
+    </div>
+  );
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 pt-1 text-sm font-semibold text-muted">
+      <span className="whitespace-nowrap">{label}</span>
+      <span className="h-px flex-1 bg-line" />
     </div>
   );
 }
@@ -51,7 +71,6 @@ function ExamSummaryCard({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(exam.passingScore));
-  const maxBucket = Math.max(1, ...exam.distribution);
 
   function commit() {
     setEditing(false);
@@ -97,25 +116,8 @@ function ExamSummaryCard({
         </button>
       )}
 
-      {/* การกระจายคะแนน — 10 แท่ง ช่วงละ 10% */}
-      <div className="mt-4 flex items-end gap-1">
-        {exam.distribution.map((count, i) => (
-          <div key={i} className="flex flex-1 flex-col items-center gap-1">
-            <span className="font-display text-[10px] font-bold tabular-nums text-ink-soft">
-              {count > 0 ? count : ""}
-            </span>
-            <div className="flex h-16 w-full items-end">
-              <div
-                className="w-full rounded-t bg-brand-200"
-                style={{ height: `${(count / maxBucket) * 100}%` }}
-                title={`${i * 10}–${i * 10 + 10}% · ${count} คน`}
-              />
-            </div>
-            <span className="text-[9px] tabular-nums text-hint sm:text-[10px]">{i * 10}</span>
-          </div>
-        ))}
-        <span className="self-end pb-4 text-[9px] tabular-nums text-hint sm:text-[10px]">100</span>
-      </div>
+      {/* การกระจายคะแนน — dot plot ระดับคะแนนดิบ (หน่วยเดียวกับเกณฑ์ผ่าน) */}
+      <ScoreDotPlot scores={exam.scores} totalScore={exam.total} passingScore={exam.passingScore} />
 
       {/* สรุปรายกลุ่ม — เทียบห้อง A vs B */}
       {exam.groupStats.length > 0 && (
@@ -180,29 +182,9 @@ function ExamSummaryCard({
             </button>
           )}
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Link
-            href={`/tutor/exams/preview/${exam.examId}`}
-            target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas"
-          >
-            <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            ดูตัวอย่าง
-          </Link>
-          <Link
-            href={`/tutor/exams/review/${exam.examId}`}
-            target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas"
-          >
-            <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M9 11l3 3 8-8" />
-              <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" />
-            </svg>
-            ดูเฉลย
-          </Link>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <PreviewLink examId={exam.examId} />
+          <ReviewLink examId={exam.examId} />
           <button
             type="button"
             onClick={() => onOpenSurvey(exam.examId, exam.examCode)}
@@ -220,6 +202,98 @@ function ExamSummaryCard({
         </div>
       </div>
     </article>
+  );
+}
+
+/** กลุ่มชุดที่ยังไม่มีการส่ง — ยุบเป็นแถวกระชับ พับ/กางได้ (ลดการเลื่อนยาวโดยเปล่าประโยชน์) */
+function EmptyGroup({ exams }: { exams: ExamSummary[] }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="pt-3">
+      <div className="flex items-center gap-3 text-sm font-semibold text-muted">
+        <span className="whitespace-nowrap">ยังไม่มีการส่ง · {exams.length} ชุด</span>
+        <span className="h-px flex-1 bg-line" />
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-semibold text-ink-soft transition-colors hover:border-brand-200 hover:text-brand-700"
+        >
+          {open ? "ซ่อน" : "แสดง"}
+        </button>
+      </div>
+
+      {open && (
+        <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+          {exams.map((e) => (
+            <ResultRowEmpty key={e.examId} exam={e} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResultRowEmpty({ exam }: { exam: ExamSummary }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3 first:border-t-0">
+      <span className="font-display text-sm font-bold text-ink">{exam.examTitle}</span>
+      <span className="rounded-full bg-brand-50 px-2.5 py-0.5 font-display text-xs font-bold text-brand-700">
+        {exam.examCode}
+      </span>
+      <span className="min-w-0 flex-1 text-sm text-hint">
+        ส่งแล้ว 0/{exam.assigned} คน · ยังไม่มีการส่ง
+      </span>
+      <span className="text-xs text-muted">
+        เกณฑ์ {exam.passingScore}/{exam.total}
+      </span>
+      <div className="flex flex-none gap-1.5">
+        <PreviewLink examId={exam.examId} compact />
+        <ReviewLink examId={exam.examId} compact />
+        <span
+          title="วิเคราะห์ได้เมื่อมีการส่ง"
+          className="cursor-not-allowed rounded-lg border border-line px-2.5 py-1 text-xs font-medium text-hint opacity-60"
+        >
+          วิเคราะห์รายข้อ
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PreviewLink({ examId, compact = false }: { examId: string; compact?: boolean }) {
+  return (
+    <Link
+      href={`/tutor/exams/preview/${examId}`}
+      target="_blank"
+      className={`inline-flex items-center gap-1.5 rounded-lg border border-line font-semibold text-ink-soft transition-colors hover:bg-canvas ${
+        compact ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm"
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      ดูตัวอย่าง
+    </Link>
+  );
+}
+
+function ReviewLink({ examId, compact = false }: { examId: string; compact?: boolean }) {
+  return (
+    <Link
+      href={`/tutor/exams/review/${examId}`}
+      target="_blank"
+      className={`inline-flex items-center gap-1.5 rounded-lg border border-line font-semibold text-ink-soft transition-colors hover:bg-canvas ${
+        compact ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm"
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M9 11l3 3 8-8" />
+        <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" />
+      </svg>
+      ดูเฉลย
+    </Link>
   );
 }
 
