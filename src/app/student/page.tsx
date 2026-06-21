@@ -3,7 +3,7 @@ import RefreshOnShow from "@/components/RefreshOnShow";
 import { getProfile } from "@/lib/profile";
 import { getStudentHome } from "@/lib/studentHome";
 import ProgressRing from "@/components/student/ProgressRing";
-import ExamCard from "@/components/student/ExamCard";
+import SortableExamGroup from "@/components/student/SortableExamGroup";
 import { Sparkle } from "@/components/Decor";
 
 export const dynamic = "force-dynamic";
@@ -52,48 +52,16 @@ export default async function StudentHome() {
           <>
             {/* ── ต้องทำ ── */}
             {home.todo.length > 0 && (
-              <Group title="ต้องทำ" count={home.todo.length}>
-                {home.todo.map((e) => (
-                  <ExamCard key={e.examId} exam={e} />
-                ))}
-              </Group>
+              <SortableExamGroup title="ต้องทำ" exams={home.todo} />
             )}
 
             {/* ── ทำเสร็จแล้ว ── */}
             {home.done.length > 0 && (
-              <Group title="ทำเสร็จแล้ว" count={home.done.length} muted>
-                {home.done.map((e) => (
-                  <ExamCard key={e.examId} exam={e} />
-                ))}
-              </Group>
+              <SortableExamGroup title="ทำเสร็จแล้ว" exams={home.done} muted />
             )}
           </>
         )}
       </main>
     </>
-  );
-}
-
-function Group({
-  title,
-  count,
-  muted = false,
-  children,
-}: {
-  title: string;
-  count: number;
-  muted?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-9">
-      <div className="flex items-baseline gap-2">
-        <h2 className={`font-display text-xl font-extrabold ${muted ? "text-muted" : "text-ink"}`}>
-          {title}
-        </h2>
-        <span className="text-sm text-muted">· {count} ชุด</span>
-      </div>
-      <ul className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{children}</ul>
-    </section>
   );
 }
